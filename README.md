@@ -23,8 +23,8 @@ compare the performance of every algorithm-hyperparameter configuration in a nes
 You can execute this step as follows: ```python algorithm_selection.py -pois_csv_name <csv containing poi information> -results_file_name <desired name of the csv to contain the metric results per fold> -hyperparameter_file_name <desired name of the file to contain the hyperparameter space that was searched>```.
 
 The last two arguments are optional and their values are defaulted to:
-* classification_report_<timestamp> and 
-* hyperparameters_per_fold_<timestamp>
+* classification_report_&lt*timestamp&gt* and 
+* hyperparameters_per_fold_&lt*timestamp&gt*
 
 **Algorithm tuning**: The purpose of this step is to further tune the specific algorithm that was chosen in step 1 by comparing its performance while altering the hyperparameters with which it is being configured. This step outputs the hyperparameter selection corresponding to the best model.
 
@@ -32,7 +32,7 @@ You can execute this step as follows: ```python finetune_best_clf.py -pois_csv_n
 
 The last argument is optional and its value is defaulted to: 
 
-* best_hyperparameters_<timestamp>
+* best_hyperparameters_&lt*timestamp&gt*
 
 **Model training on a specific training set**: This step handles the training of the final model on an entire dataset, so that it can be used in future cases. It outputs a pickle file in which the model is stored.
 
@@ -42,8 +42,8 @@ You can execute this step as follows: ```python export_best_model.py -pois_csv_n
 
 The output .csv file will contain the k most probable predictions regarding the category of each POI. If no arguments for k and output_csv are given, their values are defaulted to:
 * k = 5, 
-* output_csv = top_k_predictions_<timestamp>.csv and 
-* model_file = <name of the latest produced pickle file in the working directory>.
+* output_csv = top_k_predictions_&lt*timestamp*&gt.csv and 
+* model_file = &lt*name of the latest produced pickle file in the working directory*&gt.
 
 ## Use case: Yelp dataset
 
