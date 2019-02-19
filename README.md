@@ -23,27 +23,38 @@ compare the performance of every algorithm-hyperparameter configuration in a nes
 You can execute this step as follows: ```python algorithm_selection.py -pois_csv_name <csv containing poi information> -results_file_name <desired name of the csv to contain the metric results per fold> -hyperparameter_file_name <desired name of the file to contain the hyperparameter space that was searched>```.
 
 The last two arguments are optional and their values are defaulted to:
-* classification_report_&lt*timestamp&gt* and 
-* hyperparameters_per_fold_&lt*timestamp&gt*
+* classification_report_*category level*_*timestamp*, and 
+* hyperparameters_per_fold_*category level*_*timestamp*
+
+correspondingly
 
 **Algorithm tuning**: The purpose of this step is to further tune the specific algorithm that was chosen in step 1 by comparing its performance while altering the hyperparameters with which it is being configured. This step outputs the hyperparameter selection corresponding to the best model.
 
-You can execute this step as follows: ```python finetune_best_clf.py -pois_csv_name <csv containing poi information> -best_hyperparameter_file_name <desired name of the file to contain the best hyperparameters that were selected for the best algorithm of step 1>```.
+You can execute this step as follows: ```python finetune_best_clf.py -pois_csv_name <csv containing poi information> -best_hyperparameter_file_name <desired name of the file to contain the best hyperparameters that were selected for the best algorithm of step 1> -best_clf_file_name <file containing the name of the best classifier>```.
 
-The last argument is optional and its value is defaulted to: 
+All arguments except pois_csv_name are optional and their values are defaulted to:
 
-* best_hyperparameters_&lt*timestamp&gt*
+* best_hyperparameters_*category level*_*timestamp*.csv
+* the latest file with the *best_clf_* prefix
 
 **Model training on a specific training set**: This step handles the training of the final model on an entire dataset, so that it can be used in future cases. It outputs a pickle file in which the model is stored.
 
-You can execute this step as follows: ```python export_best_model.py -pois_csv_name <csv containing poi information>```.
+You can execute this step as follows: ```python export_best_model.py -pois_csv_name <csv containing poi information> -best_hyperparameter_file_name <csv containing best hyperparameter configuration for the classifier -best_clf_file_name <file containing the name of the best classifier> -trained_model_file_name <name of file where model must be exported>```.
 
-**Predictions on novel data**: This step can be executed as: ```python export_predictions.py -pois_csv <csv containing poi information> -k <desired number of predicted categories per poi> -output_csv <desired name of the output csv> -model_file <pickle file containing an already trained model>```
+All arguments except pois_csv_name are optional and their values are defaulted to:
+
+* the latest file with the *best_hyperparameters_* prefix
+* the latest file with the best_clf_* prefix
+* trained_model_*level*_*timestamp*.pkl
+
+correspondingly.
+
+**Predictions on novel data**: This step can be executed as: ```python export_predictions.py -pois_csv <csv containing poi information> -k <desired number of predicted categories per poi> -results_file_name <desired name of the output csv> -trained_model_file_name <pickle file containing an already trained model>```
 
 The output .csv file will contain the k most probable predictions regarding the category of each POI. If no arguments for k and output_csv are given, their values are defaulted to:
 * k = 5, 
-* output_csv = top_k_predictions_&lt*timestamp*&gt.csv and 
-* model_file = &lt*name of the latest produced pickle file in the working directory*&gt.
+* output_csv = top_k_predictions_*timestamp*.csv and 
+* trained_model_file_name = *name of the latest produced pickle file in the working directory*.
 
 ## Use case: Yelp dataset
 
