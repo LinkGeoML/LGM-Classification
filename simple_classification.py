@@ -64,6 +64,7 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 		
 		top_k_error = float(count) / float(X_test.shape[0])
 		top_k_errors.append(top_k_error)
+		count = 0
 	#print("top_k_error: {0}".format(top_k_error))
 	
 	return top_k_errors, baseline_accuracy, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro')
@@ -221,6 +222,11 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	top_k_errors = [[] for _ in range(0, len(config.initialConfig.k_error))]
 	for item in clf_scores_dict:
 		clf_scores_dict[item] = [[], [], []]
+	
+	clf_k_error_scores_dict = dict.fromkeys(clf_names)
+	for item in clf_k_error_scores_dict:
+		clf_k_error_scores_dict[item] = [[] for _ in range(len(config.initialConfig.k_error))] 
+	
 	report_data = []
 	hyperparams_data = []
 	
@@ -272,6 +278,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			for k, top_k_error in zip(config.initialConfig.k_error, top_k_error_list):
 				row['Top-{0} Accuracy'.format(k)] = top_k_error
 				top_k_errors[i].append(top_k_error)
+				clf_k_error_scores_dict[clf_name][i].append(top_k_error)
 				i += 1
 			row['Accuracy'] = accuracy
 			row['F1-Score-Micro'] = f1_score_micro
@@ -295,11 +302,11 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		row['Classifier'] = clf_name
 		row['Accuracy'] = sum(map(float,clf_scores_dict[clf_name][0])) / 5.0 
 		i = 0
-		for k, top_k_error in zip(config.initialConfig.k_error, top_k_error_list):
-			row['Top-{0} Accuracy'.format(k)] = sum(map(float,top_k_errors[i])) / 5.0
+		for k in config.initialConfig.k_error:
+			row['Top-{0} Accuracy'.format(k)] = sum(map(float, clf_k_error_scores_dict[clf_name][i])) / 5.0
 			i += 1
 		#row['Top-k Accuracy'] = sum(map(float,top_k_errors)) / 5.0
-		row['Baseline Accuracy'] = sum(map(float,baseline_scores)) / 5.0
+		row['Baseline Accuracy'] = sum(map(float,baseline_scores)) / 40.0
 		row['F1-Score-Micro'] = sum(map(float,clf_scores_dict[clf_name][1])) / 5.0
 		row['F1-Score-Macro'] = sum(map(float,clf_scores_dict[clf_name][2])) / 5.0
 		report_data.append(row)
@@ -347,8 +354,8 @@ def main():
 		help="desired name of output file")
 	ap.add_argument("-hyperparameter_file_name", "--hyperparameter_file_name", required=False,
 		help="desired name of output file")
-	ap.add_argument("-retrain_csv_file_name", "--retrain", required=False,
-		help="name of csv containing the dataset you want to retrain the algorithm on")
+	#ap.add_argument("-retrain_csv_file_name", "--retrain", required=False,
+	#	help="name of csv containing the dataset you want to retrain the algorithm on")
 
 	args = vars(ap.parse_args())
 	

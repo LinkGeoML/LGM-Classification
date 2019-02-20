@@ -44,11 +44,11 @@ class initialConfig:
 	# level names that we want to be considered )
 	# x (the longitude of the poi), y (the latitude of the poi)
 	
-	#poi_id = "poi_id"
-	poi_id = "id"
+	poi_id = "poi_id"
+	#poi_id = "id"
 	name = "name"
-	class_codes = ["class_name"]
-	#class_codes = ["theme", "class_name", "subclass_n"]
+	#class_codes = ["class_name"]
+	class_codes = ["theme", "class_name", "subclass_n"]
 	x = "x"
 	y = "y"
 	
@@ -92,8 +92,8 @@ class initialConfig:
 	# This parameter refers to the category levels to be predicted.
 	# If level is equal to None, the experiments will be run for
 	# all category levels, one at a time.
-	#level = [1, 2]
-	level = [1]
+	level = [1, 2]
+	#level = [1]
 	
 	# This parameter refers to the desired numbers of the top k most probable
 	# predictions to be taken into account for computing the top-k accuracies.
@@ -111,5 +111,5 @@ class initialConfig:
 	# If osmnx_bbox is set to False then osmnx_placename must be set to a string
 	# that corresponds to the name of the place that we want its street data to
 	# be included in the feature extraction process.
-	#osmnx_placename = "Marousi, Athens, Greece"
-	osmnx_placename = "Las Vegas"
+	osmnx_placename = "Marousi, Athens, Greece"
+	#osmnx_placename = "Las Vegas, Nevada"

@@ -66,6 +66,7 @@ def get_corpus(ids, conn, args, n_grams = False, n_grams_tokens = False):
 	#is_in_ids = df['poi_id'] in ids
 	is_in_ids = []
 	all_ids = df[config.initialConfig.poi_id]
+	all_ids = list(all_ids)
 	for id in all_ids:
 		if id in ids:
 			is_in_ids.append(True)
@@ -139,6 +140,7 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k):
 	#is_in_ids = df['poi_id'] in ids
 	is_in_ids = []
 	all_ids = df[config.initialConfig.poi_id]
+	all_ids = list(all_ids)
 	for id in all_ids:
 		if id in ids:
 			is_in_ids.append(True)
@@ -221,6 +223,7 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 	#is_in_ids = df['poi_id'] in ids
 	is_in_ids = []
 	all_ids = df[config.initialConfig.poi_id]
+	all_ids = list(all_ids)
 	for id in all_ids:
 		if id in ids:
 			is_in_ids.append(True)

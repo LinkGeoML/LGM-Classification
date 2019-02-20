@@ -81,9 +81,8 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	# Shuffle ids
 	poi_ids = poi_ids[config.initialConfig.poi_id]
 	random.shuffle(poi_ids)
-	
-	kf = KFold(n_splits = config.initialConfig.k_fold_parameter)
-	
+	poi_ids = list(poi_ids)
+		
 	X_test, y_test = get_train_set(conn, args, poi_ids)
 		
 	most_common_classes = find_10_most_common_classes_train(y_test)

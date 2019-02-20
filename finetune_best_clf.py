@@ -236,8 +236,8 @@ def main():
 		help="name of table containing pois information")
 	ap.add_argument("-pois_csv_name", "--pois_csv_name", required=False,
 		help="name of csv containing pois information")
-	ap.add_argument("-results_file_name", "--results_file_name", required=False,
-		help="desired name of best hyperparameter file")
+	#ap.add_argument("-results_file_name", "--results_file_name", required=False,
+	#	help="desired name of best hyperparameter file")
 	ap.add_argument("-best_hyperparameter_file_name", "--best_hyperparameter_file_name", required=False,
 		help="desired name of best hyperparameter file")
 	ap.add_argument("-best_clf_file_name", "--best_clf_file_name", required=False,
@@ -251,6 +251,7 @@ def main():
 	# call the appropriate function to connect to the database
 	conn = connect_to_db()
 	
+	"""
 	if args['best_clf_file_name'] is not None:
 		with open(args['best_clf_file_name']) as f:
 			args['best_clf'] = f.readline()
@@ -261,6 +262,30 @@ def main():
 			args['best_clf'] = f.readline()
 			
 	args['best_clf'] = args['best_clf'].rstrip()
+	"""
+	if args['best_clf_file_name'] is not None:
+		#with open(args['best_clf_file_name']) as f:
+		#	args['best_clf'] = f.readline()
+		input_file = csv.DictReader(open(args['best_clf_file_name']))
+		with open(input_file, 'r') as csv_file:
+			reader = csv.reader(csv_file)
+			count = 0
+			for row in reader:
+				if count == 1:
+					args['best_clf'] = row[0]
+				count += 1
+	else:
+		list_of_files = glob.glob('best_clf_*')
+		input_file = max(list_of_files, key=os.path.getctime)
+		with open(input_file, 'r') as csv_file:
+			reader = csv.reader(csv_file)
+			count = 0
+			for row in reader:
+				if count == 1:
+					args['best_clf'] = row[0]
+				count += 1
+			
+	#print(args['best_clf'])
 	
 	# get the poi ids
 	if config.initialConfig.level == None:

@@ -152,6 +152,8 @@ def get_train_test_sets(conn, args, poi_ids_train, poi_ids_test):
 	
 def get_train_set(conn, args, poi_ids):
 	
+	#print(len(poi_ids))
+	
 	# we build a dictionary containing the poi ids as keys
 	# and we map to it its x, y coordinates
 	if args["pois_tbl_name"] is not None:
@@ -168,7 +170,7 @@ def get_train_set(conn, args, poi_ids):
 	# we encode them so we can have a more compact representation of them
 	poi_id_to_encoded_labels_dict, encoded_labels_set = get_poi_id_to_encoded_labels_dict(class_codes_set, poi_id_to_class_code_coordinates_dict)
 	#print(encoded_labels_set)
-	
+	#print(poi_id_to_encoded_labels_dict)
 	y_train = []
 	
 	X_train = []
@@ -182,11 +184,16 @@ def get_train_set(conn, args, poi_ids):
 		y_train.append(poi_id_to_encoded_labels_dict[poi_id][0][0])
 		
 	y_train = np.asarray(y_train)
+	#print(y_train)
 	
+	#print(y_train.shape[0])
+	#print(len(poi_ids))
 	poi_id_to_class_centroid_similarities_train, encoded_labels_corpus_train = get_poi_id_to_class_centroid_similarities(poi_ids, poi_id_to_class_code_coordinates_dict, encoded_labels_set, conn, args, [])
 	poi_id_to_word_features_ngrams = get_features_top_k_ngrams(poi_ids, conn, args, config.initialConfig.top_k_character_ngrams_percentage)
 	poi_id_to_word_features = get_features_top_k(poi_ids, conn, args, config.initialConfig.top_k_terms_percentage)
 	poi_id_to_word_features_ngrams_tokens = get_features_top_k_ngrams_tokens(poi_ids, conn, args, config.initialConfig.top_k_terms_percentage)
+	
+	print(poi_id_to_class_centroid_similarities_train, poi_id_to_word_features_ngrams, poi_id_to_word_features, poi_id_to_word_features_ngrams_tokens)
 	
 	if args["pois_tbl_name"] is not None: 
 		closest_pois_boolean_and_counts_per_label = get_closest_pois_boolean_and_counts_per_label(poi_ids, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
@@ -195,6 +202,7 @@ def get_train_set(conn, args, poi_ids):
 		closest_pois_boolean_and_counts_per_label = get_closest_pois_boolean_and_counts_per_label_csv(poi_ids, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
 		closest_pois_boolean_and_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets_csv(poi_ids, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
 	
+	#print(closest_pois_boolean_and_counts_per_label_streets)
 	count = 0
 	for poi_id in poi_ids:
 		#print(poi_id_to_class_centroid_similarities_train[poi_id])
