@@ -15,6 +15,7 @@ LGM-Classification is a python library implementing a full Machine LEarning work
 * psycopg2
 * osmnx
 * shapely
+* argparse
 
 ## Instructions
 In order for the library to function the user must provide it with a .csv file containing a collection of POI details. More specifically, the .csv file must at least contain specific poi information that correspond to the following:
