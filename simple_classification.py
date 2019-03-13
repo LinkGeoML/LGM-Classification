@@ -58,7 +58,8 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	top_k_errors = []
 	for k in config.initialConfig.k_error:
 		for i in range(0, X_test.shape[0]):
-			top_k_classes = best_k_probs[:k]
+			top_k_classes = best_k_probs[i][:k]
+			#print(best_k_probs[i][:k], y_test[i])
 			if y_test[i] in top_k_classes:
 				count += 1
 		
@@ -268,6 +269,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			
 			#score = clf.score(X_test, y_test)
 			top_k_error_list, baseline_accuracy, accuracy, f1_score_micro, f1_score_macro = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf)
+			print(top_k_error_list)
 			clf_scores_dict[clf_name][0].append(accuracy)
 			clf_scores_dict[clf_name][1].append(f1_score_micro)
 			clf_scores_dict[clf_name][2].append(f1_score_macro)
@@ -277,6 +279,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			i = 0
 			for k, top_k_error in zip(config.initialConfig.k_error, top_k_error_list):
 				row['Top-{0} Accuracy'.format(k)] = top_k_error
+				print(clf_name, k, top_k_error)
 				top_k_errors[i].append(top_k_error)
 				clf_k_error_scores_dict[clf_name][i].append(top_k_error)
 				i += 1

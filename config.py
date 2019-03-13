@@ -92,7 +92,8 @@ class initialConfig:
 	# This parameter refers to the category levels to be predicted.
 	# If level is equal to None, the experiments will be run for
 	# all category levels, one at a time.
-	level = [1, 2]
+	#level = [1, 2]
+	level = [2]
 	#level = [1]
 	
 	# This parameter refers to the desired numbers of the top k most probable
