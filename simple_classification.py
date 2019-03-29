@@ -31,6 +31,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
 
+from numpy import genfromtxt
+
 import datetime
 
 import config
@@ -47,6 +49,13 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	#print("Baseline accuracy: {0}", format(float(top_class_count) / float(y_test.shape[0])))
 	baseline_accuracy = float(top_class_count) / float(y_test.shape[0])
 	y_pred = clf.predict(X_test)	
+	print(y_pred)
+	
+	baseline_preds = np.ones(X_test.shape[0], dtype=int)
+	print(baseline_preds.shape)
+	baseline_preds = baseline_preds * most_common_classes[0]
+	print(baseline_preds)
+	baseline_f_score = f1_score(y_test, baseline_preds, average='weighted')
 	
 	#print(X_test.shape)
 	probs = clf.predict_proba(X_test)
@@ -58,8 +67,8 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	top_k_errors = []
 	for k in config.initialConfig.k_error:
 		for i in range(0, X_test.shape[0]):
-			top_k_classes = best_k_probs[i][:k]
-			#print(best_k_probs[i][:k], y_test[i])
+			top_k_classes = best_k_probs[i][-k:]
+			print(best_k_probs[i][-k:], y_test[i])
 			if y_test[i] in top_k_classes:
 				count += 1
 		
@@ -68,7 +77,7 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 		count = 0
 	#print("top_k_error: {0}".format(top_k_error))
 	
-	return top_k_errors, baseline_accuracy, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro')
+	return top_k_errors, baseline_accuracy, baseline_f_score, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro')
 
 def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 	
@@ -220,6 +229,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	clf_names = config.initialConfig.classifiers
 	clf_scores_dict = dict.fromkeys(clf_names)
 	baseline_scores = []
+	baseline_scores2 = []
 	top_k_errors = [[] for _ in range(0, len(config.initialConfig.k_error))]
 	for item in clf_scores_dict:
 		clf_scores_dict[item] = [[], [], []]
@@ -236,9 +246,22 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		
 		train_ids = [train_id + 1 for train_id in train_ids]
 		test_ids = [test_id + 1 for test_id in test_ids]
-		
+
+		#X_train = genfromtxt('X_train_fold{0}'.format(count), delimiter = ',')
+		#y_train = genfromtxt('y_train_fold{0}'.format(count), delimiter = ',')
+		#X_test = genfromtxt('X_test_fold{0}'.format(count), delimiter = ',')
+		#y_test = genfromtxt('y_test_fold{0}'.format(count), delimiter = ',')
+			
+		# tab
 		# get train and test sets
 		X_train, y_train, X_test, y_test = get_train_test_sets(conn, args, train_ids, test_ids)
+		
+		#np.savetxt("X_train_fold{0}.csv".format(count), X_train, delimiter=",")
+		#np.savetxt("y_train_fold{0}.csv".format(count), y_train, delimiter=",")
+		#np.savetxt("X_test_fold{0}.csv".format(count), X_test, delimiter=",")
+		#np.savetxt("y_test_fold{0}.csv".format(count), y_test, delimiter=",")
+		#count += 1
+		#continue
 		
 		#X_train, X_test = feature_selection(X_train, X_test, y_train)
 		
@@ -268,7 +291,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 				clf = fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test)
 			
 			#score = clf.score(X_test, y_test)
-			top_k_error_list, baseline_accuracy, accuracy, f1_score_micro, f1_score_macro = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf)
+			top_k_error_list, baseline_accuracy, baseline_f_score, accuracy, f1_score_micro, f1_score_macro = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf)
 			print(top_k_error_list)
 			clf_scores_dict[clf_name][0].append(accuracy)
 			clf_scores_dict[clf_name][1].append(f1_score_micro)
@@ -276,6 +299,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			row['Fold'] = count
 			row['Classifier'] = clf_name
 			row['Baseline Accuracy'] = baseline_accuracy
+			row['Baseline F-score'] = baseline_f_score
 			i = 0
 			for k, top_k_error in zip(config.initialConfig.k_error, top_k_error_list):
 				row['Top-{0} Accuracy'.format(k)] = top_k_error
@@ -296,6 +320,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 				
 			report_data.append(row)
 			baseline_scores.append(baseline_accuracy)
+			baseline_scores2.append(baseline_f_score)
 			
 		count += 1
 		
@@ -306,10 +331,12 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		row['Accuracy'] = sum(map(float,clf_scores_dict[clf_name][0])) / 5.0 
 		i = 0
 		for k in config.initialConfig.k_error:
-			row['Top-{0} Accuracy'.format(k)] = sum(map(float, clf_k_error_scores_dict[clf_name][i])) / 5.0
+			print("Top-{0} Accuracy: {1}".format(k, sum(map(float, clf_k_error_scores_dict[clf_name][i])) / 5.0))
+			row['Top-{0} Accuracy'.format(k)] = float(sum(map(float, clf_k_error_scores_dict[clf_name][i]))) / 5.0
 			i += 1
 		#row['Top-k Accuracy'] = sum(map(float,top_k_errors)) / 5.0
 		row['Baseline Accuracy'] = sum(map(float,baseline_scores)) / 40.0
+		row['Baseline F-score'] = sum(map(float,baseline_scores2)) / 40.0
 		row['F1-Score-Micro'] = sum(map(float,clf_scores_dict[clf_name][1])) / 5.0
 		row['F1-Score-Macro'] = sum(map(float,clf_scores_dict[clf_name][2])) / 5.0
 		report_data.append(row)
