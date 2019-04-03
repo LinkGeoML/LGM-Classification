@@ -219,8 +219,10 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	#print(df2)
 	if args['best_hyperparameter_file_name'] is not None:
 		filename = args['best_hyperparameter_file_name'] + '_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
+		filename = filename.replace(':', '.')
 	else:
 		filename = 'best_hyperparameters_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
+		filename = filename.replace(':', '.')
 	df2.to_csv(filename, index = False)
 	
 def write_data_to_csv(conn, args):

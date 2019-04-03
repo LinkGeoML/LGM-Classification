@@ -170,7 +170,7 @@ def construct_final_feature_vector(ids, conn, args, num_of_labels, poi_id_to_enc
 	for poi_id in poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict:
 		poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id] = [[0,0] for _ in range(0, num_of_labels)]
 		
-	print(num_of_labels)
+	#print(num_of_labels)
 	
 	for poi_id in poi_id_to_closest_street_id_dict:
 		street_geometry = poi_id_to_closest_street_id_dict[poi_id]
@@ -258,6 +258,8 @@ def get_poi_id_to_encoded_labels_dict(labels_set, id_dict):
 	le = LabelEncoder()
 	le.fit(labels_set)
 	
+	np.save('classes.npy', le.classes_)
+	
 	# map each poi id to its respective decoded label
 	for key in id_dict:
 		id_dict[key][0] = le.transform([id_dict[key][0]])
@@ -339,7 +341,7 @@ def get_poi_id_to_boolean_and_counts_per_class_dict(ids, conn, num_of_labels, po
 	for poi_id in poi_id_to_label_boolean_counts_dict:
 		poi_id_to_label_boolean_counts_dict[poi_id] = [[0,0] for _ in range(0, num_of_labels)]
 	
-	print(num_of_labels)
+	#print(num_of_labels)
 	
 	for index1, row1 in df.iterrows():
 		for index2, row2 in df.iterrows():
@@ -395,10 +397,10 @@ def main():
 	
 	threshold = 1000.0
 	closest_pois_boolean_and_counts_per_label = get_closest_pois_boolean_and_counts_per_label(conn, args, threshold)
-	print(closest_pois_boolean_and_counts_per_label)
+	#print(closest_pois_boolean_and_counts_per_label)
 	
 	closest_pois_boolean_and_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets(conn, args, threshold)
-	print(closest_pois_boolean_and_counts_per_label_streets)
+	#print(closest_pois_boolean_and_counts_per_label_streets)
 	
 if __name__ == "__main__":
    main()

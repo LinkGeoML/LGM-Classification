@@ -52,23 +52,27 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	print(y_pred)
 	
 	baseline_preds = np.ones(X_test.shape[0], dtype=int)
-	print(baseline_preds.shape)
+	#print(baseline_preds.shape)
 	baseline_preds = baseline_preds * most_common_classes[0]
-	print(baseline_preds)
+	#print(baseline_preds)
 	baseline_f_score = f1_score(y_test, baseline_preds, average='weighted')
 	
 	#print(X_test.shape)
 	probs = clf.predict_proba(X_test)
 	#print(probs)
-	best_k_probs = np.argsort(probs, axis = 1)
+	#best_k_probs = np.argsort(probs, axis = 1)
+	#print(best_k_probs)
 	#print(best_k.shape)
 	#print(best_k)
 	count = 0
 	top_k_errors = []
 	for k in config.initialConfig.k_error:
+		best_k_probs = np.argsort(probs, axis = 1)[:,-k:]
 		for i in range(0, X_test.shape[0]):
-			top_k_classes = best_k_probs[i][-k:]
-			print(best_k_probs[i][-k:], y_test[i])
+			#top_k_classes = best_k_probs[i][-k:]
+			top_k_classes = best_k_probs[i]
+			top_k_classes[-1] = y_pred[i]
+			print(best_k_probs[i], y_test[i], y_pred[i])
 			if y_test[i] in top_k_classes:
 				count += 1
 		
@@ -267,6 +271,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		
 		most_common_classes = find_10_most_common_classes_train(y_train)
 		
+		clf = None
 		for clf_name in clf_names:
 			row = {}
 			#print(clf_name)
@@ -344,8 +349,10 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	df = pd.DataFrame.from_dict(report_data)
 	if args['results_file_name'] is not None:
 		filename = args['results_file_name'] + '_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
+		filename = filename.replace(':', '.')
 	else:
 		filename = 'classification_report_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
+		filename = filename.replace(':', '.')
 	df.to_csv(filename, index = False)
 	
 	best_clf_row = {}
@@ -358,13 +365,16 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 				best_clf_row['best_clf_name'] = row['Classifier']
 	df2 = pd.DataFrame.from_dict([best_clf_row])
 	filename = 'best_clf_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
+	filename = filename.replace(':', '.')
 	df2.to_csv(filename, index = False)
 	
 	df3 = pd.DataFrame.from_dict(hyperparams_data)
 	if args['hyperparameter_file_name'] is not None:
 		filename = args['hyperparameter_file_name'] + '_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
+		filename = filename.replace(':', '.')
 	else:
 		filename = 'hyperparameters_per_fold_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
+		filename = filename.replace(':', '.')
 	df3.to_csv(filename, index = False)
 	
 def write_data_to_csv(conn, args):

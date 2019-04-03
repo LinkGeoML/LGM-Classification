@@ -14,7 +14,7 @@ import nltk
 import itertools
 import random
 import glob
-import joblib
+from sklearn.externals import joblib
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
@@ -32,6 +32,8 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
+
+from sklearn.preprocessing import LabelEncoder
 
 import datetime
 
@@ -64,17 +66,21 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	for k in config.initialConfig.k_error:
 		predictions[k] = [[[] for _ in range(0, k)] for _ in range(0, X_test.shape[0])]
 	
+	count = 0
+	top_k_errors = []
 	for k in config.initialConfig.k_error:
 		for i in range(0, X_test.shape[0]):
-			top_k_classes = best_k_probs[:k]
-			for j in range(0, k):
-				predictions[i][j] = top_k_classes[j]
+			top_k_classes = best_k_probs[i][-k:]
+			#print(best_k_probs[i][-k:], y_test[i])
+			#print(top_k_classes, predictions[k][i])
+			for j in range(0, len(predictions[k][i])):
+				predictions[k][i][j] = top_k_classes[j]
 			if y_test[i] in top_k_classes:
 				count += 1
 		
 		top_k_error = float(count) / float(X_test.shape[0])
 		top_k_errors.append(top_k_error)
-	#print("top_k_error: {0}".format(top_k_error))
+		count = 0
 	
 	return top_k_errors, baseline_accuracy, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro'), predictions
 		
@@ -105,16 +111,31 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		output_file = args['results_file_name']
 	else:
 		output_file = 'pred_categories'
+		
+	#print(predictions)
+	#return
+	
+	encoder = LabelEncoder()
+	encoder.classes_ = np.load('classes.npy')
+	#print(encoder.classes_)
+	#encoder.inverse_transform(preds)
+	#print(predictions)
+	#decoded_preds = encoder.transform(predictions)
 	
 	for k in config.initialConfig.k_error:
 		count = 0
+		curr_time = str(datetime.datetime.now())
+		curr_time = curr_time.replace(':', '.')
 		for id, preds in zip(poi_ids, predictions[k]):
 			for i in range(len(preds)):
 				row['id'] = id
-				row['pred{0}'.format(i)] = preds[i]
+				
+				row['pred{0}'.format(i)] = encoder.inverse_transform(preds[i])
 			out_df = pd.DataFrame([row])
-			filename = output_file + '_' + str(k) + '_' + str(datetime.datetime.now()) + '.csv'
-			if count == 1:
+			#print(out_df)
+			
+			filename = output_file + '_' + str(k) + '_' + curr_time + '.csv'
+			if count == 0:
 				with open(filename, 'a') as f:
 					out_df.to_csv(f, index = False, header = True)
 			else:

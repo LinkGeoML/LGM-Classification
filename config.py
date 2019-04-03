@@ -15,7 +15,7 @@ class initialConfig:
 	# the results of which will be compared in the experiments.
 	classifiers = ['Nearest Neighbors', 'SVM', 'Decision Tree', 'Random Forest', 'AdaBoost', 
 	'Naive Bayes', 'MLP', 'Gaussian Process']
-	#classifiers = ['SVM']
+	#classifiers = ['Nearest Neighbors']
 	
 	# These are the parameters that constitute the search space
 	# in our experiments.
@@ -37,6 +37,9 @@ class initialConfig:
  'min_samples_leaf': [1, 2, 4],
  'min_samples_split': [2, 5, 10],
  "n_estimators": [250, 500, 1000]}
+	MLP_hyperparameters = {'learning_rate_init': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1],
+							'max_iter': [100, 200, 500, 1000],
+							'solver': ['sgd', 'adam']}
  
 	# The following parameters refer to the names of the csv columns
 	# that correspond to the following: poi_id (the unique id of each 
@@ -92,8 +95,8 @@ class initialConfig:
 	# This parameter refers to the category levels to be predicted.
 	# If level is equal to None, the experiments will be run for
 	# all category levels, one at a time.
-	level = [1, 2]
-	#level = [2]
+	#level = [1, 2]
+	level = [2]
 	#level = [1]
 	
 	# This parameter refers to the desired numbers of the top k most probable

@@ -85,9 +85,11 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	
 	if args['trained_model_file_name'] is not None:
 		filename = args['trained_model_file_name'] + '_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.pkl'
+		filename = filename.replace(':', '.')
 		joblib.dump(clf, filename, compress = 9)
 	else:
 		filename = 'trained_model_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.pkl'
+		filename = filename.replace(':', '.')
 		joblib.dump(clf, filename, compress = 9)
 
 def train_clf_given_hyperparams(X_train, y_train, args):

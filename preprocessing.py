@@ -193,7 +193,7 @@ def get_train_set(conn, args, poi_ids):
 	poi_id_to_word_features = get_features_top_k(poi_ids, conn, args, config.initialConfig.top_k_terms_percentage)
 	poi_id_to_word_features_ngrams_tokens = get_features_top_k_ngrams_tokens(poi_ids, conn, args, config.initialConfig.top_k_terms_percentage)
 	
-	print(poi_id_to_class_centroid_similarities_train, poi_id_to_word_features_ngrams, poi_id_to_word_features, poi_id_to_word_features_ngrams_tokens)
+	#print(poi_id_to_class_centroid_similarities_train, poi_id_to_word_features_ngrams, poi_id_to_word_features, poi_id_to_word_features_ngrams_tokens)
 	
 	if args["pois_tbl_name"] is not None: 
 		closest_pois_boolean_and_counts_per_label = get_closest_pois_boolean_and_counts_per_label(poi_ids, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
