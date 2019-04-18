@@ -3,6 +3,26 @@ import numpy as np
 
 class initialConfig:
 	
+	# Should be True only when we test our trained model on a new dataset
+	
+	# Should be True only when our model is being trained
+	dump_indexes = False
+	
+	# The following parameters define the set of features that can be extracted (feature_list)
+	# and those that we currently intent to extract during our experiments (included_features)
+	feature_list = ['class_centroid_similarities', 'word_features_ngrams', 'word_features', 
+	'word_features_ngrams_tokens', 'poi_to_poi_radius', 'poi_to_closest_street_to_poi_radius', 'poi_to_poi_neighbors']
+	
+	included_features = ['class_centroid_similarities', 'word_features_ngrams', 'word_features', 
+	'word_features_ngrams_tokens', 'poi_to_poi_radius', 'poi_to_closest_street_to_poi_radius', 'poi_to_poi_neighbors']
+	
+	
+	# The following parameters define the path of the folders in which
+	# each output of the framework will be stored
+	root_path = "/home/nikos/Desktop/LGM-Classification/"
+	#experiment_folder = "experiment_folder_2019-04-08 16-07-31.806855"
+	experiment_folder = None
+	
 	# The following parameters correspond to the machine learning
 	# part of the framework.
 	
@@ -13,9 +33,9 @@ class initialConfig:
 	
 	# This parameter contains a list of the various classifiers
 	# the results of which will be compared in the experiments.
-	classifiers = ['Nearest Neighbors', 'SVM', 'Decision Tree', 'Random Forest', 'AdaBoost', 
-	'Naive Bayes', 'MLP', 'Gaussian Process']
-	#classifiers = ['Nearest Neighbors']
+	#classifiers = ['Nearest Neighbors', 'SVM', 'Decision Tree', 'Random Forest', 'AdaBoost', 
+	#'Naive Bayes', 'MLP', 'Gaussian Process', 'Extra Trees']
+	classifiers = ['Nearest Neighbors']
 	
 	# These are the parameters that constitute the search space
 	# in our experiments.
@@ -68,6 +88,8 @@ class initialConfig:
 	# criterion by which we decide whether a poi is adjacent to
 	# another.
 	threshold_distance_neighbor_pois = 200.0
+	
+	num_poi_neighbors = 5
 	
 	# This parameter refers to the radius that corresponds to the
 	# criterion by which we decide whether a poi is adjacent to

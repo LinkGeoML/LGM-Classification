@@ -55,6 +55,8 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	#print(X_test.shape)
 	probs = clf.predict_proba(X_test)
 	#print(probs)
+	sorted_prob_scores = np.sort(probs, axis = 1)
+	#print(sorted_prob_scores)
 	best_k_probs = np.argsort(probs, axis = 1)
 	#print(best_k.shape)
 	#print(best_k)
@@ -66,15 +68,21 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	for k in config.initialConfig.k_error:
 		predictions[k] = [[[] for _ in range(0, k)] for _ in range(0, X_test.shape[0])]
 	
+	prediction_scores = {}
+	for k in config.initialConfig.k_error:
+		prediction_scores[k] = [[[] for _ in range(0, k)] for _ in range(0, X_test.shape[0])]
+	
 	count = 0
 	top_k_errors = []
 	for k in config.initialConfig.k_error:
 		for i in range(0, X_test.shape[0]):
 			top_k_classes = best_k_probs[i][-k:]
+			top_k_prediction_scores = sorted_prob_scores[i][-k:]
 			#print(best_k_probs[i][-k:], y_test[i])
 			#print(top_k_classes, predictions[k][i])
 			for j in range(0, len(predictions[k][i])):
 				predictions[k][i][j] = top_k_classes[j]
+				prediction_scores[k][i][j] = top_k_prediction_scores[j]
 			if y_test[i] in top_k_classes:
 				count += 1
 		
@@ -82,7 +90,7 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 		top_k_errors.append(top_k_error)
 		count = 0
 	
-	return top_k_errors, baseline_accuracy, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro'), predictions
+	return top_k_errors, baseline_accuracy, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro'), predictions, prediction_scores
 		
 def tuned_parameters_5_fold(poi_ids, conn, args):
 	
@@ -103,8 +111,8 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		latest_file = max(list_of_files, key=os.path.getctime)
 		model = joblib.load(latest_file)
 		
-	top_k_error_list, baseline_accuracy, accuracy, f1_score_micro, f1_score_macro, predictions = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, model)	
-	
+	top_k_error_list, baseline_accuracy, accuracy, f1_score_micro, f1_score_macro, predictions, prediction_scores = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, model)	
+	#return
 	row = {}
 	
 	if args['results_file_name'] is not None:
@@ -117,6 +125,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	
 	encoder = LabelEncoder()
 	encoder.classes_ = np.load('classes.npy')
+	
 	#print(encoder.classes_)
 	#encoder.inverse_transform(preds)
 	#print(predictions)
@@ -126,22 +135,44 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		count = 0
 		curr_time = str(datetime.datetime.now())
 		curr_time = curr_time.replace(':', '.')
-		for id, preds in zip(poi_ids, predictions[k]):
+		for id, preds, scores in zip(poi_ids, predictions[k], prediction_scores[k]):
 			for i in range(len(preds)):
 				row['id'] = id
 				
+				#row['pred{0}'.format(i)] = decoded_preds[i]
+				#print(encoder.transform(preds[i]))
+				#print(encoder.inverse_transform(preds[i]))
+				row['prob_score{0}'.format(i)] = scores[i]
 				row['pred{0}'.format(i)] = encoder.inverse_transform(preds[i])
 			out_df = pd.DataFrame([row])
 			#print(out_df)
 			
-			filename = output_file + '_' + str(k) + '_' + curr_time + '.csv'
-			if count == 0:
-				with open(filename, 'a') as f:
-					out_df.to_csv(f, index = False, header = True)
+			if config.initialConfig.experiment_folder == None:
+				experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+				list_of_folders = glob.glob(experiment_folder_path)
+				if list_of_folders == []:
+					print("ERROR! No experiment folder found inside the root folder")
+					return
+				else:
+					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+					filepath = latest_experiment_folder + '/' + output_file + '_' + str(args['level']) + '.csv'
+					if count == 0:
+						with open(filename, 'a') as f:
+							out_df.to_csv(f, index = False, header = True)
+					else:
+						with open(filename, 'a') as f:
+							out_df.to_csv(f, index = False, header = False)
+					count += 1
 			else:
-				with open(filename, 'a') as f:
-					out_df.to_csv(f, index = False, header = False)
-			count += 1
+				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+				filepath = experiment_folder_path + '/' + output_file + '_' + str(args['level']) + '.csv'
+				if count == 0:
+					with open(filename, 'a') as f:
+						out_df.to_csv(f, index = False, header = True)
+				else:
+					with open(filename, 'a') as f:
+						out_df.to_csv(f, index = False, header = False)
+				count += 1
 	
 def write_data_to_csv(conn, args):
 	sql = "select {0}.id, {0}.name_u, {0}.theme, {0}.class_name, {0}.subclass_n, {0}.x, {0}.y, {0}.geom from {0}".format(args["pois_tbl_name"])

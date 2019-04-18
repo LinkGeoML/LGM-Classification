@@ -123,10 +123,10 @@ def get_street_geom_to_closest_poi_ids_dict(ids, conn, args, street_df):
 	for index, row in street_df.iterrows():
 		geom_keys.append(str(row['geometry']))
 	#print(geom_keys)
-	street_geom_to_to_closest_poi_ids_dict = dict.fromkeys(geom_keys)
+	street_geom_to_closest_poi_ids_dict = dict.fromkeys(geom_keys)
 	#print(street_geom_to_to_closest_poi_ids_dict)
-	for street_geom in street_geom_to_to_closest_poi_ids_dict:
-		street_geom_to_to_closest_poi_ids_dict[street_geom] = []
+	for street_geom in street_geom_to_closest_poi_ids_dict:
+		street_geom_to_closest_poi_ids_dict[street_geom] = []
 	
 	for index, row in street_df.iterrows():
 		street_geom = row['geometry']
@@ -136,9 +136,10 @@ def get_street_geom_to_closest_poi_ids_dict(ids, conn, args, street_df):
 			#poi_point = (poi_geom.x, poi_geom.y)
 			if street_geom.distance(poi_geom) < config.initialConfig.threshold_distance_neighbor_pois_roads:
 				#print(street_geom.distance(poi_geom) * 111000)
-				street_geom_to_to_closest_poi_ids_dict[str(street_geom)].append([row1['poi_id'], row1['class_code']])
-				
-	return street_geom_to_to_closest_poi_ids_dict
+				street_geom_to_closest_poi_ids_dict[str(street_geom)].append([row1['poi_id'], row1['class_code']])
+	
+	print(street_geom_to_closest_poi_ids_dict)	
+	return street_geom_to_closest_poi_ids_dict
 	
 def construct_final_feature_vector(ids, conn, args, num_of_labels, poi_id_to_encoded_labels_dict, poi_id_to_closest_poi_ids_dict, poi_id_to_closest_street_id_dict, street_geom_to_closest_poi_ids_dict):
 	

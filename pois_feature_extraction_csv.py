@@ -11,6 +11,90 @@ from preprocessing import *
 import osmnx as ox
 import shapely
 import config
+from scipy import spatial
+import pickle
+import json
+
+def get_poi_id_to_neighbors_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels, poi_id_to_encoded_labels_dict, threshold, args):
+
+	"""
+	*** This function is responsible for mapping the pois to a list of two-element lists.
+	*** The first element of that list will contain a  boolean value referring
+	*** to whether a poi of that index's label is within threshold distance
+	*** of the poi whose id is the key of this list in the dictionary. The second
+	*** element contains the respective count of the pois belonging to the
+	*** specific index's label that are within threshold distance of the poi-key.
+	***
+	*** For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	*** are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	*** id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	***
+	*** Arguments - num_of_labels: the total number of the different labels
+	*** 			encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	***				threshold: the aforementioned threshold
+	"""
+
+	from sklearn.neighbors import DistanceMetric
+	from scipy.spatial import distance
+
+	# define the apropriate distance metric for measuring distance between two pois
+	dist = DistanceMetric.get_metric('euclidean')
+
+	df = pd.read_csv(args['pois_csv_name'])
+
+	poi_id_to_label_boolean_counts_dict = dict.fromkeys(df[config.initialConfig.poi_id])
+
+	#is_in_ids = df['poi_id'] in ids
+	is_in_ids = []
+	all_ids = df[config.initialConfig.poi_id]
+	for id in all_ids:
+		if id in ids:
+			is_in_ids.append(True)
+		else:
+			is_in_ids.append(False)
+	df = df[is_in_ids]
+
+	# add dummy values to the dictionary in order to initialize it
+	# in a form that resembles its desired final form
+	for poi_id in poi_id_to_label_boolean_counts_dict:
+		poi_id_to_label_boolean_counts_dict[poi_id] = [[0,0] for _ in range(0, num_of_labels)]
+
+	#print(num_of_labels)
+
+	x = np.asarray(df[config.initialConfig.x])
+	y = np.asarray(df[config.initialConfig.y])
+	poi_coordinate_array = np.stack((x, y), axis = -1)
+	spatial_index = spatial.KDTree(poi_coordinate_array)
+
+	for index, row in df.iterrows():
+		pois_within_radius = spatial_index.query((row[config.initialConfig.x], row[config.initialConfig.y]), config.initialConfig.num_poi_neighbors)
+		#print(pois_within_radius[1])
+		pois_within_radius = list(pois_within_radius[1])
+		index = int(index)
+		#pois_within_radius.remove(int(index))
+		if index in pois_within_radius:
+			pois_within_radius.remove(index)
+		
+		#print(pois_within_radius)
+		if pois_within_radius is not None:
+			for poi_index in pois_within_radius:
+				poi_id_to_label_boolean_counts_dict[row[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[df.iloc[poi_index][config.initialConfig.poi_id]][0][0]][0] = 1
+				poi_id_to_label_boolean_counts_dict[row[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[df.iloc[poi_index][config.initialConfig.poi_id]][0][0]][1] = 1
+	"""
+	for index1, row1 in df.iterrows():
+		for index2, row2 in df.iterrows():
+			if row1[config.initialConfig.poi_id] != row2[config.initialConfig.poi_id]:
+				# get their coordinates
+				point1 = (row1[config.initialConfig.x], row1[config.initialConfig.y])
+				point2 = (row2[config.initialConfig.x], row2[config.initialConfig.y])
+				# if the two points are within treshold distance, 
+				# update the dictionary accordingly
+				if distance.euclidean(point1, point2) < config.initialConfig.threshold_distance_neighbor_pois:
+					poi_id_to_label_boolean_counts_dict[row1[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[row2[config.initialConfig.poi_id]][0][0]][0] = 1
+					poi_id_to_label_boolean_counts_dict[row1[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[row2[config.initialConfig.poi_id]][0][0]][1] += 1
+	"""
+	#print(poi_id_to_label_boolean_counts_dict)
+	return poi_id_to_label_boolean_counts_dict
 
 def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
 	from sklearn.neighbors import DistanceMetric
@@ -27,7 +111,6 @@ def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
 	else:
 		df = df.rename(index = str, columns = {config.initialConfig.class_codes[2]: 'class_code'})
 	
-	#is_in_ids = df['poi_id'] in ids
 	is_in_ids = []
 	all_ids = df[config.initialConfig.poi_id]
 	for id in all_ids:
@@ -44,6 +127,27 @@ def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
 	for poi_id in poi_id_to_closet_poi_ids_dict:
 		poi_id_to_closet_poi_ids_dict[poi_id] = []
 	
+	x = np.asarray(df[config.initialConfig.x])
+	y = np.asarray(df[config.initialConfig.y])
+	poi_coordinate_array = np.stack((x, y), axis = -1)
+	spatial_index = spatial.KDTree(poi_coordinate_array)
+	
+	if config.initialConfig.dump_indexes:
+		f = config.initialConfig.root_path + 'pois_index.pkl'
+		with open(f, 'wb') as fdump:
+			pickle.dump(spatial_index, fdump)
+	
+	for index, row in df.iterrows():
+		pois_within_radius = spatial_index.query_ball_point((row[config.initialConfig.x], row[config.initialConfig.y]), config.initialConfig.threshold_distance_neighbor_pois_roads)
+		index = int(index)
+		pois_within_radius.remove(int(index))
+		if index in pois_within_radius:
+			pois_within_radius.remove(index)
+		#print(pois_within_radius)
+		for poi_index in pois_within_radius:
+			poi_id_to_closet_poi_ids_dict[row[config.initialConfig.poi_id]].append(df.iloc[poi_index][config.initialConfig.poi_id])
+			
+	"""
 	for index1, row1 in df.iterrows():
 		for index2, row2 in df.iterrows():
 			if row1[config.initialConfig.poi_id] != row2[config.initialConfig.poi_id]:
@@ -55,7 +159,7 @@ def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
 				if distance.euclidean(point1, point2) < config.initialConfig.threshold_distance_neighbor_pois_roads:
 					#print(distance.euclidean(point1, point2))
 					poi_id_to_closet_poi_ids_dict[row1[config.initialConfig.poi_id]].append(row2[config.initialConfig.poi_id])
-	
+	"""
 	return poi_id_to_closet_poi_ids_dict
 	
 def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
@@ -109,12 +213,12 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 	"""
 	for index, row in poi_df.iterrows():
 		point = Point(row['x'], row['y'])
-		print(point)
+		#print(point)
 		point = transform(project, point)
 		row['geom'] = point
-		print(row['geom'])
+		#print(row['geom'])
 	"""
-		
+	
 	# construct a dictionary from their ids
 	# also get its class_code
 	poi_id_to_street_geom_dict = dict.fromkeys(poi_df[config.initialConfig.poi_id])
@@ -129,11 +233,44 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 	else:
 		g = ox.graph_from_place(config.initialConfig.osmnx_placename)
 	gdf_nodes, street_df = ox.graph_to_gdfs(g)
-		
+	
+	geom_keys = []
+	for index, row in street_df.iterrows():
+		geom_keys.append(str(row['geometry']))
+	#print(geom_keys)
+	street_geom_to_to_closest_poi_ids_dict = dict.fromkeys(geom_keys)
+	for street_geom in street_geom_to_to_closest_poi_ids_dict:
+		street_geom_to_to_closest_poi_ids_dict[street_geom] = []
+	
+	spatial_index = street_df.sindex
+	if config.initialConfig.dump_indexes:
+		f = config.initialConfig.root_path + 'street_index.pkl'
+		with open(f, 'wb') as fdump:
+			pickle.dump(spatial_index, fdump)
+	#print(list(street_df.columns.values))
+			
 	for index, row in poi_df.iterrows():
-		min_distance = 1000000000.0
+		#min_distance = 1000000000.0
 		poi_geom = Point(row[config.initialConfig.x], row[config.initialConfig.y])
 		poi_geom = transform(project, poi_geom)
+		
+		coords = list(poi_geom.coords)[0]
+		#print(list(coords))
+		nearest_street_geom_index = list(spatial_index.nearest(coords, num_results = 1))
+		#nearest_street_geom_index = list(nearest_street_geom_index[0])
+		#print(nearest_street_geom_index[0])
+		nearest_street_geom = street_df.iloc[nearest_street_geom_index[0]]['geometry']
+		poi_id_to_street_geom_dict[row[config.initialConfig.poi_id]] = nearest_street_geom
+		
+		street_geom_to_to_closest_poi_ids_dict[str(nearest_street_geom)].append([row[config.initialConfig.poi_id], row['class_code']])
+		if config.initialConfig.dump_indexes:
+			f = config.initialConfig.root_path + 'street_geom_to_to_closest_poi_ids_dict.json'
+			with open(f, 'w') as fp:
+				json.dump(street_geom_to_to_closest_poi_ids_dict, fp)
+		#print(nearest_street)
+		
+		#print(street_geom_to_to_closest_poi_ids_dict)
+		"""
 		#print(point)
 		#poi_geom = shapely.wkt.loads(Point(row['x'], row['y']))
 		#print(poi_geom)
@@ -152,8 +289,9 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 				min_distance = street_geom.distance(poi_geom)
 				#print(min_distance)
 				poi_id_to_street_geom_dict[row[config.initialConfig.poi_id]] = street_geom
+		"""
 
-	return poi_id_to_street_geom_dict, street_df
+	return poi_id_to_street_geom_dict, street_df, street_geom_to_to_closest_poi_ids_dict
 	
 def get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df):
 	
@@ -192,11 +330,13 @@ def get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df):
 			is_in_ids.append(False)
 	poi_df = poi_df[is_in_ids]
 	
+	"""
 	for index, row in poi_df.iterrows():
 		point = Point(row[config.initialConfig.x], row[config.initialConfig.y])
 		point = transform(project, point)
 		row['geom'] = point
-
+	"""
+	
 	geom_keys = []
 	for index, row in street_df.iterrows():
 		geom_keys.append(str(row['geometry']))
@@ -210,12 +350,15 @@ def get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df):
 		street_geom = row['geometry']
 		#street_point = (street_geom.x, street_geom.y)
 		for index1, row1 in poi_df.iterrows():
-			poi_geom = shapely.wkt.loads(row1['geom'])
+			poi_geom = Point(row1[config.initialConfig.x], row1[config.initialConfig.y])
+			#poi_geom = shapely.wkt.loads(row1['geom'])
+			poi_geom = transform(project, poi_geom)
 			#poi_point = (poi_geom.x, poi_geom.y)
-			if street_geom.distance(poi_geom) < config.initialConfig.threshold_distance_neighbor_pois_roads:
+			#print(street_geom.distance(poi_geom) * 111000)
+			if street_geom.distance(poi_geom) * 111000 < config.initialConfig.threshold_distance_neighbor_pois_roads:
 				#print(street_geom.distance(poi_geom) * 111000)
 				street_geom_to_to_closest_poi_ids_dict[str(street_geom)].append([row1[config.initialConfig.poi_id], row1['class_code']])
-				
+	#print(street_geom_to_to_closest_poi_ids_dict)
 	return street_geom_to_to_closest_poi_ids_dict
 	
 def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to_encoded_labels_dict, poi_id_to_closest_poi_ids_dict, poi_id_to_closest_street_id_dict, street_geom_to_closest_poi_ids_dict):
@@ -269,7 +412,8 @@ def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to
 				#print(id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0])
 				poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id][poi_id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0]][0] = 1
 				poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id][poi_id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0]][1] += 1
-				
+	
+	#print(poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict)
 	return poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict
 	
 def get_closest_pois_boolean_and_counts_per_label_streets_csv(ids, conn, args, threshold = 1000.0):
@@ -286,9 +430,9 @@ def get_closest_pois_boolean_and_counts_per_label_streets_csv(ids, conn, args, t
 	
 	poi_id_to_closest_poi_ids_dict = get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args)
 	# get the dictionary mapping each poi id to that of its closest road
-	poi_id_to_closest_street_id_dict, street_df = get_poi_id_to_closest_street_id_dict_csv(ids, conn, args)
+	poi_id_to_closest_street_id_dict, street_df, street_geom_to_closest_poi_ids_dict = get_poi_id_to_closest_street_id_dict_csv(ids, conn, args)
 	
-	street_geom_to_closest_poi_ids_dict = get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df)
+	#street_geom_to_closest_poi_ids_dict = get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df)
 	
 	final_feature_vector = construct_final_feature_vector_csv(ids, conn, args, len(encoded_labels_set), poi_id_to_encoded_labels_dict, poi_id_to_closest_poi_ids_dict, poi_id_to_closest_street_id_dict, street_geom_to_closest_poi_ids_dict)
 	
@@ -428,6 +572,23 @@ def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels
 	
 	#print(num_of_labels)
 	
+	x = np.asarray(df[config.initialConfig.x])
+	y = np.asarray(df[config.initialConfig.y])
+	poi_coordinate_array = np.stack((x, y), axis = -1)
+	spatial_index = spatial.KDTree(poi_coordinate_array)
+	
+	for index, row in df.iterrows():
+		pois_within_radius = spatial_index.query_ball_point((row[config.initialConfig.x], row[config.initialConfig.y]), config.initialConfig.threshold_distance_neighbor_pois_roads)
+		index = int(index)
+		#pois_within_radius.remove(int(index))
+		if index in pois_within_radius:
+			pois_within_radius.remove(index)
+
+		if pois_within_radius is not None:
+			for poi_index in pois_within_radius:
+				poi_id_to_label_boolean_counts_dict[row[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[df.iloc[poi_index][config.initialConfig.poi_id]][0][0]][0] = 1
+				poi_id_to_label_boolean_counts_dict[row[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[df.iloc[poi_index][config.initialConfig.poi_id]][0][0]][1] = 1
+	"""
 	for index1, row1 in df.iterrows():
 		for index2, row2 in df.iterrows():
 			if row1[config.initialConfig.poi_id] != row2[config.initialConfig.poi_id]:
@@ -439,7 +600,7 @@ def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels
 				if distance.euclidean(point1, point2) < config.initialConfig.threshold_distance_neighbor_pois:
 					poi_id_to_label_boolean_counts_dict[row1[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[row2[config.initialConfig.poi_id]][0][0]][0] = 1
 					poi_id_to_label_boolean_counts_dict[row1[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[row2[config.initialConfig.poi_id]][0][0]][1] += 1
-	
+	"""
 	#print(poi_id_to_label_boolean_counts_dict)
 	return poi_id_to_label_boolean_counts_dict
 	
@@ -466,7 +627,7 @@ def get_closest_pois_boolean_and_counts_per_label_csv(ids, conn, args, threshold
 	# we encode them so we can have a more compact representation of them
 	poi_id_to_encoded_labels_dict, encoded_labels_set = get_poi_id_to_encoded_labels_dict_csv(class_codes_set, poi_id_to_class_code_coordinates_dict)
 	
-	return get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, len(encoded_labels_set), poi_id_to_encoded_labels_dict, threshold, args)
+	return get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, len(encoded_labels_set), poi_id_to_encoded_labels_dict, threshold, args), get_poi_id_to_neighbors_boolean_and_counts_per_class_dict_csv(ids, conn, len(encoded_labels_set), poi_id_to_encoded_labels_dict, threshold, args)
 
 def main():
 	# construct the argument parse and parse the arguments

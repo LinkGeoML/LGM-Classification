@@ -17,12 +17,11 @@ import random
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import KFold
-
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
@@ -32,11 +31,10 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import f1_score
 
 import datetime
-
 import config
-
 import glob
 import os
+import csv
 
 np.random.seed(1234)
 		
@@ -65,9 +63,9 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		if clf_name == "Naive Bayes":
 			clf = GaussianNB()
 			clf.fit(X_train, y_train)
-		elif clf_name == "MLP":
-			clf = MLPClassifier()
-			clf.fit(X_train, y_train)
+		#elif clf_name == "MLP":
+		#	clf = MLPClassifier()
+		#	clf.fit(X_train, y_train)
 		elif clf_name == "Gaussian Process":
 			clf = GaussianProcessClassifier()
 			clf.fit(X_train, y_train)
@@ -83,14 +81,20 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		
 	# store the model as a pickle file
 	
-	if args['trained_model_file_name'] is not None:
-		filename = args['trained_model_file_name'] + '_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.pkl'
-		filename = filename.replace(':', '.')
-		joblib.dump(clf, filename, compress = 9)
+	if config.initialConfig.experiment_folder == None:
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			filepath = latest_experiment_folder + '/' + 'trained_model_' + str(args['level']) + '.pkl'
+			joblib.dump(clf, filepath, compress = 9)
 	else:
-		filename = 'trained_model_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.pkl'
-		filename = filename.replace(':', '.')
-		joblib.dump(clf, filename, compress = 9)
+		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+		filepath = experiment_folder_path + '/' + 'trained_model_' + str(args['level']) + '.pkl'
+		joblib.dump(clf, filepath, compress = 9)
 
 def train_clf_given_hyperparams(X_train, y_train, args):
 	tuned_parameters = args['best_hyperparams']
@@ -113,6 +117,12 @@ def train_clf_given_hyperparams(X_train, y_train, args):
 		
 	elif args['best_clf'] == "Random Forest":
 		clf = RandomForestClassifier(**tuned_parameters)
+		
+	elif args['best_clf'] == "Extra Trees":
+		clf = ExtraTreesClassifier(**tuned_parameters)
+		
+	elif args['best_clf'] == "MLP":
+		clf = MLPClassifier(**tuned_parameters)
 	
 	print(clf)
 
@@ -150,52 +160,177 @@ def main():
 	# call the appropriate function to connect to the database
 	conn = connect_to_db()
 	
-	if args['best_clf_file_name'] is not None:
-		#with open(args['best_clf_file_name']) as f:
-		#	args['best_clf'] = f.readline()
-		input_file = csv.DictReader(open(args['best_clf_file_name']))
-		with open(input_file, 'r') as csv_file:
-			reader = csv.reader(csv_file)
-			count = 0
-			for row in reader:
-				if count == 1:
-					args['best_clf'] = row[0]
-				count += 1
-	else:
-		list_of_files = glob.glob('best_clf_*')
-		input_file = max(list_of_files, key=os.path.getctime)
-		with open(input_file, 'r') as csv_file:
-			reader = csv.reader(csv_file)
-			count = 0
-			for row in reader:
-				if count == 1:
-					args['best_clf'] = row[0]
-				count += 1
-			
-	#print(args['best_clf'])
-	
-	if args['best_hyperparameter_file_name'] is not None:
-		input_file = csv.DictReader(open(args['best_hyperparameter_file_name']))
-		for row in input_file:
-			hyperparams_dict = row
-	else:
-		list_of_files = glob.glob('best_hyperparameters_*')
-		latest_file = max(list_of_files, key=os.path.getctime)
-		input_file = csv.DictReader(open(latest_file))
-		for row in input_file:
-			hyperparams_dict = row
-	
-	args['best_hyperparams'] = hyperparams_dict
-	
 	
 	# get the poi ids
 	if config.initialConfig.level == None:
 		for level in [1,2]:
+			if config.initialConfig.experiment_folder is not None:
+				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+				exists = os.path.isdir(experiment_folder_path)
+				if exists:
+					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + '.csv'
+					exists2 = os.path.isfile(filepath)
+					if exists2:
+						#input_file = csv.DictReader(open(filepath))
+						with open(filepath, 'r') as csv_file:
+							reader = csv.reader(csv_file)
+							count = 0
+							for row in reader:
+								if count == 1:
+									args['best_clf'] = row[0]
+								count += 1
+					else:
+						print("ERROR! No best_clf file found inside the folder")
+						return
+				else:
+					print("ERROR! Given best_clf file does not exist!")
+					return
+			else:
+				experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+				list_of_folders = glob.glob(experiment_folder_path)
+				if list_of_folders == []:
+					print("ERROR! No experiment folder found")
+					return
+				else:
+					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + '.csv'
+					exists = os.path.isfile(filepath)
+					if exists:
+						#input_file = csv.DictReader(open(filepath))
+						with open(filepath, 'r') as csv_file:
+							reader = csv.reader(csv_file)
+							count = 0
+							for row in reader:
+								if count == 1:
+									args['best_clf'] = row[0]
+								count += 1
+					else:
+						print("ERROR! No best_clf file found inside the folder")
+						return
+					
+			#print(args['best_clf'])
+			
+			if config.initialConfig.experiment_folder is not None:
+				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+				exists = os.path.isdir(experiment_folder_path)
+				if exists:
+					filepath = experiment_folder_path + '/' + 'best_hyperparameters_' + str(level) + 'csv'
+					exists2 = os.path.isfile(filepath)
+					if exists2:
+						input_file = csv.DictReader(open(filepath))
+						for row in input_file:
+							hyperparams_dict = row
+					else:
+						print("ERROR! No best_hyperparameters file found inside the folder")
+						return
+				else:
+					print("ERROR! No experiment folder with the given name found")
+					return
+			else:
+				experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+				list_of_folders = glob.glob(experiment_folder_path)
+				if list_of_folders == []:
+					print("ERROR! No experiment folder found inside the root folder")
+					return
+				else:
+					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+					filepath = latest_experiment_folder + '/' + 'best_hyperparameters_' + str(level) + 'csv'
+					exists = os.path.isfile(filepath)
+					if exists:
+						input_file = csv.DictReader(open(filepath))
+						for row in input_file:
+							hyperparams_dict = row
+					else:
+						print("ERROR! No best_hyperparameters file found inside the folder!")	
+						return		
+						
+			args['best_hyperparams'] = hyperparams_dict
 			args['level'] = level
 			poi_ids = get_poi_ids(conn, args)
 			tuned_parameters_5_fold(poi_ids, conn, args)
 	else:
 		for level in config.initialConfig.level:
+			if config.initialConfig.experiment_folder is not None:
+				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+				exists = os.path.isdir(experiment_folder_path)
+				if exists:
+					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + 'csv'
+					exists2 = os.path.isfile(filepath)
+					if exists2:
+						#input_file = csv.DictReader(open(filepath))
+						with open(filepath, 'r') as csv_file:
+							reader = csv.reader(csv_file)
+							count = 0
+							for row in reader:
+								if count == 1:
+									args['best_clf'] = row[0]
+								count += 1
+					else:
+						print("ERROR! No best_clf file found inside the folder")
+						return
+				else:
+					print("ERROR! Given best_clf file does not exist!")
+					return
+			else:
+				experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+				list_of_folders = glob.glob(experiment_folder_path)
+				if list_of_folders == []:
+					print("ERROR! No experiment folder found")
+					return
+				else:
+					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + 'csv'
+					exists = os.path.isfile(filepath)
+					if exists:
+						#input_file = csv.DictReader(open(filepath))
+						with open(filepath, 'r') as csv_file:
+							reader = csv.reader(csv_file)
+							count = 0
+							for row in reader:
+								if count == 1:
+									args['best_clf'] = row[0]
+								count += 1
+					else:
+						print("ERROR! No best_clf file found inside the folder")
+						return
+					
+			#print(args['best_clf'])
+			
+			if config.initialConfig.experiment_folder is not None:
+				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+				exists = os.path.isdir(experiment_folder_path)
+				if exists:
+					filepath = experiment_folder_path + '/' + 'best_hyperparameters_' + str(level) + 'csv'
+					exists2 = os.path.isfile(filepath)
+					if exists2:
+						input_file = csv.DictReader(open(filepath))
+						for row in input_file:
+							hyperparams_dict = row
+					else:
+						print("ERROR! No best_hyperparameters file found inside the folder")
+						return
+				else:
+					print("ERROR! No experiment folder with the given name found")
+					return
+			else:
+				experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+				list_of_folders = glob.glob(experiment_folder_path)
+				if list_of_folders == []:
+					print("ERROR! No experiment folder found inside the root folder")
+					return
+				else:
+					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+					filepath = latest_experiment_folder + '/' + 'best_hyperparameters_' + str(level) + 'csv'
+					exists = os.path.isfile(filepath)
+					if exists:
+						input_file = csv.DictReader(open(filepath))
+						for row in input_file:
+							hyperparams_dict = row
+					else:
+						print("ERROR! No best_hyperparameters file found inside the folder!")	
+						return		
+						
+			args['best_hyperparams'] = hyperparams_dict
 			args['level'] = level
 			poi_ids = get_poi_ids(conn, args)
 			tuned_parameters_5_fold(poi_ids, conn, args)

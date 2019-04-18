@@ -22,7 +22,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
@@ -106,6 +106,16 @@ def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 
 		tuned_parameters = config.initialConfig.RandomForest_hyperparameters
 		clf = RandomForestClassifier()
+		
+	elif clf_name == "Extra Trees":
+
+		tuned_parameters = config.initialConfig.RandomForest_hyperparameters
+		clf = ExtraTreesClassifier()
+	
+	elif clf_name == "MLP":
+		
+		tuned_parameters = config.initialConfig.MLP_hyperparameters
+		clf = MLPClassifier()
 	
 	"""
 	elif clf_name == "AdaBoost":
@@ -229,7 +239,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	
 	count = 1
 	
-	clf_names_not_tuned = ["Naive Bayes", "MLP", "Gaussian Process", "AdaBoost"]
+	clf_names_not_tuned = ["Naive Bayes", "Gaussian Process", "AdaBoost"]
 	clf_names = config.initialConfig.classifiers
 	clf_scores_dict = dict.fromkeys(clf_names)
 	baseline_scores = []
@@ -258,7 +268,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			
 		# tab
 		# get train and test sets
-		X_train, y_train, X_test, y_test = get_train_test_sets(conn, args, train_ids, test_ids)
+		X_train, y_train, X_test, y_test = get_train_test_sets(conn, args, train_ids, test_ids, count)
 		
 		#np.savetxt("X_train_fold{0}.csv".format(count), X_train, delimiter=",")
 		#np.savetxt("y_train_fold{0}.csv".format(count), y_train, delimiter=",")
@@ -347,13 +357,16 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		report_data.append(row)
 		
 	df = pd.DataFrame.from_dict(report_data)
-	if args['results_file_name'] is not None:
-		filename = args['results_file_name'] + '_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
-		filename = filename.replace(':', '.')
+	if config.initialConfig.experiment_folder == None:
+		folderpath = config.initialConfig.root_path + 'experiment_folder_' + str(datetime.datetime.now())
+		folderpath = folderpath.replace(':', '-')
+		os.makedirs(folderpath)
+		filepath = folderpath + '/' + 'classification_report_' + str(level) + 'csv'
+		df.to_csv(filepath, index = False)
 	else:
-		filename = 'classification_report_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
-		filename = filename.replace(':', '.')
-	df.to_csv(filename, index = False)
+		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+		filepath = experiment_folder_path + '/' + 'classification_report_' + str(level) + 'csv'
+		df.to_csv(filepath, index = False)
 	
 	best_clf_row = {}
 	best_clf_row['best_clf_score'] = 0.0
@@ -364,18 +377,37 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 				best_clf_row['best_clf_score']  = row['Accuracy']
 				best_clf_row['best_clf_name'] = row['Classifier']
 	df2 = pd.DataFrame.from_dict([best_clf_row])
-	filename = 'best_clf_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
-	filename = filename.replace(':', '.')
+	if config.initialConfig.experiment_folder == None:
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + 'csv'
+			df2.to_csv(filepath, index = False)
+	else:
+		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+		filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + 'csv'
+		df2.to_csv(filepath, index = False)
 	df2.to_csv(filename, index = False)
 	
 	df3 = pd.DataFrame.from_dict(hyperparams_data)
-	if args['hyperparameter_file_name'] is not None:
-		filename = args['hyperparameter_file_name'] + '_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
-		filename = filename.replace(':', '.')
+	if config.initialConfig.experiment_folder == None:
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			filepath = latest_experiment_folder + '/' + 'hyperparameters_per_fold_' + str(level) + 'csv'
+			df3.to_csv(filepath, index = False)
 	else:
-		filename = 'hyperparameters_per_fold_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
-		filename = filename.replace(':', '.')
-	df3.to_csv(filename, index = False)
+		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+		filepath = experiment_folder_path + '/' + 'hyperparameters_per_fold_' + str(level) + 'csv'
+		df3.to_csv(filepath, index = False)
 	
 def write_data_to_csv(conn, args):
 	sql = "select {0}.id, {0}.name_u, {0}.theme, {0}.class_name, {0}.subclass_n, {0}.x, {0}.y, {0}.geom from {0}".format(args["pois_tbl_name"])
