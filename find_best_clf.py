@@ -231,6 +231,11 @@ def feature_selection(X_train, X_test, y_train):
 		
 def tuned_parameters_5_fold(poi_ids, conn, args):
 	
+	if config.initialConfig.experiment_folder == None:
+		folderpath = config.initialConfig.root_path + 'experiment_folder_' + str(datetime.datetime.now())
+		folderpath = folderpath.replace(':', '-')
+		os.makedirs(folderpath)
+	
 	# Shuffle ids
 	poi_ids = poi_ids[config.initialConfig.poi_id]
 	random.shuffle(poi_ids)
@@ -358,11 +363,15 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		
 	df = pd.DataFrame.from_dict(report_data)
 	if config.initialConfig.experiment_folder == None:
-		folderpath = config.initialConfig.root_path + 'experiment_folder_' + str(datetime.datetime.now())
-		folderpath = folderpath.replace(':', '-')
-		os.makedirs(folderpath)
-		filepath = folderpath + '/' + 'classification_report_' + str(level) + 'csv'
-		df.to_csv(filepath, index = False)
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			filepath = latest_experiment_folder + '/' + 'classification_report_' + str(level) + 'csv'
+			df.to_csv(filepath, index = False)
 	else:
 		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 		filepath = experiment_folder_path + '/' + 'classification_report_' + str(level) + 'csv'
@@ -447,6 +456,8 @@ def main():
 	args['level'] = config.initialConfig.level
 	"""
 	#write_data_to_csv(conn, args)
+	
+	args['step'] = 1
 	
 	# get the poi ids
 	if config.initialConfig.level == None:

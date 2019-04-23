@@ -183,7 +183,8 @@ def construct_final_feature_vector(ids, conn, args, num_of_labels, poi_id_to_enc
 				#print(id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0])
 				poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id][poi_id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0]][0] = 1
 				poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id][poi_id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0]][1] += 1
-				
+	
+	print(poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict)
 	return poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict
 	
 def get_closest_pois_boolean_and_counts_per_label_streets(ids, conn, args, threshold = 1000.0):
@@ -356,7 +357,7 @@ def get_poi_id_to_boolean_and_counts_per_class_dict(ids, conn, num_of_labels, po
 					poi_id_to_label_boolean_counts_dict[row1['poi_id']][poi_id_to_encoded_labels_dict[row2['poi_id']][0][0]][0] = 1
 					poi_id_to_label_boolean_counts_dict[row1['poi_id']][poi_id_to_encoded_labels_dict[row2['poi_id']][0][0]][1] += 1
 	
-	#print(poi_id_to_label_boolean_counts_dict)
+	print(poi_id_to_label_boolean_counts_dict)
 	return poi_id_to_label_boolean_counts_dict
 	
 def get_closest_pois_boolean_and_counts_per_label(ids, conn, args, threshold = 1000.0):

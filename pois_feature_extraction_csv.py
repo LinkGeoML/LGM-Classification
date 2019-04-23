@@ -127,15 +127,42 @@ def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
 	for poi_id in poi_id_to_closet_poi_ids_dict:
 		poi_id_to_closet_poi_ids_dict[poi_id] = []
 	
+	"""
 	x = np.asarray(df[config.initialConfig.x])
 	y = np.asarray(df[config.initialConfig.y])
 	poi_coordinate_array = np.stack((x, y), axis = -1)
 	spatial_index = spatial.KDTree(poi_coordinate_array)
+	"""
 	
+	if config.initialConfig.experiment_folder == None:
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			index_folderpath = latest_experiment_folder + '/' + 'pois_index_' + str(args['step'])
+			exists = os.path.exists(folderpath)
+			if not exists:
+				os.mkdir(index_folderpath)
+				x = np.asarray(df[config.initialConfig.x])
+				y = np.asarray(df[config.initialConfig.y])
+				poi_coordinate_array = np.stack((x, y), axis = -1)
+				spatial_index = spatial.KDTree(poi_coordinate_array)
+				index_filepath = config.initialConfig.index_folderpath + '/' + 'pois_index.pkl'
+				with open(f, 'wb') as fdump:
+					pickle.dump(spatial_index, fdump)
+			else:
+				index_filepath = config.initialConfig.index_folderpath + '/' + 'pois_index.pkl'
+				spatial_index = pickle.load(index_filepath)
+	
+	"""
 	if config.initialConfig.dump_indexes:
 		f = config.initialConfig.root_path + 'pois_index.pkl'
 		with open(f, 'wb') as fdump:
 			pickle.dump(spatial_index, fdump)
+	"""
 	
 	for index, row in df.iterrows():
 		pois_within_radius = spatial_index.query_ball_point((row[config.initialConfig.x], row[config.initialConfig.y]), config.initialConfig.threshold_distance_neighbor_pois_roads)
@@ -242,13 +269,35 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 	for street_geom in street_geom_to_to_closest_poi_ids_dict:
 		street_geom_to_to_closest_poi_ids_dict[street_geom] = []
 	
+	"""
 	spatial_index = street_df.sindex
 	if config.initialConfig.dump_indexes:
 		f = config.initialConfig.root_path + 'street_index.pkl'
 		with open(f, 'wb') as fdump:
 			pickle.dump(spatial_index, fdump)
 	#print(list(street_df.columns.values))
-			
+	"""
+	
+	if config.initialConfig.experiment_folder == None:
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			index_folderpath = latest_experiment_folder + '/' + 'street_index_' + str(args['step'])
+			exists = os.path.exists(folderpath)
+			if not exists:
+				os.mkdir(index_folderpath)
+				spatial_index = street_df.sindex
+				index_filepath = config.initialConfig.index_folderpath + '/' + 'street_index.pkl'
+				with open(f, 'wb') as fdump:
+					pickle.dump(spatial_index, fdump)
+			else:
+				index_filepath = config.initialConfig.index_folderpath + '/' + 'street_index.pkl'
+				spatial_index = pickle.load(index_filepath)
+	"""	
 	for index, row in poi_df.iterrows():
 		#min_distance = 1000000000.0
 		poi_geom = Point(row[config.initialConfig.x], row[config.initialConfig.y])
@@ -263,11 +312,44 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 		poi_id_to_street_geom_dict[row[config.initialConfig.poi_id]] = nearest_street_geom
 		
 		street_geom_to_to_closest_poi_ids_dict[str(nearest_street_geom)].append([row[config.initialConfig.poi_id], row['class_code']])
-		if config.initialConfig.dump_indexes:
-			f = config.initialConfig.root_path + 'street_geom_to_to_closest_poi_ids_dict.json'
-			with open(f, 'w') as fp:
-				json.dump(street_geom_to_to_closest_poi_ids_dict, fp)
+	"""
+	
+	if config.initialConfig.experiment_folder == None:
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			index_folderpath = latest_experiment_folder + '/' + 'street_index_' + str(args['step'])
+			exists = os.path.exists(folderpath)
+			if not exists:
+				for index, row in poi_df.iterrows():
+					poi_geom = Point(row[config.initialConfig.x], row[config.initialConfig.y])
+					poi_geom = transform(project, poi_geom)
+					
+					coords = list(poi_geom.coords)[0]
+					nearest_street_geom_index = list(spatial_index.nearest(coords, num_results = 1))
+					nearest_street_geom = street_df.iloc[nearest_street_geom_index[0]]['geometry']
+					poi_id_to_street_geom_dict[row[config.initialConfig.poi_id]] = nearest_street_geom
+					street_geom_to_to_closest_poi_ids_dict[str(nearest_street_geom)].append([row[config.initialConfig.poi_id], row['class_code']])
+
+				os.mkdir(index_folderpath)
+				json_filepath = config.initialConfig.index_folderpath + '/' + 'street_geom_to_to_closest_poi_ids_dict.json'
+				with open(json_filepath, 'w') as fp:
+					json.dump(street_geom_to_to_closest_poi_ids_dict, fp)
+			else:
+				json_filepath = config.initialConfig.index_folderpath + '/' + 'street_geom_to_to_closest_poi_ids_dict.json'
+				street_geom_to_to_closest_poi_ids_dict = json.loads(json_filepath)
+	
+	"""
+	if config.initialConfig.dump_indexes:
+		f = config.initialConfig.root_path + 'street_geom_to_to_closest_poi_ids_dict.json'
+		with open(f, 'w') as fp:
+			json.dump(street_geom_to_to_closest_poi_ids_dict, fp)
 		#print(nearest_street)
+	"""
 		
 		#print(street_geom_to_to_closest_poi_ids_dict)
 		"""
@@ -601,7 +683,6 @@ def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels
 					poi_id_to_label_boolean_counts_dict[row1[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[row2[config.initialConfig.poi_id]][0][0]][0] = 1
 					poi_id_to_label_boolean_counts_dict[row1[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[row2[config.initialConfig.poi_id]][0][0]][1] += 1
 	"""
-	#print(poi_id_to_label_boolean_counts_dict)
 	return poi_id_to_label_boolean_counts_dict
 	
 def get_closest_pois_boolean_and_counts_per_label_csv(ids, conn, args, threshold = 1000.0):

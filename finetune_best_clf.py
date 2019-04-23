@@ -263,6 +263,8 @@ def main():
 
 	args = vars(ap.parse_args())
 	
+	args['step'] = 2
+	
 	if args['pois_tbl_name'] is not None:
 		print(args['pois_tbl_name'])
 	

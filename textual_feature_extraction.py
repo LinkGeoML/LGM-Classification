@@ -11,6 +11,11 @@ from feml import *
 import nltk
 from config import *
 
+from whoosh.index import create_in
+from whoosh.fields import *
+from whoosh.qparser import QueryParser
+from whoosh.analysis import NgramWordAnalyzer
+
 def find_ngrams(token_list, n):
 	#print(token_list)
 	s = []
@@ -128,7 +133,7 @@ def get_top_k_features(corpus, args, k):
 	
 	return top_k, k_new
 
-def get_poi_top_k_features(ids, conn, top_k_features, args, k):
+def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 	# get all poi details
 	
 	if args['pois_tbl_name'] is not None:
@@ -148,14 +153,51 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k):
 			is_in_ids.append(False)
 	df = df[is_in_ids]
 	
+	if config.initialConfig.experiment_folder == None:
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			index_folderpath = latest_experiment_folder + '/' + feature_type + '_index_' + str(args['step'])
+			exists = os.path.exists(folderpath)
+			if not exists:
+				os.mkdir(index_folderpath)
+				schema = Schema(path=ID(stored=True), content=TEXT)
+				ix = create_in(index_folderpath, schema)
+				writer = ix.writer()
+				
+				for i in range(k):
+					writer.add_document(path=str(i), content=top_k_features[i])
+				writer.commit()
+			else:
+				ix = open_dir(index_folderpath)
+	
 	poi_id_to_boolean_top_k_features_dict = dict.fromkeys(df[config.initialConfig.poi_id])
 	for poi_id in poi_id_to_boolean_top_k_features_dict:
 		poi_id_to_boolean_top_k_features_dict[poi_id] = [0 for _ in range(0, int(k))]
 	
 	for index, row in df.iterrows():
-		 for i in range(len(top_k_features)):
-			 if top_k_features[i] in row[config.initialConfig.name].lower():
-				 poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][i] = 1
+		 #for i in range(len(top_k_features)):
+			 #if top_k_features[i] in row[config.initialConfig.name].lower():
+			with ix.searcher() as searcher:
+				if feature_type == "char_ngrams_index":
+					ngramAnalyzer = NgramWordAnalyzer(minsize=config.initialConfig.character_n_gram_size, maxsize=config.initialConfig.character_n_gram_size)
+					tokens = [token.text for token in ngramAnalyzer(row[config.initialConfig.name].lower())]
+					#print(tokens)
+					for token in tokens:
+						query = QueryParser("content", ix.schema).parse(token)
+						results = searcher.search(query)
+						#print(results)
+						if len(results) > 0:
+							poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][int(results[0]['path'])] = 1
+				else:
+					query = QueryParser("content", ix.schema).parse(row[config.initialConfig.name].lower())
+					results = searcher.search(query)
+					if len(results) > 0:
+						poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][int(results[0]['path'])] = 1
 				 
 	return poi_id_to_boolean_top_k_features_dict
 
@@ -172,9 +214,9 @@ def get_features_top_k(ids, conn, args, k, test_ids = None):
 		
 	# get boolean values dictating whether pois have or haven't any of the top features in their names
 	if test_ids == None:
-		return get_poi_top_k_features(ids, conn, top_k_features, args, k_feat)
+		return get_poi_top_k_features(ids, conn, top_k_features, args, k_feat, "tokens_index")
 	else:
-		return get_poi_top_k_features(test_ids, conn, top_k_features, args, k_feat)
+		return get_poi_top_k_features(test_ids, conn, top_k_features, args, k_feat, "tokens_index")
 	
 def get_features_top_k_ngrams(ids, conn, args, k, test_ids = None):
 	""" This function extracts frequent n-grams (n is specified) from the whole 
@@ -190,9 +232,9 @@ def get_features_top_k_ngrams(ids, conn, args, k, test_ids = None):
 				
 	# get boolean values dictating whether pois have or haven't any of the top features in their names
 	if test_ids == None:
-		return get_poi_top_k_features(ids, conn, top_k_features, args, k_feat)
+		return get_poi_top_k_features(ids, conn, top_k_features, args, k_feat, "char_ngrams_index")
 	else:
-		return get_poi_top_k_features(test_ids, conn, top_k_features, args, k_feat)
+		return get_poi_top_k_features(test_ids, conn, top_k_features, args, k_feat, "char_ngrams_index")
 	
 	
 def get_features_top_k_ngrams_tokens(ids, conn, args, k, test_ids = None):
@@ -208,9 +250,9 @@ def get_features_top_k_ngrams_tokens(ids, conn, args, k, test_ids = None):
 	
 	# get boolean values dictating whether pois have or haven't any of the top features in their names
 	if test_ids == None:
-		return get_poi_top_k_features(ids, conn, top_k_features, args, k_feat)
+		return get_poi_top_k_features(ids, conn, top_k_features, args, k_feat, "token_ngrams_index")
 	else:
-		return get_poi_top_k_features(test_ids, conn, top_k_features, args, k_feat)
+		return get_poi_top_k_features(test_ids, conn, top_k_features, args, k_feat, "token_ngrams_index")
 	
 def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict, encoded_labels_set, conn, args, encoded_labels_corpus_dict, test = False):
 	
@@ -231,25 +273,65 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 			is_in_ids.append(False)
 	df = df[is_in_ids]
 	
-	if not test:
-		encoded_labels_corpus_dict = dict.fromkeys(encoded_labels_set)
-		for key in encoded_labels_corpus_dict:
-			encoded_labels_corpus_dict[key] = []
-		
-		for poi_id, name in zip(df[config.initialConfig.poi_id], df[config.initialConfig.name]):
-			# perform stemming based on the language it's written in
-			stemmed_word = perform_stemming(name, lang_detect=True)
-			# break it in tokens
-			not_stopwords, stopwords = normalize_str(name)
-			not_stopwords = list(not_stopwords)
-			encoded_labels_corpus_dict[poi_id_to_encoded_labels_dict[poi_id][0][0]].append(not_stopwords)
+	if config.initialConfig.experiment_folder == None:
+		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(experiment_folder_path)
+		if list_of_folders == []:
+			print("ERROR! No experiment folder found inside the root folder")
+			return
+		else:
+			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
+			index_folderpath = latest_experiment_folder + '/' + 'similarity_index_' + str(args['step'])
+			exists = os.path.exists(folderpath)
+			if not exists:
+				os.mkdir(index_folderpath)
 	
-		for key in encoded_labels_corpus_dict:
-			encoded_labels_corpus_dict[key] = [item for sublist in encoded_labels_corpus_dict[key] for item in sublist]
-		
+				schema = Schema(path=ID(stored=True), class_id=STORED, content=TEXT)
+				ix = create_in(index_folderpath, schema)
+				writer = ix.writer()
+				
+				if not test:
+					encoded_labels_corpus_dict = dict.fromkeys(encoded_labels_set)
+					for key in encoded_labels_corpus_dict:
+						encoded_labels_corpus_dict[key] = []
+					
+					for poi_id, name in zip(df[config.initialConfig.poi_id], df[config.initialConfig.name]):
+						# perform stemming based on the language it's written in
+						stemmed_word = perform_stemming(name, lang_detect=True)
+						# break it in tokens
+						not_stopwords, stopwords = normalize_str(name)
+						not_stopwords = list(not_stopwords)
+						#print(name)
+						#encoded_labels_corpus_dict[poi_id_to_encoded_labels_dict[poi_id][0][0]].append(name)
+						
+						writer.add_document(path=str(poi_id), class_id=str(poi_id_to_encoded_labels_dict[poi_id][0][0]), content=not_stopwords)
+				
+					#for key in encoded_labels_corpus_dict:
+					#	encoded_labels_corpus_dict[key] = [item for sublist in encoded_labels_corpus_dict[key] for item in sublist]
+				
+					writer.commit()
+				#print(encoded_labels_corpus_dict)
+			else:
+				ix = open_dir(index_folderpath)
+	
+	"""
+	for key in encoded_labels_corpus_dict:
+		writer.add_document(path = str(key), content = encoded_labels_corpus_dict[key])
+	writer.commit()
+	"""
+	
+	#name = 'φαρμακειο'
+	"""
+	with ix.searcher() as searcher:
+		query = QueryParser("content", ix.schema).parse(name)
+		results = searcher.search(query)
+		print(name, results[0], len(results))
+	"""	
 	poi_id_to_similarity_per_label = dict.fromkeys(ids)
 	for poi_id in poi_id_to_similarity_per_label:
-		poi_id_to_similarity_per_label[poi_id] = []
+		poi_id_to_similarity_per_label[poi_id] = [0 for _ in range(len(encoded_labels_set))]
+		
+	#print(poi_id_to_similarity_per_label)
 	
 	count = 0
 	
@@ -260,6 +342,16 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 		not_stopwords, stopwords = normalize_str(name)
 		not_stopwords = list(not_stopwords)
 		
+		for token in not_stopwords:
+			with ix.searcher() as searcher:
+				query = QueryParser("content", ix.schema).parse(name)
+				results = searcher.search(query)
+				for result in results:
+					#print(result['class_id'])
+					poi_id_to_similarity_per_label[poi_id][int(result['class_id'])] += float(1) / float(len(not_stopwords))
+					#print(poi_id_to_similarity_per_label[poi_id])
+				
+		"""
 		for label in encoded_labels_corpus_dict:
 			for token in not_stopwords:
 				if token in encoded_labels_corpus_dict[label]:
@@ -272,7 +364,8 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 			similarity = float(count) / float(corpus_length)
 			poi_id_to_similarity_per_label[poi_id].append(similarity)
 			count = 0
-			
+		"""	
+	#print(poi_id_to_similarity_per_label)
 	return poi_id_to_similarity_per_label, encoded_labels_corpus_dict
 		
 	
