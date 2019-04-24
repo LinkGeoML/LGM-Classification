@@ -19,8 +19,8 @@ class initialConfig:
 	# The following parameters define the path of the folders in which
 	# each output of the framework will be stored
 	root_path = "/home/nikos/Desktop/LGM-Classification/"
-	#experiment_folder = "experiment_folder_2019-04-08 16-07-31.806855"
-	experiment_folder = None
+	experiment_folder = "experiment_folder_2019-04-24 12-25-11.250309"
+	#experiment_folder = None
 	
 	# The following parameters correspond to the machine learning
 	# part of the framework.

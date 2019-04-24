@@ -143,19 +143,20 @@ def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
 			index_folderpath = latest_experiment_folder + '/' + 'pois_index_' + str(args['step'])
-			exists = os.path.exists(folderpath)
+			exists = os.path.exists(index_folderpath)
 			if not exists:
 				os.mkdir(index_folderpath)
 				x = np.asarray(df[config.initialConfig.x])
 				y = np.asarray(df[config.initialConfig.y])
 				poi_coordinate_array = np.stack((x, y), axis = -1)
 				spatial_index = spatial.KDTree(poi_coordinate_array)
-				index_filepath = config.initialConfig.index_folderpath + '/' + 'pois_index.pkl'
-				with open(f, 'wb') as fdump:
+				index_filepath = index_folderpath + '/' + 'pois_index.pkl'
+				with open(index_filepath, 'wb') as fdump:
 					pickle.dump(spatial_index, fdump)
-			else:
-				index_filepath = config.initialConfig.index_folderpath + '/' + 'pois_index.pkl'
-				spatial_index = pickle.load(index_filepath)
+	else:
+		index_filepath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'pois_index_' + str(args['step']) + '/' + 'pois_index.pkl'
+		pickle_in = open(index_filepath, "rb")
+		spatial_index = pickle.load(pickle_in)
 	
 	"""
 	if config.initialConfig.dump_indexes:
@@ -287,16 +288,21 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
 			index_folderpath = latest_experiment_folder + '/' + 'street_index_' + str(args['step'])
-			exists = os.path.exists(folderpath)
+			exists = os.path.exists(index_folderpath)
 			if not exists:
 				os.mkdir(index_folderpath)
 				spatial_index = street_df.sindex
-				index_filepath = config.initialConfig.index_folderpath + '/' + 'street_index.pkl'
-				with open(f, 'wb') as fdump:
+				index_filepath = index_folderpath + '/' + 'street_index.pkl'
+				with open(index_filepath, 'wb') as fdump:
 					pickle.dump(spatial_index, fdump)
-			else:
-				index_filepath = config.initialConfig.index_folderpath + '/' + 'street_index.pkl'
-				spatial_index = pickle.load(index_filepath)
+	else:
+		"""
+		index_filepath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'street_index_' + str(args['step']) + '/' + 'street_index.pkl'
+		#print(index_filepath)
+		pickle_in = open(index_filepath, "rb")
+		spatial_index = pickle.load(pickle_in)
+		"""
+		spatial_index = street_df.sindex
 	"""	
 	for index, row in poi_df.iterrows():
 		#min_distance = 1000000000.0
@@ -322,37 +328,57 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 			return
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-			index_folderpath = latest_experiment_folder + '/' + 'street_index_' + str(args['step'])
-			exists = os.path.exists(folderpath)
+			index_folderpath = latest_experiment_folder + '/' + 'street_geom_to_poi_id_dict_' + str(args['step'])
+			exists = os.path.exists(index_folderpath)
 			if not exists:
 				for index, row in poi_df.iterrows():
+					#print(row['poi_id'])
 					poi_geom = Point(row[config.initialConfig.x], row[config.initialConfig.y])
 					poi_geom = transform(project, poi_geom)
 					
 					coords = list(poi_geom.coords)[0]
 					nearest_street_geom_index = list(spatial_index.nearest(coords, num_results = 1))
+					#print(nearest_street_geom_index)
 					nearest_street_geom = street_df.iloc[nearest_street_geom_index[0]]['geometry']
-					poi_id_to_street_geom_dict[row[config.initialConfig.poi_id]] = nearest_street_geom
+					#print(str(nearest_street_geom))
+					poi_id_to_street_geom_dict[row[config.initialConfig.poi_id]] = str(nearest_street_geom)
 					street_geom_to_to_closest_poi_ids_dict[str(nearest_street_geom)].append([row[config.initialConfig.poi_id], row['class_code']])
 
 				os.mkdir(index_folderpath)
-				json_filepath = config.initialConfig.index_folderpath + '/' + 'street_geom_to_to_closest_poi_ids_dict.json'
+				json_filepath = index_folderpath + '/' + 'street_geom_to_to_closest_poi_ids_dict.json'
 				with open(json_filepath, 'w') as fp:
 					json.dump(street_geom_to_to_closest_poi_ids_dict, fp)
-			else:
-				json_filepath = config.initialConfig.index_folderpath + '/' + 'street_geom_to_to_closest_poi_ids_dict.json'
-				street_geom_to_to_closest_poi_ids_dict = json.loads(json_filepath)
-	
+	else:
+		for index, row in poi_df.iterrows():
+			poi_geom = Point(row[config.initialConfig.x], row[config.initialConfig.y])
+			poi_geom = transform(project, poi_geom)
+			
+			#street_df.sindex = spatial_index
+			
+			coords = list(poi_geom.coords)[0]
+			#print(coords)
+			nearest_street_geom_index = list(spatial_index.nearest(coords, num_results = 1))
+			#print(nearest_street_geom_index)
+			nearest_street_geom = street_df.iloc[nearest_street_geom_index[0]]['geometry']
+			#print(str(nearest_street_geom))
+			poi_id_to_street_geom_dict[row[config.initialConfig.poi_id]] = str(nearest_street_geom)
+			
+		json_filepath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'street_geom_to_poi_id_dict_' + str(args['step']) + '/' + 'street_geom_to_to_closest_poi_ids_dict.json'
+		with open(json_filepath, 'r') as f:
+			street_geom_to_to_closest_poi_ids_dict = json.load(f)
+			
+	#print(street_geom_to_to_closest_poi_ids_dict)
+
 	"""
 	if config.initialConfig.dump_indexes:
 		f = config.initialConfig.root_path + 'street_geom_to_to_closest_poi_ids_dict.json'
 		with open(f, 'w') as fp:
 			json.dump(street_geom_to_to_closest_poi_ids_dict, fp)
 		#print(nearest_street)
-	"""
+	
 		
 		#print(street_geom_to_to_closest_poi_ids_dict)
-		"""
+		
 		#print(point)
 		#poi_geom = shapely.wkt.loads(Point(row['x'], row['y']))
 		#print(poi_geom)
@@ -371,7 +397,7 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 				min_distance = street_geom.distance(poi_geom)
 				#print(min_distance)
 				poi_id_to_street_geom_dict[row[config.initialConfig.poi_id]] = street_geom
-		"""
+	"""
 
 	return poi_id_to_street_geom_dict, street_df, street_geom_to_to_closest_poi_ids_dict
 	
@@ -481,7 +507,7 @@ def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to
 	for poi_id in poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict:
 		poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id] = [[0,0] for _ in range(0, num_of_labels)]
 		
-	#print(num_of_labels)
+	#print(poi_id_to_closest_street_id_dict)
 	
 	for poi_id in poi_id_to_closest_street_id_dict:
 		street_geometry = poi_id_to_closest_street_id_dict[poi_id]
@@ -513,9 +539,9 @@ def get_closest_pois_boolean_and_counts_per_label_streets_csv(ids, conn, args, t
 	poi_id_to_closest_poi_ids_dict = get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args)
 	# get the dictionary mapping each poi id to that of its closest road
 	poi_id_to_closest_street_id_dict, street_df, street_geom_to_closest_poi_ids_dict = get_poi_id_to_closest_street_id_dict_csv(ids, conn, args)
-	
+	#print(poi_id_to_closest_street_id_dict)
+	#print(street_geom_to_closest_poi_ids_dict)
 	#street_geom_to_closest_poi_ids_dict = get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df)
-	
 	final_feature_vector = construct_final_feature_vector_csv(ids, conn, args, len(encoded_labels_set), poi_id_to_encoded_labels_dict, poi_id_to_closest_poi_ids_dict, poi_id_to_closest_street_id_dict, street_geom_to_closest_poi_ids_dict)
 	
 	#print(final_feature_vector)

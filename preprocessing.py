@@ -432,7 +432,7 @@ def get_train_set(conn, args, poi_ids):
 					#print(key, X_train)
 					X_train, scaler_dict[key] = standardize_data_train(X_train)
 					
-					filepath = config.initialConfig.root_path + key + '_' + 'model_training_' + str(args['level']) + '.csv'
+					filepath = args['folderpath'] + '/' + key + '_' + 'model_training_' + str(args['level']) + '.csv'
 					np.savetxt(filepath, X_train, delimiter=",")
 					
 					print("Feature Name: {0}, Mean Value: {1}, Std Value: {2}, Max Value: {3}, Min Value: {4}, Shape: {5}".format(key, np.mean(X_train), np.std(X_train), np.amax(X_train), np.amin(X_train), X_train.shape))
@@ -454,7 +454,7 @@ def get_train_set(conn, args, poi_ids):
 					#print("Results after removal of features with low variance:")
 					#print("Feature Name: {0}, Mean Value: {1}, Std Value: {2}, Max Value: {3}, Min Value: {4}, Shape: {5}".format(key, np.mean(X_train), np.std(X_train), np.amax(X_train), np.amin(X_train), X_train.shape))
 					
-					filepath = config.initialConfig.root_path + key + '_' + 'model_training_' + str(args['level']) + '.csv'
+					filepath = args['folderpath'] + '/' + key + '_' + 'model_training_' + str(args['level']) + '.csv'
 					np.savetxt(filepath, temp_array, delimiter=",")
 					
 					X_train = np.concatenate((X_train, temp_array), axis = 1)
@@ -511,6 +511,17 @@ def main():
 
 	args = vars(ap.parse_args())
 	args['level'] = 1
+	args['step'] = 1
+	
+	if config.initialConfig.experiment_folder == None:
+		folderpath = config.initialConfig.root_path + 'experiment_folder_' + str(datetime.datetime.now())
+		folderpath = folderpath.replace(':', '-')
+		os.makedirs(folderpath)
+	else:
+		folderpath = config.initialConfig.experiment_folder
+		
+	args['folderpath'] = folderpath
+		
 	conn = None
 	poi_ids = get_poi_ids(conn, args)
 	poi_ids = poi_ids[config.initialConfig.poi_id]

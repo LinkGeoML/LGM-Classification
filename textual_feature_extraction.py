@@ -9,12 +9,16 @@ from database import *
 from preprocessing import *
 from feml import *
 import nltk
+import glob
 from config import *
 
 from whoosh.index import create_in
 from whoosh.fields import *
 from whoosh.qparser import QueryParser
 from whoosh.analysis import NgramWordAnalyzer
+from whoosh import index as windex
+from whoosh import qparser
+from whoosh import scoring
 
 def find_ngrams(token_list, n):
 	#print(token_list)
@@ -162,7 +166,7 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
 			index_folderpath = latest_experiment_folder + '/' + feature_type + '_index_' + str(args['step'])
-			exists = os.path.exists(folderpath)
+			exists = os.path.exists(index_folderpath)
 			if not exists:
 				os.mkdir(index_folderpath)
 				schema = Schema(path=ID(stored=True), content=TEXT)
@@ -172,8 +176,9 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 				for i in range(k):
 					writer.add_document(path=str(i), content=top_k_features[i])
 				writer.commit()
-			else:
-				ix = open_dir(index_folderpath)
+	else:
+		index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + feature_type + '_index_' + str(args['step'])
+		ix = windex.open_dir(index_folderpath)
 	
 	poi_id_to_boolean_top_k_features_dict = dict.fromkeys(df[config.initialConfig.poi_id])
 	for poi_id in poi_id_to_boolean_top_k_features_dict:
@@ -282,10 +287,9 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
 			index_folderpath = latest_experiment_folder + '/' + 'similarity_index_' + str(args['step'])
-			exists = os.path.exists(folderpath)
+			exists = os.path.exists(index_folderpath)
 			if not exists:
 				os.mkdir(index_folderpath)
-	
 				schema = Schema(path=ID(stored=True), class_id=STORED, content=TEXT)
 				ix = create_in(index_folderpath, schema)
 				writer = ix.writer()
@@ -311,8 +315,9 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 				
 					writer.commit()
 				#print(encoded_labels_corpus_dict)
-			else:
-				ix = open_dir(index_folderpath)
+	else:
+		index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'similarity_index_' + str(args['step'])
+		ix = windex.open_dir(index_folderpath)
 	
 	"""
 	for key in encoded_labels_corpus_dict:
@@ -342,6 +347,14 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 		not_stopwords, stopwords = normalize_str(name)
 		not_stopwords = list(not_stopwords)
 		
+		with ix.searcher(weighting=scoring.TF_IDF()) as searcher:
+			query = qparser.QueryParser("content", ix.schema, group = qparser.OrGroup).parse(name)
+			results = searcher.search(query)
+			for r in results:
+				#print(r, r.score)
+				poi_id_to_similarity_per_label[poi_id][int(r['class_id'])] = r.score
+		
+		"""
 		for token in not_stopwords:
 			with ix.searcher() as searcher:
 				query = QueryParser("content", ix.schema).parse(name)
@@ -350,7 +363,7 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 					#print(result['class_id'])
 					poi_id_to_similarity_per_label[poi_id][int(result['class_id'])] += float(1) / float(len(not_stopwords))
 					#print(poi_id_to_similarity_per_label[poi_id])
-				
+		"""		
 		"""
 		for label in encoded_labels_corpus_dict:
 			for token in not_stopwords:
