@@ -143,22 +143,26 @@ def get_train_test_sets(conn, args, poi_ids_train, poi_ids_test, fold_number = N
 			poi_id_to_word_features_ngrams_tokens = get_features_top_k_ngrams_tokens(poi_ids_train, conn, args, config.initialConfig.top_k_terms_percentage)
 		
 		if args["pois_tbl_name"] is not None:
-			if feature_dict['poi_to_poi_radius'] is not None: 
-				closest_pois_boolean_and_counts_per_label = get_closest_pois_boolean_and_counts_per_label(poi_ids_train, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
-			if feature_dict['poi_to_closest_street_to_poi_radius'] is not None: 	
-				closest_pois_boolean_and_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets(poi_ids_train, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
+			if feature_dict['poi_to_poi_radius_boolean'] is not None or feature_dict['poi_to_poi_radius_counts'] is not None: 
+				closest_pois_boolean_per_label, closest_pois_counts_per_label = get_closest_pois_boolean_and_counts_per_label(poi_ids_train, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
+			if feature_dict['poi_to_closest_street_to_poi_radius_boolean'] is not None or feature_dict['poi_to_closest_street_to_poi_radius_counts'] is not None: 	
+				closest_pois_boolean_per_label_streets, closest_pois_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets(poi_ids_train, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
 		else:
-			if feature_dict['poi_to_poi_radius'] is not None: 
-				closest_pois_boolean_and_counts_per_label = get_closest_pois_boolean_and_counts_per_label_csv(poi_ids_train, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
-			if feature_dict['poi_to_closest_street_to_poi_radius'] is not None: 	
-				closest_pois_boolean_and_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets_csv(poi_ids_train, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
+			if feature_dict['poi_to_poi_radius_boolean'] is not None or feature_dict['poi_to_poi_radius_counts'] is not None: 
+				closest_pois_boolean_per_label, closest_pois_counts_per_label = get_closest_pois_boolean_and_counts_per_label_csv(poi_ids_train, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
+			if feature_dict['poi_to_closest_street_to_poi_radius_boolean'] is not None or feature_dict['poi_to_closest_street_to_poi_radius_counts'] is not None: 	
+				closest_pois_boolean_per_label_streets, closest_pois_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets_csv(poi_ids_train, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
 			
 		#count = 0
 		for poi_id in poi_ids_train:
-			if feature_dict['poi_to_poi_radius'] is not None:
-				temp_feature_list1 = [item for sublist in closest_pois_boolean_and_counts_per_label[poi_id] for item in sublist]
-			if feature_dict['poi_to_closest_street_to_poi_radius'] is not None: 
-				temp_feature_list2 = [item for sublist in closest_pois_boolean_and_counts_per_label_streets[poi_id] for item in sublist]
+			if feature_dict['poi_to_poi_radius_boolean'] is not None:
+				temp_feature_list1 = [item for sublist in closest_pois_boolean_per_label[poi_id] for item in sublist]
+			if feature_dict['poi_to_poi_radius_counts'] is not None: 
+				temp_feature_list2 = [item for sublist in closest_pois_counts_per_label[poi_id] for item in sublist]
+			if feature_dict['poi_to_closest_street_to_poi_radius_boolean'] is not None:
+				temp_feature_list3 = [item for sublist in closest_pois_boolean_per_label_streets[poi_id] for item in sublist]
+			if feature_dict['poi_to_closest_street_to_poi_radius_counts'] is not None: 
+				temp_feature_list4 = [item for sublist in closest_pois_counts_per_label_streets[poi_id] for item in sublist]
 			
 			"""
 			if count == 0:
@@ -179,10 +183,14 @@ def get_train_test_sets(conn, args, poi_ids_train, poi_ids_test, fold_number = N
 				feature_dict['word_features_ngrams'].append(poi_id_to_word_features_ngrams[poi_id])
 			if feature_dict['word_features_ngrams_tokens'] is not None:
 				feature_dict['word_features_ngrams_tokens'].append(poi_id_to_word_features_ngrams_tokens[poi_id])
-			if feature_dict['poi_to_poi_radius'] is not None:
-				feature_dict['poi_to_poi_radius'].append(temp_feature_list1)
-			if feature_dict['poi_to_closest_street_to_poi_radius'] is not None: 
-				feature_dict['poi_to_closest_street_to_poi_radius'].append(temp_feature_list2)
+			if feature_dict['poi_to_poi_radius_boolean'] is not None:
+				feature_dict['poi_to_poi_radius_boolean'].append(temp_feature_list1)
+			if feature_dict['poi_to_poi_radius_counts'] is not None: 
+				feature_dict['poi_to_poi_radius_counts'].append(temp_feature_list2)
+			if feature_dict['poi_to_closest_street_to_poi_radius_boolean'] is not None: 
+				feature_dict['poi_to_closest_street_to_poi_radius_boolean'].append(temp_feature_list2)
+			if feature_dict['poi_to_closest_street_to_poi_radius_counts'] is not None: 
+				feature_dict['poi_to_closest_street_to_poi_radius_counts'].append(temp_feature_list2)
 			
 			#feature_list = poi_id_to_class_centroid_similarities_train[poi_id] + poi_id_to_word_features[poi_id] + poi_id_to_word_features_ngrams[poi_id] + poi_id_to_word_features_ngrams_tokens[poi_id] + temp_feature_list1 + temp_feature_list2
 			#X_train.append(feature_list)
@@ -226,22 +234,26 @@ def get_train_test_sets(conn, args, poi_ids_train, poi_ids_test, fold_number = N
 			poi_id_to_word_features_ngrams_tokens = get_features_top_k_ngrams_tokens(poi_ids_test, conn, args, config.initialConfig.top_k_terms_percentage)
 		
 		if args["pois_tbl_name"] is not None:
-			if feature_dict['poi_to_poi_radius'] is not None: 
-				closest_pois_boolean_and_counts_per_label = get_closest_pois_boolean_and_counts_per_label(poi_ids_test, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
-			if feature_dict['poi_to_closest_street_to_poi_radius'] is not None: 	
-				closest_pois_boolean_and_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets(poi_ids_test, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
+			if feature_dict['poi_to_poi_radius_boolean'] is not None or feature_dict['poi_to_poi_radius_counts'] is not None: 
+				closest_pois_boolean_per_label, closest_pois_counts_per_label = get_closest_pois_boolean_and_counts_per_label(poi_ids_test, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
+			if feature_dict['poi_to_closest_street_to_poi_radius_boolean'] is not None or feature_dict['poi_to_closest_street_to_poi_radius_counts'] is not None: 		
+				closest_pois_boolean_per_label_streets, closest_pois_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets(poi_ids_test, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
 		else:
-			if feature_dict['poi_to_poi_radius'] is not None: 
-				closest_pois_boolean_and_counts_per_label = get_closest_pois_boolean_and_counts_per_label_csv(poi_ids_test, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
-			if feature_dict['poi_to_closest_street_to_poi_radius'] is not None: 	
-				closest_pois_boolean_and_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets_csv(poi_ids_test, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
+			if feature_dict['poi_to_poi_radius_boolean'] is not None or feature_dict['poi_to_poi_radius_counts'] is not None: 
+				closest_pois_boolean_per_label, closest_pois_counts_per_label = get_closest_pois_boolean_and_counts_per_label_csv(poi_ids_test, conn, args, config.initialConfig.threshold_distance_neighbor_pois)
+			if feature_dict['poi_to_closest_street_to_poi_radius_boolean'] is not None or feature_dict['poi_to_closest_street_to_poi_radius_counts'] is not None: 	
+				closest_pois_boolean_per_label_streets, closest_pois_counts_per_label_streets = get_closest_pois_boolean_and_counts_per_label_streets_csv(poi_ids_test, conn, args, config.initialConfig.threshold_distance_neighbor_pois_roads)
 			
 		#count = 0
 		for poi_id in poi_ids_test:
-			if feature_dict['poi_to_poi_radius'] is not None:
-				temp_feature_list1 = [item for sublist in closest_pois_boolean_and_counts_per_label[poi_id] for item in sublist]
-			if feature_dict['poi_to_closest_street_to_poi_radius'] is not None: 
-				temp_feature_list2 = [item for sublist in closest_pois_boolean_and_counts_per_label_streets[poi_id] for item in sublist]
+			if feature_dict['poi_to_poi_radius_boolean'] is not None:
+				temp_feature_list1 = [item for sublist in closest_pois_boolean_per_label[poi_id] for item in sublist]
+			if feature_dict['poi_to_poi_radius_counts'] is not None: 
+				temp_feature_list2 = [item for sublist in closest_pois_counts_per_label[poi_id] for item in sublist]
+			if feature_dict['poi_to_closest_street_to_poi_radius_boolean'] is not None:
+				temp_feature_list3 = [item for sublist in closest_pois_boolean_per_label_streets[poi_id] for item in sublist]
+			if feature_dict['poi_to_closest_street_to_poi_radius_counts'] is not None: 
+				temp_feature_list4 = [item for sublist in closest_pois_counts_per_label_streets[poi_id] for item in sublist]
 			
 			"""
 			if count == 0:
@@ -255,17 +267,21 @@ def get_train_test_sets(conn, args, poi_ids_train, poi_ids_test, fold_number = N
 			count += 1
 			"""
 			if feature_dict['class_centroid_similarities'] is not None:
-				feature_dict['class_centroid_similarities'].append(poi_id_to_class_centroid_similarities_test[poi_id])
+				feature_dict['class_centroid_similarities'].append(poi_id_to_class_centroid_similarities_train[poi_id])
 			if feature_dict['word_features'] is not None:
 				feature_dict['word_features'].append(poi_id_to_word_features[poi_id])
 			if feature_dict['word_features_ngrams'] is not None:
 				feature_dict['word_features_ngrams'].append(poi_id_to_word_features_ngrams[poi_id])
 			if feature_dict['word_features_ngrams_tokens'] is not None:
 				feature_dict['word_features_ngrams_tokens'].append(poi_id_to_word_features_ngrams_tokens[poi_id])
-			if feature_dict['poi_to_poi_radius'] is not None:
-				feature_dict['poi_to_poi_radius'].append(temp_feature_list1)
-			if feature_dict['poi_to_closest_street_to_poi_radius'] is not None: 
-				feature_dict['poi_to_closest_street_to_poi_radius'].append(temp_feature_list2)
+			if feature_dict['poi_to_poi_radius_boolean'] is not None:
+				feature_dict['poi_to_poi_radius_boolean'].append(temp_feature_list1)
+			if feature_dict['poi_to_poi_radius_counts'] is not None: 
+				feature_dict['poi_to_poi_radius_counts'].append(temp_feature_list2)
+			if feature_dict['poi_to_closest_street_to_poi_radius_boolean'] is not None: 
+				feature_dict['poi_to_closest_street_to_poi_radius_boolean'].append(temp_feature_list2)
+			if feature_dict['poi_to_closest_street_to_poi_radius_counts'] is not None: 
+				feature_dict['poi_to_closest_street_to_poi_radius_counts'].append(temp_feature_list2)
 			
 			#feature_list = poi_id_to_class_centroid_similarities_train[poi_id] + poi_id_to_word_features[poi_id] + poi_id_to_word_features_ngrams[poi_id] + poi_id_to_word_features_ngrams_tokens[poi_id] + temp_feature_list1 + temp_feature_list2
 			#X_train.append(feature_list)

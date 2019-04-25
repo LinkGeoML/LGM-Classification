@@ -13,6 +13,7 @@ import shapely
 import config
 from scipy import spatial
 import pickle
+import dill
 import json
 
 def get_poi_id_to_neighbors_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels, poi_id_to_encoded_labels_dict, threshold, args):
@@ -287,21 +288,24 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 			return
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-			index_folderpath = latest_experiment_folder + '/' + 'street_index_' + str(args['step'])
+			index_folderpath = latest_experiment_folder + '/' + 'street_df_' + str(args['step'])
 			exists = os.path.exists(index_folderpath)
 			if not exists:
 				os.mkdir(index_folderpath)
 				spatial_index = street_df.sindex
-				index_filepath = index_folderpath + '/' + 'street_index.pkl'
-				with open(index_filepath, 'wb') as fdump:
-					pickle.dump(spatial_index, fdump)
+				index_filepath = index_folderpath + '/' + 'street_df.pkl'
+				#with open(index_filepath, 'wb') as fdump:
+				#	dill.dump(spatial_index, fdump)
+				street_df.to_pickle(index_filepath)
 	else:
-		"""
-		index_filepath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'street_index_' + str(args['step']) + '/' + 'street_index.pkl'
+		
+		#index_filepath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'street_index_' + str(args['step']) + '/' + 'street_index.pkl'
 		#print(index_filepath)
-		pickle_in = open(index_filepath, "rb")
-		spatial_index = pickle.load(pickle_in)
-		"""
+		#pickle_in = open(index_filepath, "rb")
+		#spatial_index = pickle.load(pickle_in)
+		#with open(index_filepath, "rb") as f:
+		#	spatial_index = dill.load(f)
+		
 		spatial_index = street_df.sindex
 	"""	
 	for index, row in poi_df.iterrows():
@@ -494,7 +498,8 @@ def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to
 	for index, row in poi_df.iterrows():
 		id_dict[row[config.initialConfig.poi_id]] = [row['class_code'], 0, 0]
 	
-	poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict = dict.fromkeys(poi_id_to_closest_poi_ids_dict.keys())
+	poi_id_to_closest_pois_street_boolean_per_label_dict = dict.fromkeys(poi_id_to_closest_poi_ids_dict.keys())
+	poi_id_to_closest_pois_street_counts_per_label_dict = dict.fromkeys(poi_id_to_closest_poi_ids_dict.keys())
 	
 	# get the class codes set and encode the class codes to labels
 	#class_codes_set = get_class_codes_set(args, poi_df)
@@ -504,9 +509,11 @@ def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to
 	
 	# prepare the street id dictionary to be able to store the
 	# boolean and count duplet for each of the class labels
-	for poi_id in poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict:
-		poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id] = [[0,0] for _ in range(0, num_of_labels)]
-		
+	for poi_id in poi_id_to_closest_pois_street_boolean_per_label_dict:
+		poi_id_to_closest_pois_street_boolean_per_label_dict[poi_id] = [0 for _ in range(0, num_of_labels)]
+	
+	for poi_id in poi_id_to_closest_pois_street_counts_per_label_dict:
+		poi_id_to_closest_pois_street_counts_per_label_dict[poi_id] = [0 for _ in range(0, num_of_labels)]
 	#print(poi_id_to_closest_street_id_dict)
 	
 	for poi_id in poi_id_to_closest_street_id_dict:
@@ -518,11 +525,11 @@ def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to
 				#print(street_neighboring_poi_id_class_code_list[0])
 				#print(id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]])
 				#print(id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0])
-				poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id][poi_id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0]][0] = 1
-				poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict[poi_id][poi_id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0]][1] += 1
+				poi_id_to_closest_pois_street_boolean_per_label_dict[poi_id][poi_id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0]] = 1
+				poi_id_to_closest_pois_street_counts_per_label_dict[poi_id][poi_id_to_encoded_labels_dict[street_neighboring_poi_id_class_code_list[0]][0][0]] += 1
 	
 	#print(poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict)
-	return poi_id_to_closest_pois_street_boolean_and_counts_per_label_dict
+	return poi_id_to_closest_pois_street_boolean_per_label_dict, poi_id_to_closest_pois_street_counts_per_label_dict
 	
 def get_closest_pois_boolean_and_counts_per_label_streets_csv(ids, conn, args, threshold = 1000.0):
 	
@@ -661,7 +668,8 @@ def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels
 	
 	df = pd.read_csv(args['pois_csv_name'])
 	
-	poi_id_to_label_boolean_counts_dict = dict.fromkeys(df[config.initialConfig.poi_id])
+	poi_id_to_label_boolean_dict = dict.fromkeys(df[config.initialConfig.poi_id])
+	poi_id_to_label_counts_dict = dict.fromkeys(df[config.initialConfig.poi_id])
 	
 	#is_in_ids = df['poi_id'] in ids
 	is_in_ids = []
@@ -675,8 +683,11 @@ def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels
 	
 	# add dummy values to the dictionary in order to initialize it
 	# in a form that resembles its desired final form
-	for poi_id in poi_id_to_label_boolean_counts_dict:
-		poi_id_to_label_boolean_counts_dict[poi_id] = [[0,0] for _ in range(0, num_of_labels)]
+	for poi_id in poi_id_to_label_boolean_dict:
+		poi_id_to_label_boolean_dict[poi_id] = [0 for _ in range(0, num_of_labels)]
+		
+	for poi_id in poi_id_to_label_counts_dict:
+		poi_id_to_label_counts_dict[poi_id] = [0 for _ in range(0, num_of_labels)]
 	
 	#print(num_of_labels)
 	
@@ -694,8 +705,8 @@ def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels
 
 		if pois_within_radius is not None:
 			for poi_index in pois_within_radius:
-				poi_id_to_label_boolean_counts_dict[row[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[df.iloc[poi_index][config.initialConfig.poi_id]][0][0]][0] = 1
-				poi_id_to_label_boolean_counts_dict[row[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[df.iloc[poi_index][config.initialConfig.poi_id]][0][0]][1] = 1
+				poi_id_to_label_boolean_dict[row[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[df.iloc[poi_index][config.initialConfig.poi_id]][0][0]] = 1
+				poi_id_to_label_counts_dict[row[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[df.iloc[poi_index][config.initialConfig.poi_id]][0][0]] += 1
 	"""
 	for index1, row1 in df.iterrows():
 		for index2, row2 in df.iterrows():
@@ -709,7 +720,7 @@ def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels
 					poi_id_to_label_boolean_counts_dict[row1[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[row2[config.initialConfig.poi_id]][0][0]][0] = 1
 					poi_id_to_label_boolean_counts_dict[row1[config.initialConfig.poi_id]][poi_id_to_encoded_labels_dict[row2[config.initialConfig.poi_id]][0][0]][1] += 1
 	"""
-	return poi_id_to_label_boolean_counts_dict
+	return poi_id_to_label_boolean_dict, poi_id_to_label_counts_dict 
 	
 def get_closest_pois_boolean_and_counts_per_label_csv(ids, conn, args, threshold = 1000.0):
 	

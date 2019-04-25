@@ -11,15 +11,19 @@ class initialConfig:
 	# The following parameters define the set of features that can be extracted (feature_list)
 	# and those that we currently intent to extract during our experiments (included_features)
 	feature_list = ['class_centroid_similarities', 'word_features_ngrams', 'word_features', 
-	'word_features_ngrams_tokens', 'poi_to_poi_radius', 'poi_to_closest_street_to_poi_radius', 'poi_to_poi_neighbors']
+	'word_features_ngrams_tokens', 'poi_to_poi_radius_boolean', 'poi_to_poi_radius_counts', 
+	'poi_to_closest_street_to_poi_radius_boolean', 'poi_to_closest_street_to_poi_radius_counts',
+	'poi_to_poi_neighbors']
 	
 	included_features = ['class_centroid_similarities', 'word_features_ngrams', 'word_features', 
-	'word_features_ngrams_tokens', 'poi_to_poi_radius', 'poi_to_closest_street_to_poi_radius', 'poi_to_poi_neighbors']
+	'word_features_ngrams_tokens', 'poi_to_poi_radius_boolean', 'poi_to_poi_radius_counts', 
+	'poi_to_closest_street_to_poi_radius_boolean', 'poi_to_closest_street_to_poi_radius_counts',
+	'poi_to_poi_neighbors']
 	
 	# The following parameters define the path of the folders in which
 	# each output of the framework will be stored
 	root_path = "/home/nikos/Desktop/LGM-Classification/"
-	experiment_folder = "experiment_folder_2019-04-24 12-25-11.250309"
+	experiment_folder = "experiment_folder_2019-04-25 12-39-51.504359"
 	#experiment_folder = None
 	
 	# The following parameters correspond to the machine learning
