@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 from database import *
 from preprocessing import *
-from pois_feature_extraction import *
+from pois_feature_extraction_csv import *
 from textual_feature_extraction import *
 from feml import *
 import nltk
@@ -135,6 +135,12 @@ def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 
 def tuned_parameters_5_fold(poi_ids, conn, args):
 	
+	if config.initialConfig.experiment_folder == None:
+		folderpath = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(folderpath)
+		latest_folder = max(list_of_folders, key=os.path.getctime)
+		args['folderpath'] = latest_folder
+	
 	# Shuffle ids
 	#print(poi_ids[config.initialConfig.poi_id])
 	
@@ -155,12 +161,19 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	report_data = []
 	hyperparams_data = []
 
-	train_ids, test_ids = train_test_split(poi_ids, test_size = 0.2)
+	kf = KFold(n_splits = config.initialConfig.k_fold_parameter)
 	
+	count = 1
+	args['fold_number'] = count
+	for train_ids, test_ids in kf.split(poi_ids):
+		break
+	train_ids = [train_id + 1 for train_id in train_ids]
+	test_ids = [test_id + 1 for test_id in test_ids]
+			
 	#print(train_ids, test_ids)
 		
 	# get train and test sets
-	X_train, y_train, X_test, y_test = get_train_test_sets(conn, args, train_ids, test_ids)
+	X_train, y_train, X_test, y_test = get_train_test_sets(conn, args, train_ids, test_ids, count)
 		
 	most_common_classes = find_10_most_common_classes_train(y_train)
 	
@@ -264,7 +277,7 @@ def main():
 	args = vars(ap.parse_args())
 	
 	args['step'] = 2
-	
+		
 	if args['pois_tbl_name'] is not None:
 		print(args['pois_tbl_name'])
 	
@@ -278,7 +291,7 @@ def main():
 				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 				exists = os.path.isdir(experiment_folder_path)
 				if exists:
-					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + 'csv'
+					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + '.csv'
 					exists2 = os.path.isfile(filepath)
 					if exists2:
 						with open(filepath, 'r') as csv_file:
@@ -302,7 +315,7 @@ def main():
 					return
 				else:
 					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + 'csv'
+					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + '.csv'
 					exists = os.path.isfile(filepath)
 					if exists:
 						with open(filepath, 'r') as csv_file:
@@ -324,7 +337,7 @@ def main():
 				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 				exists = os.path.isdir(experiment_folder_path)
 				if exists:
-					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + 'csv'
+					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + '.csv'
 					exists2 = os.path.isfile(filepath)
 					if exists2:
 						with open(filepath, 'r') as csv_file:
@@ -348,7 +361,7 @@ def main():
 					return
 				else:
 					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + 'csv'
+					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + '.csv'
 					exists = os.path.isfile(filepath)
 					if exists:
 						with open(filepath, 'r') as csv_file:

@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 from database import *
 from preprocessing import *
-from pois_feature_extraction import *
+from pois_feature_extraction_csv import *
 from textual_feature_extraction import *
 from feml import *
 import nltk
@@ -39,6 +39,12 @@ import csv
 np.random.seed(1234)
 		
 def tuned_parameters_5_fold(poi_ids, conn, args):
+	
+	if config.initialConfig.experiment_folder == None:
+		folderpath = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(folderpath)
+		latest_folder = max(list_of_folders, key=os.path.getctime)
+		args['folderpath'] = latest_folder
 	
 	from sklearn.externals import joblib
 	
@@ -125,7 +131,7 @@ def train_clf_given_hyperparams(X_train, y_train, args):
 		clf = MLPClassifier(**tuned_parameters)
 	
 	print(clf)
-
+	print(X_train.shape)
 	clf.fit(X_train, y_train)
 		
 	return clf
@@ -153,15 +159,14 @@ def main():
 		help="name of file containing the trained model")
 
 	args = vars(ap.parse_args())
-	
-	args['step'] = 3
-	
+		
 	if args['pois_tbl_name'] is not None:
 		print(args['pois_tbl_name'])
 	
 	# call the appropriate function to connect to the database
 	conn = connect_to_db()
 	
+	args['step'] = 3
 	
 	# get the poi ids
 	if config.initialConfig.level == None:
@@ -216,7 +221,7 @@ def main():
 				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 				exists = os.path.isdir(experiment_folder_path)
 				if exists:
-					filepath = experiment_folder_path + '/' + 'best_hyperparameters_' + str(level) + 'csv'
+					filepath = experiment_folder_path + '/' + 'best_hyperparameters_' + str(level) + '.csv'
 					exists2 = os.path.isfile(filepath)
 					if exists2:
 						input_file = csv.DictReader(open(filepath))
@@ -236,7 +241,7 @@ def main():
 					return
 				else:
 					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-					filepath = latest_experiment_folder + '/' + 'best_hyperparameters_' + str(level) + 'csv'
+					filepath = latest_experiment_folder + '/' + 'best_hyperparameters_' + str(level) + '.csv'
 					exists = os.path.isfile(filepath)
 					if exists:
 						input_file = csv.DictReader(open(filepath))
@@ -256,7 +261,7 @@ def main():
 				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 				exists = os.path.isdir(experiment_folder_path)
 				if exists:
-					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + 'csv'
+					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + '.csv'
 					exists2 = os.path.isfile(filepath)
 					if exists2:
 						#input_file = csv.DictReader(open(filepath))
@@ -281,7 +286,7 @@ def main():
 					return
 				else:
 					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + 'csv'
+					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + '.csv'
 					exists = os.path.isfile(filepath)
 					if exists:
 						#input_file = csv.DictReader(open(filepath))
@@ -302,7 +307,7 @@ def main():
 				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 				exists = os.path.isdir(experiment_folder_path)
 				if exists:
-					filepath = experiment_folder_path + '/' + 'best_hyperparameters_' + str(level) + 'csv'
+					filepath = experiment_folder_path + '/' + 'best_hyperparameters_' + str(level) + '.csv'
 					exists2 = os.path.isfile(filepath)
 					if exists2:
 						input_file = csv.DictReader(open(filepath))
@@ -322,7 +327,7 @@ def main():
 					return
 				else:
 					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-					filepath = latest_experiment_folder + '/' + 'best_hyperparameters_' + str(level) + 'csv'
+					filepath = latest_experiment_folder + '/' + 'best_hyperparameters_' + str(level) + '.csv'
 					exists = os.path.isfile(filepath)
 					if exists:
 						input_file = csv.DictReader(open(filepath))

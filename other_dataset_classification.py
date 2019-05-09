@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 from database import *
 from preprocessing import *
-from pois_feature_extraction import *
+from pois_feature_extraction_csv import *
 from textual_feature_extraction import *
 from feml import *
 import nltk
@@ -50,6 +50,7 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	
 	#print("Baseline accuracy: {0}", format(float(top_class_count) / float(y_test.shape[0])))
 	baseline_accuracy = float(top_class_count) / float(y_test.shape[0])
+	print(X_test.shape)
 	y_pred = clf.predict(X_test)	
 	
 	#print(X_test.shape)
@@ -94,12 +95,18 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 		
 def tuned_parameters_5_fold(poi_ids, conn, args):
 	
+	if config.initialConfig.experiment_folder == None:
+		folderpath = config.initialConfig.root_path + 'experiment_folder_*'
+		list_of_folders = glob.glob(folderpath)
+		latest_folder = max(list_of_folders, key=os.path.getctime)
+		args['folderpath'] = latest_folder
+	
 	# Shuffle ids
 	poi_ids = poi_ids[config.initialConfig.poi_id]
 	random.shuffle(poi_ids)
 	poi_ids = list(poi_ids)
 		
-	X_test, y_test = get_train_set(conn, args, poi_ids)
+	X_test, y_test = get_test_set(conn, args, poi_ids)
 		
 	most_common_classes = find_10_most_common_classes_train(y_test)
 	
@@ -107,9 +114,22 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	if args['trained_model_file_name'] is not None:
 		model = joblib.load(args['trained_model_file_name'])
 	else:
-		list_of_files = glob.glob('trained_model*')
-		latest_file = max(list_of_files, key=os.path.getctime)
-		model = joblib.load(latest_file)
+		if config.initialConfig.experiment_folder == None:
+			experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
+			list_of_folders = glob.glob(experiment_folder_path)
+			if list_of_folders == []:
+				print("ERROR! No experiment folder found inside the root folder")
+				return
+			else:
+				list_of_files = glob.glob(experiment_folder_path + '/trained_model*')
+				latest_file = max(list_of_files, key=os.path.getctime)
+				model = joblib.load(latest_file)
+		else:
+			experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
+			list_of_files = glob.glob(experiment_folder_path + '/trained_model*')
+			latest_file = max(list_of_files, key=os.path.getctime)
+			model = joblib.load(latest_file)
+		
 		
 	top_k_error_list, baseline_accuracy, accuracy, f1_score_micro, f1_score_macro, predictions, prediction_scores = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, model)	
 	#return
@@ -199,6 +219,8 @@ def main():
 	
 	# call the appropriate function to connect to the database
 	conn = connect_to_db()
+	
+	args['step'] = 4
 	
 	print(args['pois_csv_name'])
 	# get the poi ids

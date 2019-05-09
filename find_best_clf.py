@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 from database import *
 from preprocessing import *
-from pois_feature_extraction import *
+from pois_feature_extraction_csv import *
 from textual_feature_extraction import *
 from feml import *
 import nltk
@@ -49,7 +49,7 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	#print("Baseline accuracy: {0}", format(float(top_class_count) / float(y_test.shape[0])))
 	baseline_accuracy = float(top_class_count) / float(y_test.shape[0])
 	y_pred = clf.predict(X_test)	
-	print(y_pred)
+	#print(y_pred)
 	
 	baseline_preds = np.ones(X_test.shape[0], dtype=int)
 	#print(baseline_preds.shape)
@@ -72,7 +72,7 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 			#top_k_classes = best_k_probs[i][-k:]
 			top_k_classes = best_k_probs[i]
 			top_k_classes[-1] = y_pred[i]
-			print(best_k_probs[i], y_test[i], y_pred[i])
+			#print(best_k_probs[i], y_test[i], y_pred[i])
 			if y_test[i] in top_k_classes:
 				count += 1
 		
@@ -230,11 +230,12 @@ def feature_selection(X_train, X_test, y_train):
 	return X_train, X_test
 		
 def tuned_parameters_5_fold(poi_ids, conn, args):
-	
+
 	if config.initialConfig.experiment_folder == None:
 		folderpath = config.initialConfig.root_path + 'experiment_folder_' + str(datetime.datetime.now())
 		folderpath = folderpath.replace(':', '-')
 		os.makedirs(folderpath)
+		args['folderpath'] = folderpath
 	
 	# Shuffle ids
 	poi_ids = poi_ids[config.initialConfig.poi_id]
@@ -262,6 +263,8 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	
 	# split data into train, test
 	for train_ids, test_ids in kf.split(poi_ids):
+		
+		args['fold_number'] = count
 		
 		train_ids = [train_id + 1 for train_id in train_ids]
 		test_ids = [test_id + 1 for test_id in test_ids]
@@ -312,7 +315,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			
 			#score = clf.score(X_test, y_test)
 			top_k_error_list, baseline_accuracy, baseline_f_score, accuracy, f1_score_micro, f1_score_macro = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf)
-			print(top_k_error_list)
+			#print(top_k_error_list)
 			clf_scores_dict[clf_name][0].append(accuracy)
 			clf_scores_dict[clf_name][1].append(f1_score_micro)
 			clf_scores_dict[clf_name][2].append(f1_score_macro)
@@ -323,7 +326,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			i = 0
 			for k, top_k_error in zip(config.initialConfig.k_error, top_k_error_list):
 				row['Top-{0} Accuracy'.format(k)] = top_k_error
-				print(clf_name, k, top_k_error)
+				#print(clf_name, k, top_k_error)
 				top_k_errors[i].append(top_k_error)
 				clf_k_error_scores_dict[clf_name][i].append(top_k_error)
 				i += 1
@@ -351,7 +354,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		row['Accuracy'] = sum(map(float,clf_scores_dict[clf_name][0])) / 5.0 
 		i = 0
 		for k in config.initialConfig.k_error:
-			print("Top-{0} Accuracy: {1}".format(k, sum(map(float, clf_k_error_scores_dict[clf_name][i])) / 5.0))
+			#print("Top-{0} Accuracy: {1}".format(k, sum(map(float, clf_k_error_scores_dict[clf_name][i])) / 5.0))
 			row['Top-{0} Accuracy'.format(k)] = float(sum(map(float, clf_k_error_scores_dict[clf_name][i]))) / 5.0
 			i += 1
 		#row['Top-k Accuracy'] = sum(map(float,top_k_errors)) / 5.0
@@ -370,11 +373,11 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			return
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-			filepath = latest_experiment_folder + '/' + 'classification_report_' + str(level) + 'csv'
+			filepath = latest_experiment_folder + '/' + 'classification_report_' + str(args['level']) + '.csv'
 			df.to_csv(filepath, index = False)
 	else:
 		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
-		filepath = experiment_folder_path + '/' + 'classification_report_' + str(level) + 'csv'
+		filepath = experiment_folder_path + '/' + 'classification_report_' + str(args['level']) + '.csv'
 		df.to_csv(filepath, index = False)
 	
 	best_clf_row = {}
@@ -394,13 +397,13 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			return
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-			filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + 'csv'
+			filepath = latest_experiment_folder + '/' + 'best_clf_' + str(args['level']) + '.csv'
 			df2.to_csv(filepath, index = False)
 	else:
 		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
-		filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + 'csv'
+		filepath = experiment_folder_path + '/' + 'best_clf_' + str(args['level']) + '.csv'
 		df2.to_csv(filepath, index = False)
-	df2.to_csv(filename, index = False)
+	#df2.to_csv(filename, index = False)
 	
 	df3 = pd.DataFrame.from_dict(hyperparams_data)
 	if config.initialConfig.experiment_folder == None:
@@ -411,11 +414,11 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			return
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-			filepath = latest_experiment_folder + '/' + 'hyperparameters_per_fold_' + str(level) + 'csv'
+			filepath = latest_experiment_folder + '/' + 'hyperparameters_per_fold_' + str(args['level']) + '.csv'
 			df3.to_csv(filepath, index = False)
 	else:
 		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
-		filepath = experiment_folder_path + '/' + 'hyperparameters_per_fold_' + str(level) + 'csv'
+		filepath = experiment_folder_path + '/' + 'hyperparameters_per_fold_' + str(args['level']) + '.csv'
 		df3.to_csv(filepath, index = False)
 	
 def write_data_to_csv(conn, args):

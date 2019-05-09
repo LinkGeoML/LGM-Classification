@@ -13,18 +13,21 @@ class initialConfig:
 	feature_list = ['class_centroid_similarities', 'word_features_ngrams', 'word_features', 
 	'word_features_ngrams_tokens', 'poi_to_poi_radius_boolean', 'poi_to_poi_radius_counts', 
 	'poi_to_closest_street_to_poi_radius_boolean', 'poi_to_closest_street_to_poi_radius_counts',
-	'poi_to_poi_neighbors']
+	'poi_to_poi_neighbors_boolean', 'poi_to_poi_neighbors_counts']
 	
 	included_features = ['class_centroid_similarities', 'word_features_ngrams', 'word_features', 
 	'word_features_ngrams_tokens', 'poi_to_poi_radius_boolean', 'poi_to_poi_radius_counts', 
 	'poi_to_closest_street_to_poi_radius_boolean', 'poi_to_closest_street_to_poi_radius_counts',
-	'poi_to_poi_neighbors']
+	'poi_to_poi_neighbors_boolean', 'poi_to_poi_neighbors_counts']
+	
+	features_to_normalize = ['class_centroid_similarities', 'poi_to_poi_radius_counts', 
+	'poi_to_closest_street_to_poi_radius_counts', 'poi_to_poi_neighbors_counts']
 	
 	# The following parameters define the path of the folders in which
 	# each output of the framework will be stored
 	root_path = "/home/nikos/Desktop/LGM-Classification/"
-	experiment_folder = "experiment_folder_2019-04-25 12-39-51.504359"
-	#experiment_folder = None
+	#experiment_folder = "experiment_folder_2019-04-25 12-39-51.504359"
+	experiment_folder = None
 	
 	# The following parameters correspond to the machine learning
 	# part of the framework.
@@ -38,7 +41,7 @@ class initialConfig:
 	# the results of which will be compared in the experiments.
 	#classifiers = ['Nearest Neighbors', 'SVM', 'Decision Tree', 'Random Forest', 'AdaBoost', 
 	#'Naive Bayes', 'MLP', 'Gaussian Process', 'Extra Trees']
-	classifiers = ['Nearest Neighbors']
+	classifiers = ['Decision Tree']
 	
 	# These are the parameters that constitute the search space
 	# in our experiments.

@@ -19,6 +19,7 @@ from whoosh.analysis import NgramWordAnalyzer
 from whoosh import index as windex
 from whoosh import qparser
 from whoosh import scoring
+from whoosh.reading import IndexReader
 
 def find_ngrams(token_list, n):
 	#print(token_list)
@@ -140,6 +141,8 @@ def get_top_k_features(corpus, args, k):
 def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 	# get all poi details
 	
+	#print(top_k_features)
+	
 	if args['pois_tbl_name'] is not None:
 		sql = "select {0}.id as poi_id, {0}.name_u as name, {0}.geom from {0} where {0}.id in {1}".format(args["pois_tbl_name"], tuple(ids))
 		df = gpd.GeoDataFrame.from_postgis(sql, conn, geom_col = 'geom')
@@ -156,7 +159,7 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 		else:
 			is_in_ids.append(False)
 	df = df[is_in_ids]
-	
+			
 	if config.initialConfig.experiment_folder == None:
 		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
 		list_of_folders = glob.glob(experiment_folder_path)
@@ -165,7 +168,10 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 			return
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-			index_folderpath = latest_experiment_folder + '/' + feature_type + '_index_' + str(args['step'])
+			if args['step'] == 1 or args['step'] == 2:
+				index_folderpath = latest_experiment_folder + '/' + feature_type + '_index_' + str(args['fold_number'])
+			else:
+				index_folderpath = latest_experiment_folder + '/' + feature_type + '_index_train'
 			exists = os.path.exists(index_folderpath)
 			if not exists:
 				os.mkdir(index_folderpath)
@@ -173,17 +179,43 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 				ix = create_in(index_folderpath, schema)
 				writer = ix.writer()
 				
+				if args['step'] == 1 or args['step'] == 2:
+					descriptor_filepath = latest_experiment_folder + '/' + feature_type + '_index_' + str(args['fold_number']) + '/k.txt'
+				else:
+					descriptor_filepath = latest_experiment_folder + '/' + feature_type + '_index_train' + '/k.txt'
+				with open(descriptor_filepath, 'w') as f:
+					f.write('%d' % k)
+				
 				for i in range(k):
 					writer.add_document(path=str(i), content=top_k_features[i])
 				writer.commit()
+			else:
+				ix = windex.open_dir(index_folderpath)
+				if args['step'] == 1 or args['step'] == 2:
+					descriptor_filepath = latest_experiment_folder + '/' + feature_type + '_index_' + str(args['fold_number']) + '/k.txt'
+				else:
+					descriptor_filepath = latest_experiment_folder + '/' + feature_type + '_index_train' + '/k.txt'
+				with open(descriptor_filepath, 'r') as f:
+					k = f.read()
 	else:
-		index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + feature_type + '_index_' + str(args['step'])
+		if args['step'] == 1 or args['step'] == 2:
+			index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + feature_type + '_index_' + str(args['fold_number']) 
+		else:
+			index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + feature_type + '_index_train'
 		ix = windex.open_dir(index_folderpath)
+		if args['step'] == 1 or args['step'] == 2:
+			descriptor_filepath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + feature_type + '_index_' + str(args['fold_number']) + '/k.txt'
+		else:
+			descriptor_filepath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + feature_type + '_index_train' + '/k.txt'
+		with open(descriptor_filepath, 'r') as f:
+			k = f.read()
 	
+	#print(k)
 	poi_id_to_boolean_top_k_features_dict = dict.fromkeys(df[config.initialConfig.poi_id])
 	for poi_id in poi_id_to_boolean_top_k_features_dict:
 		poi_id_to_boolean_top_k_features_dict[poi_id] = [0 for _ in range(0, int(k))]
 	
+	#print(poi_id_to_boolean_top_k_features_dict)
 	for index, row in df.iterrows():
 		 #for i in range(len(top_k_features)):
 			 #if top_k_features[i] in row[config.initialConfig.name].lower():
@@ -193,17 +225,24 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 					tokens = [token.text for token in ngramAnalyzer(row[config.initialConfig.name].lower())]
 					#print(tokens)
 					for token in tokens:
-						query = QueryParser("content", ix.schema).parse(token)
-						results = searcher.search(query)
-						#print(results)
-						if len(results) > 0:
-							poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][int(results[0]['path'])] = 1
+						if token in top_k_features:
+							query = QueryParser("content", ix.schema).parse(token)
+							results = searcher.search(query)
+							#print(results[0])
+							#print("edw")
+							#print(results)
+							#print(poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]])
+							if len(results) > 0:
+								#print(int(results[0]['path']))
+								poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][int(results[0]['path'])] = 1
+								#poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][top_k_features.index(token)] = 1
 				else:
 					query = QueryParser("content", ix.schema).parse(row[config.initialConfig.name].lower())
 					results = searcher.search(query)
 					if len(results) > 0:
+						#print(results[0])
+						#poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][top_k_features.index(token)] = 1
 						poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][int(results[0]['path'])] = 1
-				 
 	return poi_id_to_boolean_top_k_features_dict
 
 def get_features_top_k(ids, conn, args, k, test_ids = None):
@@ -286,7 +325,12 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 			return
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-			index_folderpath = latest_experiment_folder + '/' + 'similarity_index_' + str(args['step'])
+			#print("edw")
+			#print(latest_experiment_folder)
+			if args['step'] == 1 or args['step'] == 2:
+				index_folderpath = latest_experiment_folder + '/' + 'similarity_index_' + str(args['fold_number'])
+			else:
+				index_folderpath = latest_experiment_folder + '/' + 'similarity_index_train'
 			exists = os.path.exists(index_folderpath)
 			if not exists:
 				os.mkdir(index_folderpath)
@@ -315,8 +359,13 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 				
 					writer.commit()
 				#print(encoded_labels_corpus_dict)
+			else:
+				ix = windex.open_dir(index_folderpath)
 	else:
-		index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'similarity_index_' + str(args['step'])
+		if args['step'] == 1 or args['step'] == 2:
+			index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'similarity_index_' + str(args['fold_number'])
+		else:
+			index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'similarity_index_train'
 		ix = windex.open_dir(index_folderpath)
 	
 	"""
@@ -333,9 +382,24 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 		print(name, results[0], len(results))
 	"""	
 	poi_id_to_similarity_per_label = dict.fromkeys(ids)
+	
+	if args['step'] == 3:
+		descriptor_filepath = latest_experiment_folder + '/label_count.txt'
+		with open(descriptor_filepath, 'w') as f:
+			to_write = len(encoded_labels_set)
+			#print(to_write)
+			f.write('%d' % to_write)
+	if args['step'] == 4:
+		descriptor_filepath = latest_experiment_folder + '/label_count.txt'
+		with open(descriptor_filepath, 'r') as f:
+			encoded_labels_count = f.read()
+		encoded_labels_list = [i for i in range(0, int(encoded_labels_count))]
+		encoded_labels_set = set(encoded_labels_list)
+	
 	for poi_id in poi_id_to_similarity_per_label:
 		poi_id_to_similarity_per_label[poi_id] = [0 for _ in range(len(encoded_labels_set))]
-		
+	
+	#print(encoded_labels_set)
 	#print(poi_id_to_similarity_per_label)
 	
 	count = 0
@@ -352,6 +416,7 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 			results = searcher.search(query)
 			for r in results:
 				#print(r, r.score)
+				#print(int(r['class_id']))
 				poi_id_to_similarity_per_label[poi_id][int(r['class_id'])] = r.score
 		
 		"""
