@@ -687,7 +687,7 @@ def get_train_set(conn, args, poi_ids):
 					#print("Feature Name: {0}, Mean Value: {1}, Std Value: {2}, Max Value: {3}, Min Value: {4}, Shape: {5}".format(key, np.mean(temp_array), np.std(temp_array), np.amax(temp_array), np.amin(temp_array), temp_array.shape))
 					#X_train = sel.fit_transform(X_train)
 					#print("Results after removal of features with low variance:")
-					print("Feature Name: {0}, Mean Value: {1}, Std Value: {2}, Max Value: {3}, Min Value: {4}, Shape: {5}".format(key, np.mean(X_train), np.std(X_train), np.amax(X_train), np.amin(X_train), X_train.shape))
+					print("Feature Name: {0}, Mean Value: {1}, Std Value: {2}, Max Value: {3}, Min Value: {4}, Shape: {5}".format(key, np.mean(X_train), np.std(X_train), np.amax(X_train), np.amin(X_train), temp_array.shape))
 					
 					filepath = args['folderpath'] + '/' + key + '_' + 'model_training_' + str(args['level']) + '.csv'
 					np.savetxt(filepath, temp_array, delimiter=",")

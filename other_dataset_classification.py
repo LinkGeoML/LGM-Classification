@@ -143,8 +143,8 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	#print(predictions)
 	#return
 	
-	encoder = LabelEncoder()
-	encoder.classes_ = np.load('classes.npy')
+	#encoder = LabelEncoder()
+	#encoder.classes_ = np.load('classes.npy')
 	
 	#print(encoder.classes_)
 	#encoder.inverse_transform(preds)
@@ -163,7 +163,8 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 				#print(encoder.transform(preds[i]))
 				#print(encoder.inverse_transform(preds[i]))
 				row['prob_score{0}'.format(i)] = scores[i]
-				row['pred{0}'.format(i)] = encoder.inverse_transform(preds[i])
+				#row['pred{0}'.format(i)] = encoder.inverse_transform(preds[i])
+				row['pred{0}'.format(i)] = args['label_encoder'].inverse_transform(preds[i])
 			out_df = pd.DataFrame([row])
 			#print(out_df)
 			
@@ -175,22 +176,22 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 					return
 				else:
 					latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-					filepath = latest_experiment_folder + '/' + output_file + '_' + str(args['level']) + '.csv'
+					filepath = latest_experiment_folder + '/' + output_file + '_' + str(args['level']) + '_top' + str(k) + 'categories.csv'
 					if count == 0:
-						with open(filename, 'a') as f:
+						with open(filepath, 'a') as f:
 							out_df.to_csv(f, index = False, header = True)
 					else:
-						with open(filename, 'a') as f:
+						with open(filepath, 'a') as f:
 							out_df.to_csv(f, index = False, header = False)
 					count += 1
 			else:
 				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
-				filepath = experiment_folder_path + '/' + output_file + '_' + str(args['level']) + '.csv'
+				filepath = experiment_folder_path + '/' + output_file + '_' + str(args['level']) + '_top' + str(k) + 'categories.csv'
 				if count == 0:
-					with open(filename, 'a') as f:
+					with open(filepath, 'a') as f:
 						out_df.to_csv(f, index = False, header = True)
 				else:
-					with open(filename, 'a') as f:
+					with open(filepath, 'a') as f:
 						out_df.to_csv(f, index = False, header = False)
 				count += 1
 	

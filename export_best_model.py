@@ -104,11 +104,15 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 
 def train_clf_given_hyperparams(X_train, y_train, args):
 	tuned_parameters = args['best_hyperparams']
+	
+	#print(tuned_parameters)
+	"""
 	for parameter in tuned_parameters:
 		#print(parameter)
 		if tuned_parameters[parameter].isdigit():
 			#print("edw")
 			tuned_parameters[parameter] = float(tuned_parameters[parameter])
+	"""
 	#tuned_parameters['degree'] = int(tuned_parameters['degree'])
 	print(tuned_parameters)
 	
@@ -227,6 +231,13 @@ def main():
 						input_file = csv.DictReader(open(filepath))
 						for row in input_file:
 							hyperparams_dict = row
+						for hyperparam in hyperparams_dict:
+							hyperparams_dict[hyperparam] = str(hyperparams_dict[hyperparam])
+							if any(char.isdigit() for char in hyperparams_dict[hyperparam]):
+								if any(char == '.' for char in hyperparams_dict[hyperparam]):
+									hyperparams_dict[hyperparam] = float(hyperparams_dict[hyperparam])
+								else:
+									hyperparams_dict[hyperparam] = int(hyperparams_dict[hyperparam])
 					else:
 						print("ERROR! No best_hyperparameters file found inside the folder")
 						return
@@ -247,6 +258,13 @@ def main():
 						input_file = csv.DictReader(open(filepath))
 						for row in input_file:
 							hyperparams_dict = row
+						for hyperparam in hyperparams_dict:
+							hyperparams_dict[hyperparam] = str(hyperparams_dict[hyperparam])
+							if any(char.isdigit() for char in hyperparams_dict[hyperparam]):
+								if any(char == '.' for char in hyperparams_dict[hyperparam]):
+									hyperparams_dict[hyperparam] = float(hyperparams_dict[hyperparam])
+								else:
+									hyperparams_dict[hyperparam] = int(hyperparams_dict[hyperparam])
 					else:
 						print("ERROR! No best_hyperparameters file found inside the folder!")	
 						return		
@@ -313,6 +331,13 @@ def main():
 						input_file = csv.DictReader(open(filepath))
 						for row in input_file:
 							hyperparams_dict = row
+						for hyperparam in hyperparams_dict:
+							hyperparams_dict[hyperparam] = str(hyperparams_dict[hyperparam])
+							if any(char.isdigit() for char in hyperparams_dict[hyperparam]):
+								if any(char == '.' for char in hyperparams_dict[hyperparam]):
+									hyperparams_dict[hyperparam] = float(hyperparams_dict[hyperparam])
+								else:
+									hyperparams_dict[hyperparam] = int(hyperparams_dict[hyperparam])
 					else:
 						print("ERROR! No best_hyperparameters file found inside the folder")
 						return
@@ -333,6 +358,13 @@ def main():
 						input_file = csv.DictReader(open(filepath))
 						for row in input_file:
 							hyperparams_dict = row
+						for hyperparam in hyperparams_dict:
+							hyperparams_dict[hyperparam] = str(hyperparams_dict[hyperparam])
+							if any(char.isdigit() for char in hyperparams_dict[hyperparam]):
+								if any(char == '.' for char in hyperparams_dict[hyperparam]):
+									hyperparams_dict[hyperparam] = float(hyperparams_dict[hyperparam])
+								else:
+									hyperparams_dict[hyperparam] = int(hyperparams_dict[hyperparam])
 					else:
 						print("ERROR! No best_hyperparameters file found inside the folder!")	
 						return		
