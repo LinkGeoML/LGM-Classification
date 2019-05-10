@@ -53,8 +53,8 @@ class initialConfig:
                              'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000]},
 						{'kernel': ['linear'], 'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000]}]
 	DecisionTree_hyperparameters = {'max_depth': [i for i in range(1,33)], 
-		'min_samples_split': list(np.linspace(0.1,1,10)),
-		'min_samples_leaf': list(np.linspace(0.1,0.5,5)),
+		'min_samples_split': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+		'min_samples_leaf': [0.1, 0.2, 0.3, 0.4, 0.5],
                   'max_features': [i for i in range(1, 10)]}
 	RandomForest_hyperparameters = {'bootstrap': [True, False],
  'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],

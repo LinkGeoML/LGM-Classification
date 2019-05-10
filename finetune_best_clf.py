@@ -49,16 +49,11 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 		if label == most_common_classes[0]:
 			top_class_count += 1
 	
-	#print("Baseline accuracy: {0}", format(float(top_class_count) / float(y_test.shape[0])))
 	baseline_accuracy = float(top_class_count) / float(y_test.shape[0])
 	y_pred = clf.predict(X_test)	
 	
-	#print(X_test.shape)
 	probs = clf.predict_proba(X_test)
-	#print(probs)
 	best_k_probs = np.argsort(probs, axis = 1)
-	#print(best_k.shape)
-	#print(best_k)
 	count = 0
 	for i in range(0, X_test.shape[0]):
 		top_k_classes = best_k_probs[:config.initialConfig.k_error]
@@ -66,7 +61,6 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 			count += 1
 	
 	top_k_error = float(count) / float(X_test.shape[0])
-	#print("top_k_error: {0}".format(top_k_error))
 	
 	return top_k_error, baseline_accuracy, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro')
 
@@ -169,9 +163,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		break
 	train_ids = [train_id + 1 for train_id in train_ids]
 	test_ids = [test_id + 1 for test_id in test_ids]
-			
-	#print(train_ids, test_ids)
-		
+					
 	# get train and test sets
 	X_train, y_train, X_test, y_test = get_train_test_sets(conn, args, train_ids, test_ids, count)
 		
@@ -184,59 +176,16 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		if clf_name == "Naive Bayes":
 			clf = GaussianNB()
 			clf.fit(X_train, y_train)
-		#elif clf_name == "MLP":
-		#	clf = MLPClassifier()
-		#	clf.fit(X_train, y_train)
 		elif clf_name == "Gaussian Process":
 			clf = GaussianProcessClassifier()
 			clf.fit(X_train, y_train)
-		#elif clf_name == "QDA":
-		#	clf = QuadraticDiscriminantAnalysis()
-		#	clf.fit(X_train, y_train)
 		else:
 			clf = AdaBoostClassifier()
 			clf.fit(X_train, y_train)
 	else:
 		clf = fine_tune_parameters_given_clf(args['best_clf'], X_train, y_train, X_test, y_test)
 	
-	
-	"""
-	#score = clf.score(X_test, y_test)
-	top_k_error, baseline_accuracy, accuracy, f1_score_micro, f1_score_macro = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf)
-	clf_scores_dict[clf_name][0].append(accuracy)
-	clf_scores_dict[clf_name][1].append(f1_score_micro)
-	clf_scores_dict[clf_name][2].append(f1_score_macro)
-	row['Fold'] = count
-	row['Classifier'] = clf_name
-	row['Baseline Accuracy'] = baseline_accuracy
-	row['Top-k Accuracy'] = top_k_error
-	row['Accuracy'] = accuracy
-	row['F1-Score-Micro'] = f1_score_micro
-	row['F1-Score-Macro'] = f1_score_macro
-	
-	if clf_name not in clf_names_not_tuned:
-		hyperparams_row = {}
-		hyperparams_row['Fold'] = count
-		hyperparams_row['Classifier'] = clf_name
-		hyperparams_row['Best Hyperparameters'] = clf.best_params_
-		hyperparams_data.append(hyperparams_row)
-		
-	report_data.append(row)
-	baseline_scores.append(baseline_accuracy)
-	top_k_errors.append(top_k_error)
-		
-	df = pd.DataFrame.from_dict(report_data)
-	
-	
-	if args['results_file_name'] is not None:
-		filename = args['results_file_name'] + '_' + str(datetime.datetime.now()) + '.csv'
-	else:
-		filename = 'classifier_finetuning_report_' + str(args['level']) + '_' + str(datetime.datetime.now()) + '.csv'
-	df.to_csv(filename, index = False)
-	"""
-	
 	hyperparams_data = clf.best_params_
-	#print(hyperparams_data)
 	df2 = pd.DataFrame.from_dict([hyperparams_data])
 	
 	if config.initialConfig.experiment_folder == None:
@@ -267,8 +216,6 @@ def main():
 		help="name of table containing pois information")
 	ap.add_argument("-pois_csv_name", "--pois_csv_name", required=False,
 		help="name of csv containing pois information")
-	#ap.add_argument("-results_file_name", "--results_file_name", required=False,
-	#	help="desired name of best hyperparameter file")
 	ap.add_argument("-best_hyperparameter_file_name", "--best_hyperparameter_file_name", required=False,
 		help="desired name of best hyperparameter file")
 	ap.add_argument("-best_clf_file_name", "--best_clf_file_name", required=False,

@@ -48,19 +48,13 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 		if label == most_common_classes[0]:
 			top_class_count += 1
 	
-	#print("Baseline accuracy: {0}", format(float(top_class_count) / float(y_test.shape[0])))
 	baseline_accuracy = float(top_class_count) / float(y_test.shape[0])
 	print(X_test.shape)
 	y_pred = clf.predict(X_test)	
 	
-	#print(X_test.shape)
 	probs = clf.predict_proba(X_test)
-	#print(probs)
 	sorted_prob_scores = np.sort(probs, axis = 1)
-	#print(sorted_prob_scores)
 	best_k_probs = np.argsort(probs, axis = 1)
-	#print(best_k.shape)
-	#print(best_k)
 	count = 0
 	top_k_errors = []
 	k_preds = {}
@@ -79,8 +73,6 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 		for i in range(0, X_test.shape[0]):
 			top_k_classes = best_k_probs[i][-k:]
 			top_k_prediction_scores = sorted_prob_scores[i][-k:]
-			#print(best_k_probs[i][-k:], y_test[i])
-			#print(top_k_classes, predictions[k][i])
 			for j in range(0, len(predictions[k][i])):
 				predictions[k][i][j] = top_k_classes[j]
 				prediction_scores[k][i][j] = top_k_prediction_scores[j]
@@ -139,17 +131,6 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		output_file = args['results_file_name']
 	else:
 		output_file = 'pred_categories'
-		
-	#print(predictions)
-	#return
-	
-	#encoder = LabelEncoder()
-	#encoder.classes_ = np.load('classes.npy')
-	
-	#print(encoder.classes_)
-	#encoder.inverse_transform(preds)
-	#print(predictions)
-	#decoded_preds = encoder.transform(predictions)
 	
 	for k in config.initialConfig.k_error:
 		count = 0
@@ -158,15 +139,10 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		for id, preds, scores in zip(poi_ids, predictions[k], prediction_scores[k]):
 			for i in range(len(preds)):
 				row['id'] = id
-				
-				#row['pred{0}'.format(i)] = decoded_preds[i]
-				#print(encoder.transform(preds[i]))
-				#print(encoder.inverse_transform(preds[i]))
+
 				row['prob_score{0}'.format(i)] = scores[i]
-				#row['pred{0}'.format(i)] = encoder.inverse_transform(preds[i])
 				row['pred{0}'.format(i)] = args['label_encoder'].inverse_transform(preds[i])
 			out_df = pd.DataFrame([row])
-			#print(out_df)
 			
 			if config.initialConfig.experiment_folder == None:
 				experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'

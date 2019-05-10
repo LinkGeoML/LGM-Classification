@@ -69,15 +69,9 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		if clf_name == "Naive Bayes":
 			clf = GaussianNB()
 			clf.fit(X_train, y_train)
-		#elif clf_name == "MLP":
-		#	clf = MLPClassifier()
-		#	clf.fit(X_train, y_train)
 		elif clf_name == "Gaussian Process":
 			clf = GaussianProcessClassifier()
 			clf.fit(X_train, y_train)
-		#elif clf_name == "QDA":
-		#	clf = QuadraticDiscriminantAnalysis()
-		#	clf.fit(X_train, y_train)
 		else:
 			clf = AdaBoostClassifier()
 			clf.fit(X_train, y_train)
@@ -153,8 +147,6 @@ def main():
 		help="name of table containing pois information")
 	ap.add_argument("-pois_csv_name", "--pois_csv_name", required=False,
 		help="name of csv containing pois information")
-	#ap.add_argument("-results_file_name", "--results_file_name", required=False,
-	#	help="desired name of best hyperparameter file")
 	ap.add_argument("-best_hyperparameter_file_name", "--best_hyperparameter_file_name", required=False,
 		help="desired name of best hyperparameter file")
 	ap.add_argument("-best_clf_file_name", "--best_clf_file_name", required=False,
@@ -182,7 +174,6 @@ def main():
 					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + '.csv'
 					exists2 = os.path.isfile(filepath)
 					if exists2:
-						#input_file = csv.DictReader(open(filepath))
 						with open(filepath, 'r') as csv_file:
 							reader = csv.reader(csv_file)
 							count = 0
@@ -207,7 +198,6 @@ def main():
 					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + '.csv'
 					exists = os.path.isfile(filepath)
 					if exists:
-						#input_file = csv.DictReader(open(filepath))
 						with open(filepath, 'r') as csv_file:
 							reader = csv.reader(csv_file)
 							count = 0
@@ -219,7 +209,6 @@ def main():
 						print("ERROR! No best_clf file found inside the folder")
 						return
 					
-			#print(args['best_clf'])
 			
 			if config.initialConfig.experiment_folder is not None:
 				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
@@ -282,7 +271,6 @@ def main():
 					filepath = experiment_folder_path + '/' + 'best_clf_' + str(level) + '.csv'
 					exists2 = os.path.isfile(filepath)
 					if exists2:
-						#input_file = csv.DictReader(open(filepath))
 						with open(filepath, 'r') as csv_file:
 							reader = csv.reader(csv_file)
 							count = 0
@@ -307,7 +295,6 @@ def main():
 					filepath = latest_experiment_folder + '/' + 'best_clf_' + str(level) + '.csv'
 					exists = os.path.isfile(filepath)
 					if exists:
-						#input_file = csv.DictReader(open(filepath))
 						with open(filepath, 'r') as csv_file:
 							reader = csv.reader(csv_file)
 							count = 0
@@ -318,9 +305,7 @@ def main():
 					else:
 						print("ERROR! No best_clf file found inside the folder")
 						return
-					
-			#print(args['best_clf'])
-			
+								
 			if config.initialConfig.experiment_folder is not None:
 				experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 				exists = os.path.isdir(experiment_folder_path)

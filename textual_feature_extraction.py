@@ -25,15 +25,6 @@ def find_ngrams(token_list, n):
 	#print(token_list)
 	s = []
 	
-	"""
-	whitespace_embedder = ""
-	for i in range(n-1):
-		whitespace_embedder += " "
-	
-	for i in range(len(token_list)):
-		token_list[i] = whitespace_embedder + token_list[i] + whitespace_embedder
-	"""
-	
 	for token in token_list:
 		for i in range(len(token)- n + 1):
 			s.append(token[i:n+i])
@@ -46,16 +37,6 @@ def find_ngrams_tokens(token_list, n):
 	
 	for i in range(len(token_list)- n + 1):
 		s.append(token_list[i] + " " + token_list[i+1])
-	"""
-	for i in range(len(token_list)):
-		if i == 0:
-			s.append(token_list[i] + " ")
-		elif i == len(token_list) - 1:
-			s.append(" " + token_list[i])
-		else:
-			s.append(" " + token_list[i])
-			#s.append(token_list[i] + " ")
-	"""
 	
 	return s
 
@@ -73,7 +54,6 @@ def get_corpus(ids, conn, args, n_grams = False, n_grams_tokens = False):
 	else:
 		df = pd.read_csv(args['pois_csv_name'])
 		
-	#is_in_ids = df['poi_id'] in ids
 	is_in_ids = []
 	all_ids = df[config.initialConfig.poi_id]
 	all_ids = list(all_ids)
@@ -140,16 +120,13 @@ def get_top_k_features(corpus, args, k):
 
 def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 	# get all poi details
-	
-	#print(top_k_features)
-	
+		
 	if args['pois_tbl_name'] is not None:
 		sql = "select {0}.id as poi_id, {0}.name_u as name, {0}.geom from {0} where {0}.id in {1}".format(args["pois_tbl_name"], tuple(ids))
 		df = gpd.GeoDataFrame.from_postgis(sql, conn, geom_col = 'geom')
 	else:
 		df = pd.read_csv(args['pois_csv_name'])
 		
-	#is_in_ids = df['poi_id'] in ids
 	is_in_ids = []
 	all_ids = df[config.initialConfig.poi_id]
 	all_ids = list(all_ids)
@@ -210,38 +187,25 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 		with open(descriptor_filepath, 'r') as f:
 			k = f.read()
 	
-	#print(k)
 	poi_id_to_boolean_top_k_features_dict = dict.fromkeys(df[config.initialConfig.poi_id])
 	for poi_id in poi_id_to_boolean_top_k_features_dict:
 		poi_id_to_boolean_top_k_features_dict[poi_id] = [0 for _ in range(0, int(k))]
 	
-	#print(poi_id_to_boolean_top_k_features_dict)
 	for index, row in df.iterrows():
-		 #for i in range(len(top_k_features)):
-			 #if top_k_features[i] in row[config.initialConfig.name].lower():
 			with ix.searcher() as searcher:
 				if feature_type == "char_ngrams_index":
 					ngramAnalyzer = NgramWordAnalyzer(minsize=config.initialConfig.character_n_gram_size, maxsize=config.initialConfig.character_n_gram_size)
 					tokens = [token.text for token in ngramAnalyzer(row[config.initialConfig.name].lower())]
-					#print(tokens)
 					for token in tokens:
 						if token in top_k_features:
 							query = QueryParser("content", ix.schema).parse(token)
 							results = searcher.search(query)
-							#print(results[0])
-							#print("edw")
-							#print(results)
-							#print(poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]])
 							if len(results) > 0:
-								#print(int(results[0]['path']))
 								poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][int(results[0]['path'])] = 1
-								#poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][top_k_features.index(token)] = 1
 				else:
 					query = QueryParser("content", ix.schema).parse(row[config.initialConfig.name].lower())
 					results = searcher.search(query)
 					if len(results) > 0:
-						#print(results[0])
-						#poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][top_k_features.index(token)] = 1
 						poi_id_to_boolean_top_k_features_dict[row[config.initialConfig.poi_id]][int(results[0]['path'])] = 1
 	return poi_id_to_boolean_top_k_features_dict
 
@@ -306,7 +270,6 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 	else:
 		df = pd.read_csv(args['pois_csv_name'])
 		
-	#is_in_ids = df['poi_id'] in ids
 	is_in_ids = []
 	all_ids = df[config.initialConfig.poi_id]
 	all_ids = list(all_ids)
@@ -325,8 +288,6 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 			return
 		else:
 			latest_experiment_folder = max(list_of_folders, key=os.path.getctime)
-			#print("edw")
-			#print(latest_experiment_folder)
 			if args['step'] == 1 or args['step'] == 2:
 				index_folderpath = latest_experiment_folder + '/' + 'similarity_index_' + str(args['fold_number'])
 			else:
@@ -349,16 +310,9 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 						# break it in tokens
 						not_stopwords, stopwords = normalize_str(name)
 						not_stopwords = list(not_stopwords)
-						#print(name)
-						#encoded_labels_corpus_dict[poi_id_to_encoded_labels_dict[poi_id][0][0]].append(name)
 						
 						writer.add_document(path=str(poi_id), class_id=str(poi_id_to_encoded_labels_dict[poi_id][0][0]), content=not_stopwords)
-				
-					#for key in encoded_labels_corpus_dict:
-					#	encoded_labels_corpus_dict[key] = [item for sublist in encoded_labels_corpus_dict[key] for item in sublist]
-				
 					writer.commit()
-				#print(encoded_labels_corpus_dict)
 			else:
 				ix = windex.open_dir(index_folderpath)
 	else:
@@ -368,19 +322,6 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 			index_folderpath = config.initialConfig.root_path + config.initialConfig.experiment_folder + '/' + 'similarity_index_train'
 		ix = windex.open_dir(index_folderpath)
 	
-	"""
-	for key in encoded_labels_corpus_dict:
-		writer.add_document(path = str(key), content = encoded_labels_corpus_dict[key])
-	writer.commit()
-	"""
-	
-	#name = 'φαρμακειο'
-	"""
-	with ix.searcher() as searcher:
-		query = QueryParser("content", ix.schema).parse(name)
-		results = searcher.search(query)
-		print(name, results[0], len(results))
-	"""	
 	poi_id_to_similarity_per_label = dict.fromkeys(ids)
 	
 	if args['step'] == 3:
@@ -399,9 +340,6 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 	for poi_id in poi_id_to_similarity_per_label:
 		poi_id_to_similarity_per_label[poi_id] = [0 for _ in range(len(encoded_labels_set))]
 	
-	#print(encoded_labels_set)
-	#print(poi_id_to_similarity_per_label)
-	
 	count = 0
 	
 	for poi_id, name in zip(df[config.initialConfig.poi_id], df[config.initialConfig.name]):
@@ -415,35 +353,7 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 			query = qparser.QueryParser("content", ix.schema, group = qparser.OrGroup).parse(name)
 			results = searcher.search(query)
 			for r in results:
-				#print(r, r.score)
-				#print(int(r['class_id']))
 				poi_id_to_similarity_per_label[poi_id][int(r['class_id'])] = r.score
-		
-		"""
-		for token in not_stopwords:
-			with ix.searcher() as searcher:
-				query = QueryParser("content", ix.schema).parse(name)
-				results = searcher.search(query)
-				for result in results:
-					#print(result['class_id'])
-					poi_id_to_similarity_per_label[poi_id][int(result['class_id'])] += float(1) / float(len(not_stopwords))
-					#print(poi_id_to_similarity_per_label[poi_id])
-		"""		
-		"""
-		for label in encoded_labels_corpus_dict:
-			for token in not_stopwords:
-				if token in encoded_labels_corpus_dict[label]:
-					count += encoded_labels_corpus_dict[label].count(token)
-			
-			if len(encoded_labels_corpus_dict[label]) == 0:
-				corpus_length = 1
-			else:
-				corpus_length = len(encoded_labels_corpus_dict[label])
-			similarity = float(count) / float(corpus_length)
-			poi_id_to_similarity_per_label[poi_id].append(similarity)
-			count = 0
-		"""	
-	#print(poi_id_to_similarity_per_label)
 	return poi_id_to_similarity_per_label, encoded_labels_corpus_dict
 		
 	
@@ -463,20 +373,5 @@ def main():
 	
 	features_top_k_words = get_features_top_k(conn, args)
 	
-	#print(features_top_k_words)
-	
-	#features_top_k_ngrams = get_features_top_k_ngrams(conn, args)
-	#print(features_top_k_ngrams)
-	
-	"""
-	import csv
-	
-	with open('data.csv', 'a') as csvFile:
-		writer = csv.writer(csvFile)
-		for id in features_top_k_ngrams:
-			writer.writerow(features_top_k_ngrams[id])
-
-	csvFile.close()
-	"""
 if __name__ == "__main__":
    main()
