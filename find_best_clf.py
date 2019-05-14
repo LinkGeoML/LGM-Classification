@@ -41,51 +41,81 @@ np.random.seed(1234)
 
 def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf):
 	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	top_class_count = 0
 	for label in y_test:
 		if label == most_common_classes[0]:
 			top_class_count += 1
 	
-	#print("Baseline accuracy: {0}", format(float(top_class_count) / float(y_test.shape[0])))
 	baseline_accuracy = float(top_class_count) / float(y_test.shape[0])
 	y_pred = clf.predict(X_test)	
-	#print(y_pred)
 	
 	baseline_preds = np.ones(X_test.shape[0], dtype=int)
-	#print(baseline_preds.shape)
 	baseline_preds = baseline_preds * most_common_classes[0]
-	#print(baseline_preds)
 	baseline_f_score = f1_score(y_test, baseline_preds, average='weighted')
 	
-	#print(X_test.shape)
 	probs = clf.predict_proba(X_test)
-	#print(probs)
-	#best_k_probs = np.argsort(probs, axis = 1)
-	#print(best_k_probs)
-	#print(best_k.shape)
-	#print(best_k)
 	count = 0
 	top_k_errors = []
 	for k in config.initialConfig.k_error:
 		best_k_probs = np.argsort(probs, axis = 1)[:,-k:]
 		for i in range(0, X_test.shape[0]):
-			#top_k_classes = best_k_probs[i][-k:]
 			top_k_classes = best_k_probs[i]
 			top_k_classes[-1] = y_pred[i]
-			#print(best_k_probs[i], y_test[i], y_pred[i])
 			if y_test[i] in top_k_classes:
 				count += 1
 		
 		top_k_error = float(count) / float(X_test.shape[0])
 		top_k_errors.append(top_k_error)
 		count = 0
-	#print("top_k_error: {0}".format(top_k_error))
 	
 	return top_k_errors, baseline_accuracy, baseline_f_score, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro')
 
 def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 	
-	#scores = ['precision', 'recall']
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	scores = ['accuracy']#, 'f1_macro', 'f1_micro']
 	
 	if clf_name == "SVM":
@@ -117,27 +147,6 @@ def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 		tuned_parameters = config.initialConfig.MLP_hyperparameters
 		clf = MLPClassifier()
 	
-	"""
-	elif clf_name == "AdaBoost":
-		tuned_parameters = {"base_estimator__criterion" : ["gini", "entropy"],
-              "base_estimator__splitter" :   ["best", "random"],
-              "n_estimators": [1, 2]
-             }
-		clf = AdaBoostClassifier()
-	
-	elif clf_name == "MLP":
-		tuned_parameters = {'hidden_layer_sizes': [(256,), (512,), (128, 256, 128,)]}
-		clf = MLPClassifier()
-		
-	elif clf_name == "Gaussian Process":
-		
-		clf = GaussianProcessClassifier()
-	
-	elif clf_name == "QDA":
-		tuned_parameters = 
-		clf = QuadraticDiscriminantAnalysis()
-	"""
-	
 	print(clf_name)
 		
 	for score in scores:
@@ -149,6 +158,28 @@ def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 	return clf
 	
 def feature_selection(X_train, X_test, y_train):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
 		
 	from sklearn.feature_selection import VarianceThreshold
 	from sklearn.feature_selection import SelectKBest
@@ -164,10 +195,8 @@ def feature_selection(X_train, X_test, y_train):
 	# Variance Threshold feature selection
 	sel = VarianceThreshold(threshold=(.8 * (1 - .8)))
 	X_train = sel.fit_transform(X_train)
-	#print(X_train.shape)
 	feature_mask = sel.get_support()
 	X_test_new = np.zeros((X_test.shape[0], X_train.shape[1]))
-	#print(feature_mask)
 	for i in range(X_test.shape[0]):
 		count = 0
 		for j in range(X_test.shape[1]):
@@ -230,6 +259,28 @@ def feature_selection(X_train, X_test, y_train):
 	return X_train, X_test
 		
 def tuned_parameters_5_fold(poi_ids, conn, args):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
 
 	if config.initialConfig.experiment_folder == None:
 		folderpath = config.initialConfig.root_path + 'experiment_folder_' + str(datetime.datetime.now())
@@ -274,7 +325,6 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		#X_test = genfromtxt('X_test_fold{0}'.format(count), delimiter = ',')
 		#y_test = genfromtxt('y_test_fold{0}'.format(count), delimiter = ',')
 			
-		# tab
 		# get train and test sets
 		X_train, y_train, X_test, y_test = get_train_test_sets(conn, args, train_ids, test_ids, count)
 		
@@ -313,9 +363,7 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			else:
 				clf = fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test)
 			
-			#score = clf.score(X_test, y_test)
 			top_k_error_list, baseline_accuracy, baseline_f_score, accuracy, f1_score_micro, f1_score_macro = get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf)
-			#print(top_k_error_list)
 			clf_scores_dict[clf_name][0].append(accuracy)
 			clf_scores_dict[clf_name][1].append(f1_score_micro)
 			clf_scores_dict[clf_name][2].append(f1_score_macro)
@@ -326,7 +374,6 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 			i = 0
 			for k, top_k_error in zip(config.initialConfig.k_error, top_k_error_list):
 				row['Top-{0} Accuracy'.format(k)] = top_k_error
-				#print(clf_name, k, top_k_error)
 				top_k_errors[i].append(top_k_error)
 				clf_k_error_scores_dict[clf_name][i].append(top_k_error)
 				i += 1
@@ -354,10 +401,8 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		row['Accuracy'] = sum(map(float,clf_scores_dict[clf_name][0])) / 5.0 
 		i = 0
 		for k in config.initialConfig.k_error:
-			#print("Top-{0} Accuracy: {1}".format(k, sum(map(float, clf_k_error_scores_dict[clf_name][i])) / 5.0))
 			row['Top-{0} Accuracy'.format(k)] = float(sum(map(float, clf_k_error_scores_dict[clf_name][i]))) / 5.0
 			i += 1
-		#row['Top-k Accuracy'] = sum(map(float,top_k_errors)) / 5.0
 		row['Baseline Accuracy'] = sum(map(float,baseline_scores)) / 40.0
 		row['Baseline F-score'] = sum(map(float,baseline_scores2)) / 40.0
 		row['F1-Score-Micro'] = sum(map(float,clf_scores_dict[clf_name][1])) / 5.0
@@ -403,7 +448,6 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 		filepath = experiment_folder_path + '/' + 'best_clf_' + str(args['level']) + '.csv'
 		df2.to_csv(filepath, index = False)
-	#df2.to_csv(filename, index = False)
 	
 	df3 = pd.DataFrame.from_dict(hyperparams_data)
 	if config.initialConfig.experiment_folder == None:
@@ -420,12 +464,6 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 		filepath = experiment_folder_path + '/' + 'hyperparameters_per_fold_' + str(args['level']) + '.csv'
 		df3.to_csv(filepath, index = False)
-	
-def write_data_to_csv(conn, args):
-	sql = "select {0}.id, {0}.name_u, {0}.theme, {0}.class_name, {0}.subclass_n, {0}.x, {0}.y, {0}.geom from {0}".format(args["pois_tbl_name"])
-	df = gpd.GeoDataFrame.from_postgis(sql, conn, geom_col = 'geom')
-	df.to_csv("pois_data.csv", index = False)
-	print("ok")
 	
 def main():
 	# construct the argument parse and parse the arguments
@@ -448,17 +486,6 @@ def main():
 	
 	# call the appropriate function to connect to the database
 	conn = connect_to_db()
-	
-	"""
-	args['threshold_pois'] = config.initialConfig.threshold_distance_neighbor_pois
-	args['threshold_streets'] = config.initialConfig.threshold_distance_neighbor_pois_roads
-	args['k_ngrams'] = config.initialConfig.top_k_character_ngrams_percentage
-	args['k_tokens'] = config.initialConfig.top_k_terms_percentage
-	args['n'] = config.initialConfig.character_n_gram_size
-	args['n_tokens'] = config.initialConfig.term_n_gram_size
-	args['level'] = config.initialConfig.level
-	"""
-	#write_data_to_csv(conn, args)
 	
 	args['step'] = 1
 	

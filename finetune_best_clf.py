@@ -44,6 +44,28 @@ np.random.seed(1234)
 
 def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf):
 	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	top_class_count = 0
 	for label in y_test:
 		if label == most_common_classes[0]:
@@ -65,6 +87,28 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	return top_k_error, baseline_accuracy, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro')
 
 def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
 	
 	scores = ['accuracy']
 	
@@ -96,27 +140,6 @@ def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 		tuned_parameters = config.initialConfig.MLP_hyperparameters
 		clf = MLPClassifier()
 	
-	"""
-	elif clf_name == "AdaBoost":
-		tuned_parameters = {"base_estimator__criterion" : ["gini", "entropy"],
-              "base_estimator__splitter" :   ["best", "random"],
-              "n_estimators": [1, 2]
-             }
-		clf = AdaBoostClassifier()
-	
-	elif clf_name == "MLP":
-		tuned_parameters = {'hidden_layer_sizes': [(256,), (512,), (128, 256, 128,)]}
-		clf = MLPClassifier()
-		
-	elif clf_name == "Gaussian Process":
-		
-		clf = GaussianProcessClassifier()
-	
-	elif clf_name == "QDA":
-		tuned_parameters = 
-		clf = QuadraticDiscriminantAnalysis()
-	"""
-	
 	print(clf_name)
 		
 	for score in scores:
@@ -129,20 +152,38 @@ def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 
 def tuned_parameters_5_fold(poi_ids, conn, args):
 	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	if config.initialConfig.experiment_folder == None:
 		folderpath = config.initialConfig.root_path + 'experiment_folder_*'
 		list_of_folders = glob.glob(folderpath)
 		latest_folder = max(list_of_folders, key=os.path.getctime)
 		args['folderpath'] = latest_folder
 	
-	# Shuffle ids
-	#print(poi_ids[config.initialConfig.poi_id])
-	
+	# Shuffle ids	
 	poi_ids = poi_ids[config.initialConfig.poi_id]
 	random.shuffle(poi_ids)
-	
-	#poi_ids = np.asarray(poi_ids)
-	
+		
 	poi_ids = list(poi_ids)
 			
 	clf_names_not_tuned = ["Naive Bayes", "Gaussian Process", "QDA", "AdaBoost"]
@@ -202,12 +243,6 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 		experiment_folder_path = config.initialConfig.root_path + config.initialConfig.experiment_folder
 		filepath = experiment_folder_path + '/' + 'best_hyperparameters_' + str(args['level']) + 'csv'
 		df2.to_csv(filepath, index = False)
-	
-def write_data_to_csv(conn, args):
-	sql = "select {0}.id, {0}.name_u, {0}.theme, {0}.class_name, {0}.subclass_n, {0}.x, {0}.y, {0}.geom from {0}".format(args["pois_tbl_name"])
-	df = gpd.GeoDataFrame.from_postgis(sql, conn, geom_col = 'geom')
-	df.to_csv("pois_data.csv", index = False)
-	print("ok")
 	
 def main():
 	# construct the argument parse and parse the arguments

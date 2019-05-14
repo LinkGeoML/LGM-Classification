@@ -22,7 +22,28 @@ from whoosh import scoring
 from whoosh.reading import IndexReader
 
 def find_ngrams(token_list, n):
-	#print(token_list)
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	s = []
 	
 	for token in token_list:
@@ -32,6 +53,29 @@ def find_ngrams(token_list, n):
 	return s
 
 def find_ngrams_tokens(token_list, n):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	s = []
 	
 	
@@ -41,6 +85,28 @@ def find_ngrams_tokens(token_list, n):
 	return s
 
 def get_corpus(ids, conn, args, n_grams = False, n_grams_tokens = False):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
 	
 	""" This function queries the names of all the pois in the dataset
 		and creates a corpus from the words in them"""
@@ -88,6 +154,29 @@ def get_corpus(ids, conn, args, n_grams = False, n_grams_tokens = False):
 	return corpus
 	
 def get_top_k_features(corpus, args, k):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	word_counter = {}
 	
 	for word in corpus:
@@ -98,27 +187,35 @@ def get_top_k_features(corpus, args, k):
 			
 	popular_words = sorted(word_counter, key = word_counter.get, reverse = True)	
 	
-	"""
-	import csv
-	
-	
-	with open('word_features_ranked.csv', 'a') as csvFile:
-		writer = csv.writer(csvFile)
-		for word in popular_words:
-			list_to_csv = [word, word_counter[word]]
-				
-			writer.writerow(list_to_csv)
-
-	csvFile.close()
-	"""
-
-	#print(popular_words)
 	k_new = int(k * len(popular_words))
 	top_k = popular_words[:k_new]
 	
 	return top_k, k_new
 
 def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	# get all poi details
 		
 	if args['pois_tbl_name'] is not None:
@@ -210,6 +307,29 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 	return poi_id_to_boolean_top_k_features_dict
 
 def get_features_top_k(ids, conn, args, k, test_ids = None):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	""" This function extracts frequent terms from the whole corpus of POI names. 
 		During this process, it optionally uses stemming. Selects the top-K most 
 		frequent terms and creates feature positions for each of these terms."""
@@ -227,13 +347,35 @@ def get_features_top_k(ids, conn, args, k, test_ids = None):
 		return get_poi_top_k_features(test_ids, conn, top_k_features, args, k_feat, "tokens_index")
 	
 def get_features_top_k_ngrams(ids, conn, args, k, test_ids = None):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	""" This function extracts frequent n-grams (n is specified) from the whole 
 	corpus of POI names. It selects the top-K most frequent n-gram tokens and creates
 	feature positions for each of these terms."""
 	
 	# get corpus
 	corpus = get_corpus(ids, conn, args, n_grams = True)
-	#print("Length of corpus is {0}".format(len(corpus)))
 	
 	# find top k features
 	top_k_features, k_feat = get_top_k_features(corpus, args, k)
@@ -246,6 +388,29 @@ def get_features_top_k_ngrams(ids, conn, args, k, test_ids = None):
 	
 	
 def get_features_top_k_ngrams_tokens(ids, conn, args, k, test_ids = None):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
+	
 	""" This function extracts frequent n-grams (n is specified) from the whole 
 	corpus of POI names. It selects the top-K most frequent n-gram tokens and creates
 	feature positions for each of these terms."""
@@ -263,6 +428,28 @@ def get_features_top_k_ngrams_tokens(ids, conn, args, k, test_ids = None):
 		return get_poi_top_k_features(test_ids, conn, top_k_features, args, k_feat, "token_ngrams_index")
 	
 def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict, encoded_labels_set, conn, args, encoded_labels_corpus_dict, test = False):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	num_of_labels: the total number of the different labels
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	
+	Returns
+	-------
+	"""
 	
 	if args['pois_tbl_name'] is not None:
 		sql = "select {0}.id as poi_id, {0}.name_u as name, {0}.geom from {0} where {0}.id in {1}".format(args["pois_tbl_name"], tuple(ids))

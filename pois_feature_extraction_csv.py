@@ -21,20 +21,33 @@ import os
 def get_poi_id_to_neighbors_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels, poi_id_to_encoded_labels_dict, threshold, args):
 
 	"""
-	*** This function is responsible for mapping the pois to a list of two-element lists.
-	*** The first element of that list will contain a  boolean value referring
-	*** to whether a poi of that index's label is within threshold distance
-	*** of the poi whose id is the key of this list in the dictionary. The second
-	*** element contains the respective count of the pois belonging to the
-	*** specific index's label that are within threshold distance of the poi-key.
-	***
-	*** For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	*** are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	*** id_dict[1] = [[1, 2], [0, 0], [1, 3]]
-	***
-	*** Arguments - num_of_labels: the total number of the different labels
-	*** 			encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	***				threshold: the aforementioned threshold
+	This function is responsible for mapping the pois to two lists of size equal
+	to the number of available classes in the dataset. The first list will contain
+	boolean values referring to whether a poi of that corresponding class is among
+	the k nearest neighbors of the poi of interest. The second list will contain
+	numerical values referring the the total number of pois of that corresponding class
+	that are among the k nearest neighbors of the poi of interest. 
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within the k nearest neighbors of the poi with id = 1, then the dictionaries will look like this: 
+	poi_id_to_label_boolean_dict[1] = [1, 0, 1]
+	poi_id_to_label_counts_dict[1] = [2, 0, 3]
+	
+	Arguments
+	---------
+	ids: the ids of the pois which we want to be contained in the dictionary keys
+	num_of_labels: the total number of the different labels in the dataset
+	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold (redundant)
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	
+	Returns
+	-------
+	poi_id_to_label_boolean_dict:contains boolean values referring to whether a poi of that 
+	corresponding class is among the k nearest neighbors of the poi of interest
+	poi_id_to_label_counts_dict: contains numerical values referring the the total number 
+	of pois of that corresponding class that are among the k nearest neighbors of the poi of interest
 	"""
 
 	from sklearn.neighbors import DistanceMetric
@@ -86,6 +99,27 @@ def get_poi_id_to_neighbors_boolean_and_counts_per_class_dict_csv(ids, conn, num
 	return poi_id_to_label_boolean_dict, poi_id_to_label_counts_dict
 
 def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
+	
+	"""
+	This function is responsible for mapping each poi to a list of pois. Each list will contain
+	the ids of the pois that are situated within threshold distance from the poi of interest.
+	
+	For example, if three pois with ids 1,5,7 respectively are situated within threshold distance 
+	of the poi with id = 3, then the dictionary will look like this: 
+	poi_id_to_closet_poi_ids_dict[3] = [1,5,7]
+	
+	Arguments
+	---------
+	ids: the ids of the pois which we want to be contained in the dictionary keys
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	
+	Returns
+	-------
+	poi_id_to_closet_poi_ids_dict: dictionary that maps each poi id to a list of poi ids
+	that belong to the pois that are situated within threshold distance from the poi of interest.
+	"""
+	
 	from sklearn.neighbors import DistanceMetric
 	from scipy.spatial import distance
 	
@@ -158,13 +192,26 @@ def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
 	return poi_id_to_closet_poi_ids_dict
 	
 def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
-
+	
 	"""
-	*** This function maps each poi to its closest road id.
-	***
-	*** Returns - a dictionary consisting of the poi ids as
-	*** 		  its keys and their corresponding closest 
-	***			  road id as its value.
+	This function is responsible for mapping each poi to a list of streets and each street
+	to a list of pois. Each list will contain the ids of the pois (or streets) that are situated 
+	within threshold distance from the poi (or street) of interest.
+	
+	Arguments
+	---------
+	ids: the ids of the pois which we want to be contained in the dictionary keys (or values)
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	
+	Returns
+	-------
+	poi_id_to_street_geom_dict: dictionary that maps each poi id to a list of street geometries
+	that belong to the streets that are situated within threshold distance from the poi of interest.
+	
+	street_geom_to_to_closest_poi_ids_dict: dictionary that maps each street geometry to a list of 
+	poi ids that belong to those pois that are situated within threshold distance from the street of 
+	interest.
 	"""
 	
 	from sklearn.neighbors import DistanceMetric
@@ -204,15 +251,6 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 			is_in_ids.append(False)
 	poi_df = poi_df[is_in_ids]
 	
-	"""
-	for index, row in poi_df.iterrows():
-		point = Point(row['x'], row['y'])
-		#print(point)
-		point = transform(project, point)
-		row['geom'] = point
-		#print(row['geom'])
-	"""
-	
 	# construct a dictionary from their ids
 	# also get its class_code
 	poi_id_to_street_geom_dict = dict.fromkeys(poi_df[config.initialConfig.poi_id])
@@ -234,15 +272,6 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 	street_geom_to_to_closest_poi_ids_dict = dict.fromkeys(geom_keys)
 	for street_geom in street_geom_to_to_closest_poi_ids_dict:
 		street_geom_to_to_closest_poi_ids_dict[street_geom] = []
-	
-	"""
-	spatial_index = street_df.sindex
-	if config.initialConfig.dump_indexes:
-		f = config.initialConfig.root_path + 'street_index.pkl'
-		with open(f, 'wb') as fdump:
-			pickle.dump(spatial_index, fdump)
-	#print(list(street_df.columns.values))
-	"""
 	
 	if config.initialConfig.experiment_folder == None:
 		experiment_folder_path = config.initialConfig.root_path + 'experiment_folder_*'
@@ -329,6 +358,25 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 	
 def get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df):
 	
+	"""
+	This function is responsible for mapping each street geometry to a list containing poi ids.
+	Each mapping will contain the ids of the pois that are situated within threshold distance from
+	the street geometry of interest.
+	
+	Arguments
+	---------
+	ids: the ids of the pois which we want to be contained in the dictionary keys (or values)
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	street_df: dataframe containing street info
+	
+	Returns
+	-------
+	street_geom_to_to_closest_poi_ids_dict: dictionary that maps each street geometry
+	to a list containing poi ids that correspond to those pois that are situated within
+	threshold distance from the street of interest.
+	"""
+	
 	from sklearn.neighbors import DistanceMetric
 	from scipy.spatial import distance
 	
@@ -363,13 +411,6 @@ def get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df):
 			is_in_ids.append(False)
 	poi_df = poi_df[is_in_ids]
 	
-	"""
-	for index, row in poi_df.iterrows():
-		point = Point(row[config.initialConfig.x], row[config.initialConfig.y])
-		point = transform(project, point)
-		row['geom'] = point
-	"""
-	
 	geom_keys = []
 	for index, row in street_df.iterrows():
 		geom_keys.append(str(row['geometry']))
@@ -387,6 +428,28 @@ def get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df):
 	return street_geom_to_to_closest_poi_ids_dict
 	
 def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to_encoded_labels_dict, poi_id_to_closest_poi_ids_dict, poi_id_to_closest_street_id_dict, street_geom_to_closest_poi_ids_dict):
+	
+	"""
+	This function is responsible for providing two dictionaries. The first dictionary will map each
+	poi_id to boolean values that indicate whether pois belonging to each class index are situated
+	on the same road and are within threshold distance from its position. The second dictionary will map each
+	poi_id to numerical values that indicate the total number of pois belonging to each class index are situated
+	on the same road and are within threshold distance from its position.
+	
+	Arguments
+	---------
+	ids: a list containing the ids of the pois for which the feature extraction process is to be
+	executed
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	num_of_labels: the total number of the different labels
+	
+	Returns
+	-------
+	poi_id_to_closest_pois_street_boolean_per_label_dict: the first dictionary as described above
+	poi_id_to_closest_pois_street_counts_per_label_dict: the second dictionary as described above
+	
+	"""
 	
 	poi_df = pd.read_csv(args['pois_csv_name'])
 	if args['level'] == 1:
@@ -432,6 +495,24 @@ def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to
 	
 def get_closest_pois_boolean_and_counts_per_label_streets_csv(ids, conn, args, threshold = 1000.0):
 	
+	"""
+	This function is responsible for uniting the functionalities of several street-based functions
+	in order to provide street-based geospatial features.
+	
+	Arguments
+	---------
+	ids: a list containing the ids of the pois for which the feature extraction process is to be
+	executed
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	threshold: (redundant)
+	
+	Returns
+	-------
+	boolean_feature_vector: refer to the description of construct_final_feature_vector_csv
+	counts_feature_vector: refer to the description of construct_final_feature_vector_csv
+	"""
+	
 	# we build a dictionary containing the poi ids as keys
 	# and we map to it its x, y coordinates
 	df, poi_id_to_class_code_coordinates_dict = get_poi_id_to_class_code_coordinates_dict_csv(conn, args)
@@ -450,6 +531,19 @@ def get_closest_pois_boolean_and_counts_per_label_streets_csv(ids, conn, args, t
 	return boolean_feature_vector, counts_feature_vector
 	
 def get_class_codes_set_csv(args, df):
+	
+	"""
+	This function is responsible for returning a set containing the 
+	encoded class codes.
+	
+	Arguments
+	---------
+	args: several arguments that are needed for functionality purposes
+	df: the dataframe containing our data.
+	
+	Returns
+	-------
+	"""
 	
 	"""
 	*** This function is responsible for reading the excel file
@@ -492,16 +586,27 @@ def get_class_codes_set_csv(args, df):
 def get_poi_id_to_encoded_labels_dict_csv(args, labels_set, id_dict):
 	
 	"""
-	*** This function encodes our labels to values between 0 and len(labels_set)
-	*** in order to have a more compact and user-friendly encoding of them.
-	***
-	*** Arguments - labels_set: the set of the labels (class codes) as we
-	*** 			extracted them from the excel file
-	***				id_dict: the dictionary containing the ids of the pois
-	***
-	*** Returns -	id_dict: an updated version of our pois dictionary
-	***						 now mapping their ids to their encoded labels
-	***				labels_set: the encoded labels set
+	This function is responsible for mapping the poi ids to the labels that
+	correspond to the class that each poi identified by that poi id belongs
+	It encodes the original labels to values between 0 and len(labels_set) in order 
+	to have a more compact and user-friendly encoding of them.
+	
+	Arguments
+	---------
+	args: several arguments that are needed for functionality purposes
+	labels_set: the original labels (not encoded)
+	id_dict: a dictionary that has the poi ids as its keys
+	
+	Returns
+	-------
+	
+	le: the instance of the label encoder used so that
+	future use of him can be made possible
+	
+	id_dict: an updated version of our pois dictionary
+	now mapping their ids to their encoded labels
+	
+	labels_set: the encoded labels set
 	"""
 	
 	from sklearn.preprocessing import LabelEncoder
@@ -556,9 +661,19 @@ def get_poi_id_to_encoded_labels_dict_csv(args, labels_set, id_dict):
 def get_poi_id_to_class_code_coordinates_dict_csv(conn, args):
 	
 	"""
-	*** This function returns a dictionary with poi ids as its keys and a 
-	*** list in the form of [< poi's class code >, < x coordinate > < y coordinate >]
-	*** as its values.
+	This function returns a dictionary with poi ids as its keys and a 
+	list in the form of [< poi's class code >, < x coordinate > < y coordinate >]
+	as its values.
+	
+	Arguments
+	---------
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	
+	Returns
+	-------
+	df: the original dataframe with altered column name for the class labels
+	poi_id_to_class_code_coordinates_dict: self-explanatory (look at function description)
 	"""
 	
 	df = pd.read_csv(args['pois_csv_name'])
@@ -572,17 +687,36 @@ def get_poi_id_to_class_code_coordinates_dict_csv(conn, args):
 	
 	for index, row in df.iterrows():
 		poi_id_to_class_code_coordinates_dict[row[config.initialConfig.poi_id]] = [row['class_code'], float(row[config.initialConfig.x]), float(row[config.initialConfig.y])]
-		"""
-		if config.initialConfig.level == 1:
-			poi_id_to_class_code_coordinates_dict[row['id']] = [row['theme'], float(row['x']), float(row['y'])]
-		elif config.initialConfig.level == 2:
-			poi_id_to_class_code_coordinates_dict[row['id']] = [row['class_name'], float(row['x']), float(row['y'])]
-		else:
-			poi_id_to_class_code_coordinates_dict[row['id']] = [row['subclass_n'], float(row['x']), float(row['y'])]
-		"""
+		
 	return df, poi_id_to_class_code_coordinates_dict
 	
 def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels, poi_id_to_encoded_labels_dict, threshold, args):
+	
+	"""
+	This function is responsible for mapping the pois to a list of two-element lists.
+	The first element of that list will contain a  boolean value referring
+	to whether a poi of that index's label is within threshold distance
+	of the poi whose id is the key of this list in the dictionary. The second
+	element contains the respective count of the pois belonging to the
+	specific index's label that are within threshold distance of the poi-key.
+	
+	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
+	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
+	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	
+	Arguments
+	---------
+	ids: a list containing the ids of the pois for which the feature extraction process is to be
+	executed
+	conn: (redundant)
+	num_of_labels: the total number of the different labels
+	poi_id_to_encoded_labels_dict: the dictionary mapping the poi ids to labels
+	threshold: the aforementioned threshold
+	args: several arguments that are needed for functionality purposes
+	
+	Returns
+	-------
+	"""
 	
 	"""
 	*** This function is responsible for mapping the pois to a list of two-element lists.
@@ -663,14 +797,19 @@ def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels
 def get_closest_pois_boolean_and_counts_per_label_csv(ids, conn, args, threshold = 1000.0):
 	
 	"""
-	*** This function returns a dictionary with the poi ids as its keys
-	*** and two lists for each key. The first list contains boolean values
-	*** dictating whether a poi of that index's label is within threshold
-	*** distance with the key poi. The second list contains the counts of
-	*** the pois belonging to the same index's label.
+	A function that just unites the functionality of all previous functions regarding
+	the radius (non-street) variant feature extraction.
 	
-	*** Arguments - threshold: we only examine pois the distance between 
-	*** 			which is below the given threshold
+	Arguments
+	---------
+	ids: the poi ids for which this feature extraction step is to be executed
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	threshold: (redundant)
+	
+	Returns
+	-------
+	self-explanatory (refer to the individual functions this function calls)
 	"""
 	
 	# we build a dictionary containing the poi ids as keys
@@ -686,6 +825,23 @@ def get_closest_pois_boolean_and_counts_per_label_csv(ids, conn, args, threshold
 	return get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, len(encoded_labels_set), poi_id_to_encoded_labels_dict, threshold, args)
 
 def get_neighbor_pois_boolean_and_counts_per_label_csv(ids, conn, args, threshold = 1000.0):
+	
+	"""
+	A function that just unites the functionality of all previous functions regarding
+	the k nearest neighbor variant feature extraction.
+	
+	Arguments
+	---------
+	ids: the poi ids for which this feature extraction step is to be executed
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes
+	threshold: (redundant)
+	
+	Returns
+	-------
+	self-explanatory (refer to the individual functions this function calls)
+	"""
+	
 	# we build a dictionary containing the poi ids as keys
 	# and we map to it its x, y coordinates
 	df, poi_id_to_class_code_coordinates_dict = get_poi_id_to_class_code_coordinates_dict_csv(conn, args)

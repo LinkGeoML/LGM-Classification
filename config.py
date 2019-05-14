@@ -3,11 +3,6 @@ import numpy as np
 
 class initialConfig:
 	
-	# Should be True only when we test our trained model on a new dataset
-	
-	# Should be True only when our model is being trained
-	#dump_indexes = False
-	
 	# The following parameters define the set of features that can be extracted (feature_list)
 	# and those that we currently intent to extract during our experiments (included_features)
 	feature_list = ['class_centroid_similarities', 'word_features_ngrams', 'word_features', 
