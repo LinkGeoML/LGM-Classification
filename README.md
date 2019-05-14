@@ -33,7 +33,7 @@ compare the performance of every algorithm-hyperparameter configuration in a nes
 * a file containing the results per cross-validation fold and their averages and 
 * a file containing the name of the best model.
 
-You can execute this step as follows: ```python simple_classification.py -pois_csv_name <csv containing poi information> -results_file_name <desired name of the csv to contain the metric results per fold> -hyperparameter_file_name <desired name of the file to contain the hyperparameter space that was searched>```.
+You can execute this step as follows: ```python find_best_clf.py -pois_csv_name <csv containing poi information> -results_file_name <desired name of the csv to contain the metric results per fold> -hyperparameter_file_name <desired name of the file to contain the hyperparameter space that was searched>```.
 
 The last two arguments are optional and their values are defaulted to:
 * classification_report_*category level*_*timestamp*, and 
@@ -73,7 +73,7 @@ The output .csv file will contain the k most probable predictions regarding the 
 
 If we want to test our trained model's performance on another dataset (e.g. the Yelp dataset) we can run the following sequence of commands:
 
-```python algorithm_selection.py -pois_csv_name pois_data.csv```
+```python find_best_clf.py -pois_csv_name pois_data.csv```
 
 in order to find the best overall classification algorithm,
 
