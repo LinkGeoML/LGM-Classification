@@ -42,25 +42,25 @@ np.random.seed(1234)
 def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf):
 	
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for measuring the prediction scores
+	during the test phase
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	X_test: the test set features
+	y_test: the test set class labels
+	most_common_classes: the 10 most common (most populated) classes
+	clf: the classifier object that is used for the predictions
 	
 	Returns
 	-------
+	top_k_errors: a list containing the top-k-error measurements
+	baseline_accuracy: the baseline accuracy (the most populated
+	class is assigned to every prediction)
+	baseline_f_score: same as above, but f_score
+	accuracy_score(y_test, y_pred): the accuracy score as computed by scikit-learn
+	f1_score(y_test, y_pred, average='weighted'): the weighted f1-score as computed by scikit-learn
+	f1_score(y_test, y_pred, average='macro'): the macro f1-score as computed by scikit-learn
 	"""
 	
 	top_class_count = 0
@@ -95,25 +95,19 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 	
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for fitting a classifier
+	to a training set and returning the classifier object
+	for later use.
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	X_train: array containing the features of the train set
+	y_train: array containing the labels of the train set
+	args: several arguments that are needed for functionality purposes 
 	
 	Returns
 	-------
+	clf: the trained classifier object
 	"""
 	
 	scores = ['accuracy']#, 'f1_macro', 'f1_micro']
@@ -160,25 +154,7 @@ def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 def feature_selection(X_train, X_test, y_train):
 	
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
-	
-	Arguments
-	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
-	
-	Returns
-	-------
+	may be of use later
 	"""
 		
 	from sklearn.feature_selection import VarianceThreshold
@@ -261,25 +237,19 @@ def feature_selection(X_train, X_test, y_train):
 def tuned_parameters_5_fold(poi_ids, conn, args):
 	
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function trains a collection of classifiers using
+	a nested k-fold cross-validation approach and outputs
+	the relevant results so that later comparisons can be made
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	poi_ids: the ids of the pois within the train set
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes 
 	
 	Returns
 	-------
+	None
 	"""
 
 	if config.initialConfig.experiment_folder == None:

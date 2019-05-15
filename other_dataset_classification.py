@@ -43,6 +43,28 @@ np.random.seed(1234)
 
 def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, clf):
 	
+	"""
+	This function is responsible for measuring the prediction scores
+	during the test phase
+	
+	Arguments
+	---------
+	X_test: the test set features
+	y_test: the test set class labels
+	most_common_classes: the 10 most common (most populated) classes
+	clf: the classifier object that is used for the predictions
+	
+	Returns
+	-------
+	top_k_errors: a list containing the top-k-error measurements
+	baseline_accuracy: the baseline accuracy (the most populated
+	class is assigned to every prediction)
+	baseline_f_score: same as above, but f_score
+	accuracy_score(y_test, y_pred): the accuracy score as computed by scikit-learn
+	f1_score(y_test, y_pred, average='weighted'): the weighted f1-score as computed by scikit-learn
+	f1_score(y_test, y_pred, average='macro'): the macro f1-score as computed by scikit-learn
+	"""
+	
 	top_class_count = 0
 	for label in y_test:
 		if label == most_common_classes[0]:
@@ -86,6 +108,21 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	return top_k_errors, baseline_accuracy, accuracy_score(y_test, y_pred), f1_score(y_test, y_pred, average='weighted'), f1_score(y_test, y_pred, average='macro'), predictions, prediction_scores
 		
 def tuned_parameters_5_fold(poi_ids, conn, args):
+	
+	"""
+	This function predicts the labels for a given test set
+	using a previously stored model of a classifier object.
+	
+	Arguments
+	---------
+	poi_ids: the ids of the pois within the train set
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes 
+	
+	Returns
+	-------
+	None
+	"""
 	
 	if config.initialConfig.experiment_folder == None:
 		folderpath = config.initialConfig.root_path + 'experiment_folder_*'

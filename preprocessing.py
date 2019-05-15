@@ -16,25 +16,7 @@ import random
 
 def get_train_test_poi_ids(conn, args):
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
-	
-	Arguments
-	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
-	
-	Returns
-	-------
+	redundant
 	"""
 	
 	from sklearn.model_selection import train_test_split
@@ -55,26 +37,9 @@ def get_train_test_poi_ids(conn, args):
 	return poi_ids_train, poi_ids_test
 	
 def get_poi_ids(conn, args):
+	
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
-	
-	Arguments
-	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
-	
-	Returns
-	-------
+	redundant
 	"""
 	
 	from sklearn.model_selection import train_test_split
@@ -90,25 +55,22 @@ def get_poi_ids(conn, args):
         
 def get_train_test_sets(conn, args, poi_ids_train, poi_ids_test, fold_number = None):
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for extracting features for the train and test set
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes 
+	poi_ids_train: the ids of the pois within the train set
+	poi_ids_test: the ids of the pois within the test set
+	fold_number: the number of the fold for which we want the features to be extracted
 	
 	Returns
 	-------
+	X_train: array containing the features for the train set
+	y_train: array containing the labels for the train set
+	X_test: array containing the features for the test set
+	y_test: array containing the labels for the test set
 	"""
 	
 	args['fold_number'] = fold_number
@@ -353,25 +315,18 @@ def get_train_test_sets(conn, args, poi_ids_train, poi_ids_test, fold_number = N
 	
 def get_test_set(conn, args, poi_ids):
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for extracting features for the test set
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes 
+	poi_ids: the ids of the pois within the test set
 	
 	Returns
 	-------
+	X_train: array containing the features for the test set
+	y_train: array containing the labels for the test set
 	"""
 	
 	from sklearn.feature_selection import VarianceThreshold
@@ -482,25 +437,18 @@ def get_test_set(conn, args, poi_ids):
 	
 def get_train_set(conn, args, poi_ids):
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for extracting features for the train set
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes 
+	poi_ids: the ids of the pois within the train set
 	
 	Returns
 	-------
+	X_train: array containing the features for the train set
+	y_train: array containing the labels for the train set
 	"""
 	
 	from sklearn.feature_selection import VarianceThreshold
@@ -654,25 +602,19 @@ def get_train_set(conn, args, poi_ids):
 
 def standardize_data_train(X):
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for standarizing a set of train data.
+	It achieves this by using MinMaxScaler so that all features are
+	within [0.0, 1.0]
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	X: the train data we want to standardize
 	
 	Returns
 	-------
+	X: the standardized train data
+	standard_scaler: the MinMaxScaler object that was used
+	so that it can be used in the future
 	"""
 	from sklearn.preprocessing import MinMaxScaler
 	
@@ -683,25 +625,19 @@ def standardize_data_train(X):
 
 def standardize_data_test(X, scaler):
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for standarizing a set of test data.
+	It achieves this by using a MinMaxScaler object that was used previously
+	for standardizing relevant train data. Ultimately, all features are
+	within [0.0, 1.0]
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	X: the test data we want to standardize
+	scaler: the MinMaxScaler object to be used
 	
 	Returns
 	-------
+	X: the standardized test data
 	"""
 	from sklearn.preprocessing import MinMaxScaler
 	
@@ -711,25 +647,16 @@ def standardize_data_test(X, scaler):
 	
 def find_10_most_common_classes_train(y_train):
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for finding the 10 most common classes
+	within a set of labels (these are the 10 most populated classes).
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	y_train: array containing the set of labels
 	
 	Returns
 	-------
+	most_common_classes: the labels of the 10 most common classes
 	"""
 	
 	labels = list(y_train)

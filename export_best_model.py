@@ -41,25 +41,18 @@ np.random.seed(1234)
 def tuned_parameters_5_fold(poi_ids, conn, args):
 	
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function trains a classifier on a training set and
+	exports the model for later use.
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	poi_ids: the ids of the pois within the train set
+	conn: (redundant)
+	args: several arguments that are needed for functionality purposes 
 	
 	Returns
 	-------
+	None
 	"""
 	
 	if config.initialConfig.experiment_folder == None:
@@ -121,25 +114,19 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 def train_clf_given_hyperparams(X_train, y_train, args):
 	
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
-	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
-	specific index's label that are within threshold distance of the poi-key.
-	
-	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	This function is responsible for fitting a classifier
+	to a training set and returning the classifier object
+	for later use.
 	
 	Arguments
 	---------
-	num_of_labels: the total number of the different labels
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
+	X_train: array containing the features of the train set
+	y_train: array containing the labels of the train set
+	args: several arguments that are needed for functionality purposes 
 	
 	Returns
 	-------
+	clf: the trained classifier object
 	"""
 	
 	tuned_parameters = args['best_hyperparams']
