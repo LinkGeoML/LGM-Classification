@@ -62,7 +62,7 @@ All arguments except pois_csv_name are optional and their values are defaulted t
 
 correspondingly.
 
-**Predictions on novel data**: This step can be executed as: ```python export_predictions.py -pois_csv <csv containing poi information> -k <desired number of predicted categories per poi> -results_file_name <desired name of the output csv> -trained_model_file_name <pickle file containing an already trained model>```
+**Predictions on novel data**: This step can be executed as: ```python other_dataset_classification.py -pois_csv <csv containing poi information> -k <desired number of predicted categories per poi> -results_file_name <desired name of the output csv> -trained_model_file_name <pickle file containing an already trained model>```
 
 The output .csv file will contain the k most probable predictions regarding the category of each POI. If no arguments for k and output_csv are given, their values are defaulted to:
 * k = 5, 
