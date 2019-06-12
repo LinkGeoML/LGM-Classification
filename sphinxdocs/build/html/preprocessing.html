@@ -1,0 +1,380 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>preprocessing &mdash; lgm-classification 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="export_best_model" href="export_best_model.html" />
+    <link rel="prev" title="Welcome to lgm-classification’s documentation!" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> lgm-classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="export_best_model.html">export_best_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="find_best_clf.html">find_best_clf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="finetune_best_clf.html">finetune_best_clf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other_dataset_classification.html">other_dataset_classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pois_feature_extraction_csv.html">pois_feature_extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="textual_feature_extraction.html">textual_feature_extraction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">lgm-classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>preprocessing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/preprocessing.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="preprocessing">
+<h1>preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><span class="target" id="module-preprocessing"></span><dl class="function">
+<dt id="preprocessing.find_10_most_common_classes_train">
+<code class="descclassname">preprocessing.</code><code class="descname">find_10_most_common_classes_train</code><span class="sig-paren">(</span><em>y_train</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preprocessing.html#find_10_most_common_classes_train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocessing.find_10_most_common_classes_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is responsible for finding the 10 most common classes
+within a set of labels (these are the 10 most populated classes).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>y_train</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the labels of the training set</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>most_common_classes</strong> – the labels of the 10 most common classes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.get_poi_ids">
+<code class="descclassname">preprocessing.</code><code class="descname">get_poi_ids</code><span class="sig-paren">(</span><em>conn</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preprocessing.html#get_poi_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocessing.get_poi_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>redundant</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.get_test_set">
+<code class="descclassname">preprocessing.</code><code class="descname">get_test_set</code><span class="sig-paren">(</span><em>conn</em>, <em>args</em>, <em>poi_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preprocessing.html#get_test_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocessing.get_test_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is responsible for extracting features for the test set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> (<em>(</em><em>redundant</em><em>)</em>) – </p></li>
+<li><p><strong>args</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dictionary</span></code>) – several arguments that are needed for functionality purposes</p></li>
+<li><p><strong>poi_ids</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>) – the ids of the pois within the train set</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>X_test</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the features for the test set</p></li>
+<li><p><strong>X_train</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the labels for the test set</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.get_train_set">
+<code class="descclassname">preprocessing.</code><code class="descname">get_train_set</code><span class="sig-paren">(</span><em>conn</em>, <em>args</em>, <em>poi_ids</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preprocessing.html#get_train_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocessing.get_train_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is responsible for extracting features for the train set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> (<em>(</em><em>redundant</em><em>)</em>) – </p></li>
+<li><p><strong>args</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dictionary</span></code>) – several arguments that are needed for functionality purposes</p></li>
+<li><p><strong>poi_ids</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>) – the ids of the pois within the train set</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>X_train</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the features for the train set</p></li>
+<li><p><strong>X_test</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the labels for the train set</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.get_train_test_poi_ids">
+<code class="descclassname">preprocessing.</code><code class="descname">get_train_test_poi_ids</code><span class="sig-paren">(</span><em>conn</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preprocessing.html#get_train_test_poi_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocessing.get_train_test_poi_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>redundant</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.get_train_test_sets">
+<code class="descclassname">preprocessing.</code><code class="descname">get_train_test_sets</code><span class="sig-paren">(</span><em>conn</em>, <em>args</em>, <em>poi_ids_train</em>, <em>poi_ids_test</em>, <em>fold_number=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preprocessing.html#get_train_test_sets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocessing.get_train_test_sets" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is responsible for extracting features for the train and test set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> (<em>(</em><em>redundant</em><em>)</em>) – </p></li>
+<li><p><strong>args</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dictionary</span></code>) – several arguments that are needed for functionality purposes</p></li>
+<li><p><strong>poi_ids_train</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>) – the ids of the pois within the train set</p></li>
+<li><p><strong>poi_ids_test</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>) – the ids of the pois within the test set</p></li>
+<li><p><strong>fold_number</strong> (<em>int</em>) – the number of the fold for which we want the features to be extracted</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>X_train</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the features for the train set</p></li>
+<li><p><strong>y_train</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the labels for the train set</p></li>
+<li><p><strong>X_test</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the features for the test set</p></li>
+<li><p><strong>y_test</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – array containing the labels for the test set</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.pack_byte">
+<code class="descclassname">preprocessing.</code><code class="descname">pack_byte</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#preprocessing.pack_byte" title="Permalink to this definition">¶</a></dt>
+<dd><p>S.pack(v1, v2, …) -&gt; bytes</p>
+<p>Return a bytes object containing values v1, v2, … packed according
+to the format string S.format.  See help(struct) for more on format
+strings.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.standardize_data_test">
+<code class="descclassname">preprocessing.</code><code class="descname">standardize_data_test</code><span class="sig-paren">(</span><em>X</em>, <em>scaler</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preprocessing.html#standardize_data_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocessing.standardize_data_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is responsible for standarizing a set of test data.
+It achieves this by using a MinMaxScaler object that was used previously
+for standardizing relevant train data. Ultimately, all features are
+within [0.0, 1.0]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – the test data we want to standardize</p></li>
+<li><p><strong>scaler</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">sklearn.preprocessing.MinMaxScaler</span> <span class="pre">object</span></code>) – the MinMaxScaler object to be used for standardization</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>X</strong> – the standardized test data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.standardize_data_train">
+<code class="descclassname">preprocessing.</code><code class="descname">standardize_data_train</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/preprocessing.html#standardize_data_train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocessing.standardize_data_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is responsible for standarizing a set of train data.
+It achieves this by using MinMaxScaler so that all features are
+within [0.0, 1.0]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – the train data we want to standardize</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>X</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) – the standardized train data</p></li>
+<li><p><strong>standard_scaler</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">sklearn.preprocessing.MinMaxScaler</span> <span class="pre">object</span></code>) – the MinMaxScaler object that was used so that it can be used in the future</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="preprocessing.unpack_byte">
+<code class="descclassname">preprocessing.</code><code class="descname">unpack_byte</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#preprocessing.unpack_byte" title="Permalink to this definition">¶</a></dt>
+<dd><p>S.unpack(buffer) -&gt; (v1, v2, …)</p>
+<p>Return a tuple containing values unpacked according to the format
+string S.format.  The buffer’s size in bytes must be S.size.  See
+help(struct) for more on format strings.</p>
+</dd></dl>
+
+</div></blockquote>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="export_best_model.html" class="btn btn-neutral float-right" title="export_best_model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to lgm-classification’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, nikos
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

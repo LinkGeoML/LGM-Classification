@@ -60,17 +60,25 @@ def get_train_test_sets(conn, args, poi_ids_train, poi_ids_test, fold_number = N
 	Arguments
 	---------
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
-	poi_ids_train: the ids of the pois within the train set
-	poi_ids_test: the ids of the pois within the test set
-	fold_number: the number of the fold for which we want the features to be extracted
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	poi_ids_train: :obj:`list`
+		the ids of the pois within the train set
+	poi_ids_test: :obj:`list`
+		the ids of the pois within the test set
+	fold_number: int
+		the number of the fold for which we want the features to be extracted
 	
 	Returns
 	-------
-	X_train: array containing the features for the train set
-	y_train: array containing the labels for the train set
-	X_test: array containing the features for the test set
-	y_test: array containing the labels for the test set
+	X_train: :obj:`numpy array`
+		array containing the features for the train set
+	y_train: :obj:`numpy array`
+		array containing the labels for the train set
+	X_test: :obj:`numpy array`
+		array containing the features for the test set
+	y_test: :obj:`numpy array`
+		array containing the labels for the test set
 	"""
 	
 	args['fold_number'] = fold_number
@@ -320,13 +328,17 @@ def get_test_set(conn, args, poi_ids):
 	Arguments
 	---------
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
-	poi_ids: the ids of the pois within the test set
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	poi_ids: :obj:`list` 
+		the ids of the pois within the train set
 	
 	Returns
 	-------
-	X_train: array containing the features for the test set
-	y_train: array containing the labels for the test set
+	X_test: :obj:`numpy array`
+		array containing the features for the test set
+	X_train: :obj:`numpy array`
+		array containing the labels for the test set
 	"""
 	
 	from sklearn.feature_selection import VarianceThreshold
@@ -442,13 +454,17 @@ def get_train_set(conn, args, poi_ids):
 	Arguments
 	---------
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
-	poi_ids: the ids of the pois within the train set
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	poi_ids: :obj:`list` 
+		the ids of the pois within the train set
 	
 	Returns
 	-------
-	X_train: array containing the features for the train set
-	y_train: array containing the labels for the train set
+	X_train: :obj:`numpy array`
+		array containing the features for the train set
+	X_test: :obj:`numpy array`
+		array containing the labels for the train set
 	"""
 	
 	from sklearn.feature_selection import VarianceThreshold
@@ -608,13 +624,15 @@ def standardize_data_train(X):
 	
 	Arguments
 	---------
-	X: the train data we want to standardize
+	X: :obj:`numpy array`
+		the train data we want to standardize
 	
 	Returns
 	-------
-	X: the standardized train data
-	standard_scaler: the MinMaxScaler object that was used
-	so that it can be used in the future
+	X: :obj:`numpy array`
+		the standardized train data
+	standard_scaler: :obj:`sklearn.preprocessing.MinMaxScaler object`
+		the MinMaxScaler object that was used so that it can be used in the future
 	"""
 	from sklearn.preprocessing import MinMaxScaler
 	
@@ -632,12 +650,15 @@ def standardize_data_test(X, scaler):
 	
 	Arguments
 	---------
-	X: the test data we want to standardize
-	scaler: the MinMaxScaler object to be used
+	X: :obj:`numpy array`
+		the test data we want to standardize
+	scaler: :obj:`sklearn.preprocessing.MinMaxScaler object`
+		the MinMaxScaler object to be used for standardization
 	
 	Returns
 	-------
-	X: the standardized test data
+	X: :obj:`numpy array`
+		the standardized test data
 	"""
 	from sklearn.preprocessing import MinMaxScaler
 	
@@ -652,11 +673,13 @@ def find_10_most_common_classes_train(y_train):
 	
 	Arguments
 	---------
-	y_train: array containing the set of labels
+	y_train: :obj:`numpy array`
+		array containing the labels of the training set
 	
 	Returns
 	-------
-	most_common_classes: the labels of the 10 most common classes
+	most_common_classes: :obj:`list`
+		the labels of the 10 most common classes
 	"""
 	
 	labels = list(y_train)

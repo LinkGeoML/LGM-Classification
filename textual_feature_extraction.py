@@ -27,12 +27,15 @@ def find_ngrams(token_list, n):
 	
 	Arguments
 	---------
-	token_list: a list containing the tokens we want to extract the n-grams from
-	n: the n-gram size
+	token_list: :obj:`list`
+		a list containing the tokens we want to extract the n-grams from
+	n: :obj:`int`
+		the n-gram size
 	
 	Returns
 	-------
-	s: the list containing the n-grams
+	s: :obj:`list`
+		the list containing the n-grams
 	"""
 	
 	s = []
@@ -50,12 +53,15 @@ def find_ngrams_tokens(token_list, n):
 	
 	Arguments
 	---------
-	token_list: a list containing the tokens we want to extract the token n-grams from
-	n: the n-gram size
+	token_list: :obj:`list`
+		a list containing the tokens we want to extract the token n-grams from
+	n: :obj:`int`
+		the n-gram size
 	
 	Returns
 	-------
-	s: the list containing the n-grams
+	s: :obj:`list`
+		the list containing the n-grams
 	"""
 	
 	s = []
@@ -75,14 +81,20 @@ def get_corpus(ids, conn, args, n_grams = False, n_grams_tokens = False):
 	
 	Arguments
 	---------
-	ids: the ids of the pois from the information of which we want the corpus to be extracted
+	ids: :obj:`list`
+		the ids of the pois from the information of which we want the corpus to be extracted
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
-	n_grams: True if we want to extract an n-gram corpus, False otherwise
-	n_grams_tokens: True if we want to extract a token n-gram corpus, False otherwise
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	n_grams: :obj:`boolean`
+		True if we want to extract an n-gram corpus, False otherwise
+	n_grams_tokens: :obj:`boolean`
+		True if we want to extract a token n-gram corpus, False otherwise
 	
 	Returns
 	-------
+	corpus: :obj:`list`
+		The corpus that was extracted
 	"""
 	
 	#nltk.download()
@@ -135,14 +147,19 @@ def get_top_k_features(corpus, args, k):
 	
 	Arguments
 	---------
-	ids: the corpus
-	args: several arguments that are needed for functionality purposes 
-	k: the percentage of the k most frequent features we want to extract
+	corpus: :obj:`list`
+		the corpus
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	k: :obj:`float`
+		the percentage of the k most frequent features we want to extract
 	
 	Returns
 	-------
-	top_k: the k most frequent textual features 
-	k_new: the number of the features
+	top_k: :obj:`list`
+		the k most frequent textual features 
+	k_new: :obj:`int`
+		the number of the features
 	"""
 	
 	word_counter = {}
@@ -169,18 +186,24 @@ def get_poi_top_k_features(ids, conn, top_k_features, args, k, feature_type):
 	
 	Arguments
 	---------
-	ids: the ids of the pois for which we want to this function to run
+	ids: :obj:`list`
+		the ids of the pois for which we want to this function to run
 	conn: (redundant)
-	top_k_features: the k most frequent features discussed earlier
-	args: several arguments that are needed for functionality purposes 
-	k: the number of the k most frequent features discussed earlier
-	feature_type: describes the feature
+	top_k_features: :obj:`list`
+		the k most frequent features discussed earlier
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	k: :obj:`int`
+		the number of the k most frequent features discussed earlier
+	feature_type: :obj:`str`
+		describes the feature
 	
 	Returns
 	-------
-	poi_id_to_boolean_top_k_features_dict: dictionary that maps each poi to a 
-	boolean list that indicates whether a feature inside the k most frequent 
-	features is found within that poi name.
+	poi_id_to_boolean_top_k_features_dict: :obj:`dictionary`
+		dictionary that maps each poi to a 
+		boolean list that indicates whether a feature inside the k most frequent 
+		features is found within that poi name.
 	"""
 	
 	# get all poi details
@@ -284,12 +307,16 @@ def get_features_top_k(ids, conn, args, k, test_ids = None):
 	
 	Arguments
 	---------
-	ids: the ids of the pois for which we want to this function to run
+	ids: :obj:`list`
+		the ids of the pois for which we want to this function to run
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
-	k: the percentage of the k most frequent terms discussed earlier
-	test_ids: contains the ids of the test set pois for which we want
-	this function to run, if no test ids it defaults to None
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	k: :obj:`float`
+		the percentage of the k most frequent terms discussed earlier
+	test_ids: :obj:`list`
+		contains the ids of the test set pois for which we want
+		this function to run, if no test ids it defaults to None
 	
 	Returns
 	-------
@@ -320,12 +347,16 @@ def get_features_top_k_ngrams(ids, conn, args, k, test_ids = None):
 	
 	Arguments
 	---------
-	ids: the ids of the pois for which we want to this function to run
+	ids: :obj:`list`
+		the ids of the pois for which we want to this function to run
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
-	k: the percentage of the k most frequent character n-grams discussed earlier
-	test_ids: contains the ids of the test set pois for which we want
-	this function to run, if no test ids it defaults to None
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	k: :obj:`float`
+		the percentage of the k most frequent terms discussed earlier
+	test_ids: :obj:`list`
+		contains the ids of the test set pois for which we want
+		this function to run, if no test ids it defaults to None
 	
 	Returns
 	-------
@@ -357,12 +388,16 @@ def get_features_top_k_ngrams_tokens(ids, conn, args, k, test_ids = None):
 	
 	Arguments
 	---------
-	ids: the ids of the pois for which we want to this function to run
+	ids: :obj:`list`
+		the ids of the pois for which we want to this function to run
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
-	k: the percentage of the k most frequent token n-grams discussed earlier
-	test_ids: contains the ids of the test set pois for which we want
-	this function to run, if no test ids it defaults to None
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	k: :obj:`float`
+		the percentage of the k most frequent terms discussed earlier
+	test_ids: :obj:`list`
+		contains the ids of the test set pois for which we want
+		this function to run, if no test ids it defaults to None
 	
 	Returns
 	-------
@@ -391,22 +426,30 @@ def get_poi_id_to_class_centroid_similarities(ids, poi_id_to_encoded_labels_dict
 	
 	Arguments
 	---------
-	ids: the ids of the pois for which we want the similarity features to be extracted
-	poi_id_to_encoded_labels_dict: dictionary mapping each poi id to the encoded label of the class
-	it belongs to
-	encoded_labels_set: set containing the class label codes
+	ids: :obj:`list`
+		the ids of the pois for which we want the similarity features to be extracted
+	poi_id_to_encoded_labels_dict: :obj:`dictionary`
+		dictionary mapping each poi id to the encoded label of the class
+		it belongs to
+	encoded_labels_set: :obj:`set`
+		set containing the class label codes
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
-	encoded_labels_corpus_dict: dictionary mapping each class label code to the corpus of the
-	poi ids of that class
-	test: boolean variable indicating whether we want these features to be extracted for
-	members of the training set or not
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
+	encoded_labels_corpus_dict: :obj:`dictionary`
+		dictionary mapping each class label code to the corpus of the
+		poi ids of that class
+	test: :obj:`boolean`
+		boolean variable indicating whether we want these features to be extracted for
+		members of the training set or not
 	
 	Returns
 	-------
-	poi_id_to_similarity_per_label: the dictionary discussed in the description
-	encoded_labels_corpus_dict: dictionary mapping each class label code to the corpus of the
-	poi ids of that class
+	poi_id_to_similarity_per_label: :obj:`dictionary`
+		the dictionary discussed in the description
+	encoded_labels_corpus_dict: :obj:`dictionary`
+		dictionary mapping each class label code to the corpus of the
+		poi ids of that class
 	"""
 	
 	if args['pois_tbl_name'] is not None:

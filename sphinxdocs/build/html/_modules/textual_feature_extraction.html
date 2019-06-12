@@ -1,0 +1,767 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>textual_feature_extraction &mdash; lgm-classification 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> lgm-classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing.html">preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export_best_model.html">export_best_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../find_best_clf.html">find_best_clf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../finetune_best_clf.html">finetune_best_clf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../other_dataset_classification.html">other_dataset_classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pois_feature_extraction_csv.html">pois_feature_extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_feature_extraction.html">textual_feature_extraction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lgm-classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>textual_feature_extraction</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for textual_feature_extraction</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+
+<span class="c1"># import the necessary packages</span>
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">database</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">preprocessing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">feml</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">whoosh.index</span> <span class="k">import</span> <span class="n">create_in</span>
+<span class="kn">from</span> <span class="nn">whoosh.fields</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">whoosh.qparser</span> <span class="k">import</span> <span class="n">QueryParser</span>
+<span class="kn">from</span> <span class="nn">whoosh.analysis</span> <span class="k">import</span> <span class="n">NgramWordAnalyzer</span>
+<span class="kn">from</span> <span class="nn">whoosh</span> <span class="k">import</span> <span class="n">index</span> <span class="k">as</span> <span class="n">windex</span>
+<span class="kn">from</span> <span class="nn">whoosh</span> <span class="k">import</span> <span class="n">qparser</span>
+<span class="kn">from</span> <span class="nn">whoosh</span> <span class="k">import</span> <span class="n">scoring</span>
+<span class="kn">from</span> <span class="nn">whoosh.reading</span> <span class="k">import</span> <span class="n">IndexReader</span>
+
+<div class="viewcode-block" id="find_ngrams"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.find_ngrams">[docs]</a><span class="k">def</span> <span class="nf">find_ngrams</span><span class="p">(</span><span class="n">token_list</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for extracting n-grams from a list of tokens.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	token_list: :obj:`list`</span>
+<span class="sd">		a list containing the tokens we want to extract the n-grams from</span>
+<span class="sd">	n: :obj:`int`</span>
+<span class="sd">		the n-gram size</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	s: :obj:`list`</span>
+<span class="sd">		the list containing the n-grams</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="n">s</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">token_list</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">token</span><span class="p">)</span><span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+			<span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">n</span><span class="o">+</span><span class="n">i</span><span class="p">])</span>
+	
+	<span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="find_ngrams_tokens"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.find_ngrams_tokens">[docs]</a><span class="k">def</span> <span class="nf">find_ngrams_tokens</span><span class="p">(</span><span class="n">token_list</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for extracting token n-grams from a list of tokens.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	token_list: :obj:`list`</span>
+<span class="sd">		a list containing the tokens we want to extract the token n-grams from</span>
+<span class="sd">	n: :obj:`int`</span>
+<span class="sd">		the n-gram size</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	s: :obj:`list`</span>
+<span class="sd">		the list containing the n-grams</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="n">s</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">token_list</span><span class="p">)</span><span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+		<span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">token_list</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+	
+	<span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="get_corpus"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.get_corpus">[docs]</a><span class="k">def</span> <span class="nf">get_corpus</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">n_grams</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">n_grams_tokens</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for constructing a corpus from the poi names.</span>
+<span class="sd">	It does this by collecting all the poi names and then, depending on the</span>
+<span class="sd">	input parameters, it creates a corpus accordingly.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	ids: :obj:`list`</span>
+<span class="sd">		the ids of the pois from the information of which we want the corpus to be extracted</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	n_grams: :obj:`boolean`</span>
+<span class="sd">		True if we want to extract an n-gram corpus, False otherwise</span>
+<span class="sd">	n_grams_tokens: :obj:`boolean`</span>
+<span class="sd">		True if we want to extract a token n-gram corpus, False otherwise</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	corpus: :obj:`list`</span>
+<span class="sd">		The corpus that was extracted</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="c1">#nltk.download()</span>
+	
+	<span class="c1"># get all poi details</span>
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_tbl_name&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;select </span><span class="si">{0}</span><span class="s2">.id as poi_id, </span><span class="si">{0}</span><span class="s2">.name_u as name, </span><span class="si">{0}</span><span class="s2">.geom from </span><span class="si">{0}</span><span class="s2"> where </span><span class="si">{0}</span><span class="s2">.id in </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_postgis</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">geom_col</span> <span class="o">=</span> <span class="s1">&#39;geom&#39;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_csv_name&#39;</span><span class="p">])</span>
+		
+	<span class="n">is_in_ids</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">all_ids</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]</span>
+	<span class="n">all_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_ids</span><span class="p">)</span>
+	<span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">all_ids</span><span class="p">:</span>
+		<span class="k">if</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+			<span class="n">is_in_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">is_in_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">is_in_ids</span><span class="p">]</span>
+	
+	<span class="n">corpus</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="c1"># for every poi name</span>
+	<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+		<span class="c1"># perform stemming based on the language it&#39;s written in</span>
+		<span class="n">stemmed_word</span> <span class="o">=</span> <span class="n">perform_stemming</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="n">lang_detect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="c1"># break it in tokens</span>
+		<span class="n">not_stopwords</span><span class="p">,</span> <span class="n">stopwords</span> <span class="o">=</span> <span class="n">normalize_str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+		<span class="n">not_stopwords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">not_stopwords</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">n_grams_tokens</span><span class="p">:</span>
+			<span class="n">not_stopwords</span> <span class="o">=</span> <span class="n">find_ngrams_tokens</span><span class="p">(</span><span class="n">not_stopwords</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">term_n_gram_size</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">n_grams</span><span class="p">:</span>
+			<span class="n">not_stopwords</span> <span class="o">=</span> <span class="n">find_ngrams</span><span class="p">(</span><span class="n">not_stopwords</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">character_n_gram_size</span><span class="p">)</span>		
+		<span class="n">corpus</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">not_stopwords</span><span class="p">)</span>
+		
+	<span class="n">corpus</span> <span class="o">=</span> <span class="p">[</span><span class="n">elem</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">corpus</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
+	
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">n_grams</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">n_grams_tokens</span><span class="p">:</span>
+		<span class="n">corpus</span> <span class="o">=</span> <span class="p">[</span><span class="n">elem</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">corpus</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">]</span>
+		
+	<span class="k">return</span> <span class="n">corpus</span></div>
+	
+<div class="viewcode-block" id="get_top_k_features"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.get_top_k_features">[docs]</a><span class="k">def</span> <span class="nf">get_top_k_features</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for extracting the k percent most frequent textual features</span>
+<span class="sd">	from a previously created corpus.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	corpus: :obj:`list`</span>
+<span class="sd">		the corpus</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	k: :obj:`float`</span>
+<span class="sd">		the percentage of the k most frequent features we want to extract</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	top_k: :obj:`list`</span>
+<span class="sd">		the k most frequent textual features </span>
+<span class="sd">	k_new: :obj:`int`</span>
+<span class="sd">		the number of the features</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="n">word_counter</span> <span class="o">=</span> <span class="p">{}</span>
+	
+	<span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">corpus</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">word_counter</span><span class="p">:</span>
+			<span class="n">word_counter</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">word_counter</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+			
+	<span class="n">popular_words</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">word_counter</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">word_counter</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">reverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>	
+	
+	<span class="n">k_new</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">k</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">popular_words</span><span class="p">))</span>
+	<span class="n">top_k</span> <span class="o">=</span> <span class="n">popular_words</span><span class="p">[:</span><span class="n">k_new</span><span class="p">]</span>
+	
+	<span class="k">return</span> <span class="n">top_k</span><span class="p">,</span> <span class="n">k_new</span></div>
+
+<div class="viewcode-block" id="get_poi_top_k_features"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.get_poi_top_k_features">[docs]</a><span class="k">def</span> <span class="nf">get_poi_top_k_features</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">top_k_features</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">feature_type</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for mapping each poi to a boolean list that</span>
+<span class="sd">	indicates whether a feature inside the k most frequent features is found</span>
+<span class="sd">	within that poi name.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	ids: :obj:`list`</span>
+<span class="sd">		the ids of the pois for which we want to this function to run</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	top_k_features: :obj:`list`</span>
+<span class="sd">		the k most frequent features discussed earlier</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	k: :obj:`int`</span>
+<span class="sd">		the number of the k most frequent features discussed earlier</span>
+<span class="sd">	feature_type: :obj:`str`</span>
+<span class="sd">		describes the feature</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	poi_id_to_boolean_top_k_features_dict: :obj:`dictionary`</span>
+<span class="sd">		dictionary that maps each poi to a </span>
+<span class="sd">		boolean list that indicates whether a feature inside the k most frequent </span>
+<span class="sd">		features is found within that poi name.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="c1"># get all poi details</span>
+		
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_tbl_name&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;select </span><span class="si">{0}</span><span class="s2">.id as poi_id, </span><span class="si">{0}</span><span class="s2">.name_u as name, </span><span class="si">{0}</span><span class="s2">.geom from </span><span class="si">{0}</span><span class="s2"> where </span><span class="si">{0}</span><span class="s2">.id in </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_postgis</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">geom_col</span> <span class="o">=</span> <span class="s1">&#39;geom&#39;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_csv_name&#39;</span><span class="p">])</span>
+		
+	<span class="n">is_in_ids</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">all_ids</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]</span>
+	<span class="n">all_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_ids</span><span class="p">)</span>
+	<span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">all_ids</span><span class="p">:</span>
+		<span class="k">if</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+			<span class="n">is_in_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">is_in_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">is_in_ids</span><span class="p">]</span>
+			
+	<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="s1">&#39;experiment_folder_*&#39;</span>
+		<span class="n">list_of_folders</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">experiment_folder_path</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">list_of_folders</span> <span class="o">==</span> <span class="p">[]:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No experiment folder found inside the root folder&quot;</span><span class="p">)</span>
+			<span class="k">return</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">latest_experiment_folder</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">list_of_folders</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+				<span class="n">index_folderpath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">])</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">index_folderpath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_train&#39;</span>
+			<span class="n">exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+				<span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">)</span>
+				<span class="n">schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">ID</span><span class="p">(</span><span class="n">stored</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">content</span><span class="o">=</span><span class="n">TEXT</span><span class="p">)</span>
+				<span class="n">ix</span> <span class="o">=</span> <span class="n">create_in</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+				<span class="n">writer</span> <span class="o">=</span> <span class="n">ix</span><span class="o">.</span><span class="n">writer</span><span class="p">()</span>
+				
+				<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+					<span class="n">descriptor_filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;/k.txt&#39;</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">descriptor_filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_train&#39;</span> <span class="o">+</span> <span class="s1">&#39;/k.txt&#39;</span>
+				<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">descriptor_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">k</span><span class="p">)</span>
+				
+				<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+					<span class="n">writer</span><span class="o">.</span><span class="n">add_document</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">content</span><span class="o">=</span><span class="n">top_k_features</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+				<span class="n">writer</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">ix</span> <span class="o">=</span> <span class="n">windex</span><span class="o">.</span><span class="n">open_dir</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+					<span class="n">descriptor_filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;/k.txt&#39;</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">descriptor_filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_train&#39;</span> <span class="o">+</span> <span class="s1">&#39;/k.txt&#39;</span>
+				<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">descriptor_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+					<span class="n">k</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+			<span class="n">index_folderpath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">])</span> 
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">index_folderpath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_train&#39;</span>
+		<span class="n">ix</span> <span class="o">=</span> <span class="n">windex</span><span class="o">.</span><span class="n">open_dir</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+			<span class="n">descriptor_filepath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;/k.txt&#39;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">descriptor_filepath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">feature_type</span> <span class="o">+</span> <span class="s1">&#39;_index_train&#39;</span> <span class="o">+</span> <span class="s1">&#39;/k.txt&#39;</span>
+		<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">descriptor_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+			<span class="n">k</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+	
+	<span class="n">poi_id_to_boolean_top_k_features_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">])</span>
+	<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_id_to_boolean_top_k_features_dict</span><span class="p">:</span>
+		<span class="n">poi_id_to_boolean_top_k_features_dict</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">))]</span>
+	
+	<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+			<span class="k">with</span> <span class="n">ix</span><span class="o">.</span><span class="n">searcher</span><span class="p">()</span> <span class="k">as</span> <span class="n">searcher</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">feature_type</span> <span class="o">==</span> <span class="s2">&quot;char_ngrams_index&quot;</span><span class="p">:</span>
+					<span class="n">ngramAnalyzer</span> <span class="o">=</span> <span class="n">NgramWordAnalyzer</span><span class="p">(</span><span class="n">minsize</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">character_n_gram_size</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">character_n_gram_size</span><span class="p">)</span>
+					<span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">token</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">ngramAnalyzer</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())]</span>
+					<span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+						<span class="k">if</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">top_k_features</span><span class="p">:</span>
+							<span class="n">query</span> <span class="o">=</span> <span class="n">QueryParser</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="n">ix</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+							<span class="n">results</span> <span class="o">=</span> <span class="n">searcher</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+							<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+								<span class="n">poi_id_to_boolean_top_k_features_dict</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]][</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;path&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">query</span> <span class="o">=</span> <span class="n">QueryParser</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="n">ix</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+					<span class="n">results</span> <span class="o">=</span> <span class="n">searcher</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+					<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+						<span class="n">poi_id_to_boolean_top_k_features_dict</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]][</span><span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;path&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="k">return</span> <span class="n">poi_id_to_boolean_top_k_features_dict</span></div>
+
+<div class="viewcode-block" id="get_features_top_k"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.get_features_top_k">[docs]</a><span class="k">def</span> <span class="nf">get_features_top_k</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">test_ids</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function extracts frequent terms from the whole corpus of POI names. </span>
+<span class="sd">	During this process, it optionally uses stemming. Selects the top-K most </span>
+<span class="sd">	frequent terms and creates feature positions for each of these terms.</span>
+<span class="sd">	It unifies the functionality of all the aforementioned top-k-feature-related</span>
+<span class="sd">	function.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	ids: :obj:`list`</span>
+<span class="sd">		the ids of the pois for which we want to this function to run</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	k: :obj:`float`</span>
+<span class="sd">		the percentage of the k most frequent terms discussed earlier</span>
+<span class="sd">	test_ids: :obj:`list`</span>
+<span class="sd">		contains the ids of the test set pois for which we want</span>
+<span class="sd">		this function to run, if no test ids it defaults to None</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	a dictionary that maps each poi to a boolean list that indicates whether</span>
+<span class="sd">	a term inside the k most frequent terms is found within that poi name.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+		
+	<span class="c1"># get corpus</span>
+	<span class="n">corpus</span> <span class="o">=</span> <span class="n">get_corpus</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+	
+	<span class="c1"># find top k features</span>
+	<span class="n">top_k_features</span><span class="p">,</span> <span class="n">k_feat</span> <span class="o">=</span> <span class="n">get_top_k_features</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+		
+	<span class="c1"># get boolean values dictating whether pois have or haven&#39;t any of the top features in their names</span>
+	<span class="k">if</span> <span class="n">test_ids</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">get_poi_top_k_features</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">top_k_features</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k_feat</span><span class="p">,</span> <span class="s2">&quot;tokens_index&quot;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">get_poi_top_k_features</span><span class="p">(</span><span class="n">test_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">top_k_features</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k_feat</span><span class="p">,</span> <span class="s2">&quot;tokens_index&quot;</span><span class="p">)</span></div>
+	
+<div class="viewcode-block" id="get_features_top_k_ngrams"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.get_features_top_k_ngrams">[docs]</a><span class="k">def</span> <span class="nf">get_features_top_k_ngrams</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">test_ids</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function extracts frequent terms from the whole corpus of POI names. </span>
+<span class="sd">	During this process, it optionally uses stemming. Selects the top-k most </span>
+<span class="sd">	frequent character n-grams and creates feature positions for each of these terms.</span>
+<span class="sd">	It unifies the functionality of all the aforementioned top-k-feature-related</span>
+<span class="sd">	function.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	ids: :obj:`list`</span>
+<span class="sd">		the ids of the pois for which we want to this function to run</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	k: :obj:`float`</span>
+<span class="sd">		the percentage of the k most frequent terms discussed earlier</span>
+<span class="sd">	test_ids: :obj:`list`</span>
+<span class="sd">		contains the ids of the test set pois for which we want</span>
+<span class="sd">		this function to run, if no test ids it defaults to None</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	a dictionary that maps each poi to a boolean list that indicates whether</span>
+<span class="sd">	a character n-gram inside the k most frequent character n-grams is found within that poi name.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="c1"># get corpus</span>
+	<span class="n">corpus</span> <span class="o">=</span> <span class="n">get_corpus</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">n_grams</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+	
+	<span class="c1"># find top k features</span>
+	<span class="n">top_k_features</span><span class="p">,</span> <span class="n">k_feat</span> <span class="o">=</span> <span class="n">get_top_k_features</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+				
+	<span class="c1"># get boolean values dictating whether pois have or haven&#39;t any of the top features in their names</span>
+	<span class="k">if</span> <span class="n">test_ids</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">get_poi_top_k_features</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">top_k_features</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k_feat</span><span class="p">,</span> <span class="s2">&quot;char_ngrams_index&quot;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">get_poi_top_k_features</span><span class="p">(</span><span class="n">test_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">top_k_features</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k_feat</span><span class="p">,</span> <span class="s2">&quot;char_ngrams_index&quot;</span><span class="p">)</span></div>
+	
+	
+<div class="viewcode-block" id="get_features_top_k_ngrams_tokens"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.get_features_top_k_ngrams_tokens">[docs]</a><span class="k">def</span> <span class="nf">get_features_top_k_ngrams_tokens</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">test_ids</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function extracts frequent terms from the whole corpus of POI names. </span>
+<span class="sd">	During this process, it optionally uses stemming. Selects the top-k most </span>
+<span class="sd">	frequent token n-grams and creates feature positions for each of these terms.</span>
+<span class="sd">	It unifies the functionality of all the aforementioned top-k-feature-related</span>
+<span class="sd">	function.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	ids: :obj:`list`</span>
+<span class="sd">		the ids of the pois for which we want to this function to run</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	k: :obj:`float`</span>
+<span class="sd">		the percentage of the k most frequent terms discussed earlier</span>
+<span class="sd">	test_ids: :obj:`list`</span>
+<span class="sd">		contains the ids of the test set pois for which we want</span>
+<span class="sd">		this function to run, if no test ids it defaults to None</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	a dictionary that maps each poi to a boolean list that indicates whether</span>
+<span class="sd">	a token n-gram inside the k most frequent token n-grams is found within that poi name.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="c1"># get corpus</span>
+	<span class="n">corpus</span> <span class="o">=</span> <span class="n">get_corpus</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">n_grams_tokens</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+	
+	<span class="c1"># find top k features</span>
+	<span class="n">top_k_features</span><span class="p">,</span> <span class="n">k_feat</span> <span class="o">=</span> <span class="n">get_top_k_features</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+	
+	<span class="c1"># get boolean values dictating whether pois have or haven&#39;t any of the top features in their names</span>
+	<span class="k">if</span> <span class="n">test_ids</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">get_poi_top_k_features</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">top_k_features</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k_feat</span><span class="p">,</span> <span class="s2">&quot;token_ngrams_index&quot;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">get_poi_top_k_features</span><span class="p">(</span><span class="n">test_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">top_k_features</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">k_feat</span><span class="p">,</span> <span class="s2">&quot;token_ngrams_index&quot;</span><span class="p">)</span></div>
+	
+<div class="viewcode-block" id="get_poi_id_to_class_centroid_similarities"><a class="viewcode-back" href="../textual_feature_extraction.html#textual_feature_extraction.get_poi_id_to_class_centroid_similarities">[docs]</a><span class="k">def</span> <span class="nf">get_poi_id_to_class_centroid_similarities</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">poi_id_to_encoded_labels_dict</span><span class="p">,</span> <span class="n">encoded_labels_set</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">encoded_labels_corpus_dict</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for mapping the pois to a list of size equal to</span>
+<span class="sd">	the number of different classes in the dataset that contains the similarity</span>
+<span class="sd">	between each poi&#39;s textual elements to those of each class.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	ids: :obj:`list`</span>
+<span class="sd">		the ids of the pois for which we want the similarity features to be extracted</span>
+<span class="sd">	poi_id_to_encoded_labels_dict: :obj:`dictionary`</span>
+<span class="sd">		dictionary mapping each poi id to the encoded label of the class</span>
+<span class="sd">		it belongs to</span>
+<span class="sd">	encoded_labels_set: :obj:`set`</span>
+<span class="sd">		set containing the class label codes</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	encoded_labels_corpus_dict: :obj:`dictionary`</span>
+<span class="sd">		dictionary mapping each class label code to the corpus of the</span>
+<span class="sd">		poi ids of that class</span>
+<span class="sd">	test: :obj:`boolean`</span>
+<span class="sd">		boolean variable indicating whether we want these features to be extracted for</span>
+<span class="sd">		members of the training set or not</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	poi_id_to_similarity_per_label: :obj:`dictionary`</span>
+<span class="sd">		the dictionary discussed in the description</span>
+<span class="sd">	encoded_labels_corpus_dict: :obj:`dictionary`</span>
+<span class="sd">		dictionary mapping each class label code to the corpus of the</span>
+<span class="sd">		poi ids of that class</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_tbl_name&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;select </span><span class="si">{0}</span><span class="s2">.id as poi_id, </span><span class="si">{0}</span><span class="s2">.name_u as name, </span><span class="si">{0}</span><span class="s2">.geom from </span><span class="si">{0}</span><span class="s2"> where </span><span class="si">{0}</span><span class="s2">.id in </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_postgis</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">geom_col</span> <span class="o">=</span> <span class="s1">&#39;geom&#39;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_csv_name&#39;</span><span class="p">])</span>
+		
+	<span class="n">is_in_ids</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">all_ids</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]</span>
+	<span class="n">all_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_ids</span><span class="p">)</span>
+	<span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">all_ids</span><span class="p">:</span>
+		<span class="k">if</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+			<span class="n">is_in_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">is_in_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+	<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">is_in_ids</span><span class="p">]</span>
+	
+	<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="s1">&#39;experiment_folder_*&#39;</span>
+		<span class="n">list_of_folders</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">experiment_folder_path</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">list_of_folders</span> <span class="o">==</span> <span class="p">[]:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No experiment folder found inside the root folder&quot;</span><span class="p">)</span>
+			<span class="k">return</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">latest_experiment_folder</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">list_of_folders</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+				<span class="n">index_folderpath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;similarity_index_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">])</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">index_folderpath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;similarity_index_train&#39;</span>
+			<span class="n">exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+				<span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">)</span>
+				<span class="n">schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">ID</span><span class="p">(</span><span class="n">stored</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">class_id</span><span class="o">=</span><span class="n">STORED</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">TEXT</span><span class="p">)</span>
+				<span class="n">ix</span> <span class="o">=</span> <span class="n">create_in</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+				<span class="n">writer</span> <span class="o">=</span> <span class="n">ix</span><span class="o">.</span><span class="n">writer</span><span class="p">()</span>
+				
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">test</span><span class="p">:</span>
+					<span class="n">encoded_labels_corpus_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">encoded_labels_set</span><span class="p">)</span>
+					<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">encoded_labels_corpus_dict</span><span class="p">:</span>
+						<span class="n">encoded_labels_corpus_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+					
+					<span class="k">for</span> <span class="n">poi_id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">name</span><span class="p">]):</span>
+						<span class="c1"># perform stemming based on the language it&#39;s written in</span>
+						<span class="n">stemmed_word</span> <span class="o">=</span> <span class="n">perform_stemming</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">lang_detect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+						<span class="c1"># break it in tokens</span>
+						<span class="n">not_stopwords</span><span class="p">,</span> <span class="n">stopwords</span> <span class="o">=</span> <span class="n">normalize_str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+						<span class="n">not_stopwords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">not_stopwords</span><span class="p">)</span>
+						
+						<span class="n">writer</span><span class="o">.</span><span class="n">add_document</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">poi_id</span><span class="p">),</span> <span class="n">class_id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">poi_id_to_encoded_labels_dict</span><span class="p">[</span><span class="n">poi_id</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">content</span><span class="o">=</span><span class="n">not_stopwords</span><span class="p">)</span>
+					<span class="n">writer</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">ix</span> <span class="o">=</span> <span class="n">windex</span><span class="o">.</span><span class="n">open_dir</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+			<span class="n">index_folderpath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;similarity_index_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">])</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">index_folderpath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;similarity_index_train&#39;</span>
+		<span class="n">ix</span> <span class="o">=</span> <span class="n">windex</span><span class="o">.</span><span class="n">open_dir</span><span class="p">(</span><span class="n">index_folderpath</span><span class="p">)</span>
+	
+	<span class="n">poi_id_to_similarity_per_label</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+		<span class="n">descriptor_filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/label_count.txt&#39;</span>
+		<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">descriptor_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+			<span class="n">to_write</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoded_labels_set</span><span class="p">)</span>
+			<span class="c1">#print(to_write)</span>
+			<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">to_write</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+		<span class="n">descriptor_filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/label_count.txt&#39;</span>
+		<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">descriptor_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+			<span class="n">encoded_labels_count</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+		<span class="n">encoded_labels_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">encoded_labels_count</span><span class="p">))]</span>
+		<span class="n">encoded_labels_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">encoded_labels_list</span><span class="p">)</span>
+	
+	<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_id_to_similarity_per_label</span><span class="p">:</span>
+		<span class="n">poi_id_to_similarity_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">encoded_labels_set</span><span class="p">))]</span>
+	
+	<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+	
+	<span class="k">for</span> <span class="n">poi_id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">name</span><span class="p">]):</span>
+		<span class="c1"># perform stemming based on the language it&#39;s written in</span>
+		<span class="n">stemmed_word</span> <span class="o">=</span> <span class="n">perform_stemming</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">lang_detect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="c1"># break it in tokens</span>
+		<span class="n">not_stopwords</span><span class="p">,</span> <span class="n">stopwords</span> <span class="o">=</span> <span class="n">normalize_str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">not_stopwords</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">not_stopwords</span><span class="p">)</span>
+		
+		<span class="k">with</span> <span class="n">ix</span><span class="o">.</span><span class="n">searcher</span><span class="p">(</span><span class="n">weighting</span><span class="o">=</span><span class="n">scoring</span><span class="o">.</span><span class="n">TF_IDF</span><span class="p">())</span> <span class="k">as</span> <span class="n">searcher</span><span class="p">:</span>
+			<span class="n">query</span> <span class="o">=</span> <span class="n">qparser</span><span class="o">.</span><span class="n">QueryParser</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="n">ix</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="n">qparser</span><span class="o">.</span><span class="n">OrGroup</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+			<span class="n">results</span> <span class="o">=</span> <span class="n">searcher</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+				<span class="n">poi_id_to_similarity_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;class_id&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">score</span>
+	<span class="k">return</span> <span class="n">poi_id_to_similarity_per_label</span><span class="p">,</span> <span class="n">encoded_labels_corpus_dict</span></div>
+		
+	
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+	<span class="c1"># construct the argument parse and parse the arguments</span>
+	<span class="n">ap</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-pois_tbl_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--pois_tbl_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of table containing pois information&quot;</span><span class="p">)</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-k&quot;</span><span class="p">,</span> <span class="s2">&quot;--k&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;the number of the desired top-k most frequent tokens&quot;</span><span class="p">)</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="s2">&quot;--n&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;the n-gram size&quot;</span><span class="p">)</span>
+	<span class="n">args</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">parse_args</span><span class="p">())</span>
+	
+	<span class="c1"># call the appropriate function to connect to the database</span>
+	<span class="n">conn</span> <span class="o">=</span> <span class="n">connect_to_db</span><span class="p">()</span>
+	
+	<span class="n">features_top_k_words</span> <span class="o">=</span> <span class="n">get_features_top_k</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+	
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+   <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, nikos
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -46,9 +46,11 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	
 	Arguments
 	---------
-	poi_ids: the ids of the pois within the train set
+	poi_ids: :obj:`list`
+		the ids of the pois within the train set
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
 	
 	Returns
 	-------
@@ -120,13 +122,17 @@ def train_clf_given_hyperparams(X_train, y_train, args):
 	
 	Arguments
 	---------
-	X_train: array containing the features of the train set
-	y_train: array containing the labels of the train set
-	args: several arguments that are needed for functionality purposes 
+	X_train: :obj:`numpy array`
+		array containing the features of the train set
+	y_train: :obj:`numpy array`
+		array containing the labels of the train set
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
 	
 	Returns
 	-------
-	clf: the trained classifier object
+	clf: :obj:`scikit-learn classifier object`
+		the trained classifier object
 	"""
 	
 	tuned_parameters = args['best_hyperparams']

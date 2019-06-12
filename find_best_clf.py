@@ -47,20 +47,29 @@ def get_score_for_10_most_common_classes(X_test, y_test, most_common_classes, cl
 	
 	Arguments
 	---------
-	X_test: the test set features
-	y_test: the test set class labels
-	most_common_classes: the 10 most common (most populated) classes
-	clf: the classifier object that is used for the predictions
+	X_test: :obj:`numpy array`
+		the test set features
+	y_test: :obj:`numpy array`
+		the test set class labels
+	most_common_classes: :obj:`list`
+		the 10 most common (most populated) classes
+	clf: :obj:`scikit-learn classifier object`
+		the classifier object that is used for the predictions
 	
 	Returns
 	-------
-	top_k_errors: a list containing the top-k-error measurements
-	baseline_accuracy: the baseline accuracy (the most populated
-	class is assigned to every prediction)
-	baseline_f_score: same as above, but f_score
-	accuracy_score(y_test, y_pred): the accuracy score as computed by scikit-learn
-	f1_score(y_test, y_pred, average='weighted'): the weighted f1-score as computed by scikit-learn
-	f1_score(y_test, y_pred, average='macro'): the macro f1-score as computed by scikit-learn
+	top_k_errors: :obj:`list`
+		a list containing the top-k-error measurements
+	baseline_accuracy: :obj:`float`
+		the baseline accuracy (the most populated class is assigned to every prediction)
+	baseline_f_score: :obj:`float`
+		same as above, but f_score
+	accuracy_score(y_test, y_pred): :obj:`float`
+		the accuracy score as computed by scikit-learn
+	f1_score(y_test, y_pred, average='weighted'): :obj:`float`
+		the weighted f1-score as computed by scikit-learn
+	f1_score(y_test, y_pred, average='macro'): :obj:`float`
+		the macro f1-score as computed by scikit-learn
 	"""
 	
 	top_class_count = 0
@@ -101,13 +110,21 @@ def fine_tune_parameters_given_clf(clf_name, X_train, y_train, X_test, y_test):
 	
 	Arguments
 	---------
-	X_train: array containing the features of the train set
-	y_train: array containing the labels of the train set
-	args: several arguments that are needed for functionality purposes 
+	clf_name: :obj:`str`
+		name of the classifier
+	X_train: :obj:`numpy array`
+		array containing the features of the train set
+	y_train: :obj:`numpy array`
+		array containing the labels of the train set
+	X_test: :obj:`numpy array`
+		array containing the features of the test set
+	y_test: :obj:`numpy array`
+		array containing the labels of the test set
 	
 	Returns
 	-------
-	clf: the trained classifier object
+	clf: :obj:`scikit-learn classifier object`
+		the trained classifier object
 	"""
 	
 	scores = ['accuracy']#, 'f1_macro', 'f1_micro']
@@ -243,9 +260,11 @@ def tuned_parameters_5_fold(poi_ids, conn, args):
 	
 	Arguments
 	---------
-	poi_ids: the ids of the pois within the train set
+	poi_ids: :obj:`list`
+		the ids of the pois within the train set
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes 
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes 
 	
 	Returns
 	-------

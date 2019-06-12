@@ -1,0 +1,934 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>preprocessing &mdash; lgm-classification 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> lgm-classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing.html">preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export_best_model.html">export_best_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../find_best_clf.html">find_best_clf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../finetune_best_clf.html">finetune_best_clf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../other_dataset_classification.html">other_dataset_classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pois_feature_extraction_csv.html">pois_feature_extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_feature_extraction.html">textual_feature_extraction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lgm-classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>preprocessing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for preprocessing</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">database</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">preprocessing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pois_feature_extraction_csv</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">textual_feature_extraction</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">geospatial_feature_extraction</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">feml</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">config</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<div class="viewcode-block" id="get_train_test_poi_ids"><a class="viewcode-back" href="../preprocessing.html#preprocessing.get_train_test_poi_ids">[docs]</a><span class="k">def</span> <span class="nf">get_train_test_poi_ids</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	redundant</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">train_test_split</span>
+	
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="c1"># get all poi details</span>
+		<span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;select </span><span class="si">{0}</span><span class="s2">.id as poi_id, </span><span class="si">{0}</span><span class="s2">.geom from </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">])</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_postgis</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">geom_col</span> <span class="o">=</span> <span class="s1">&#39;geom&#39;</span><span class="p">)</span>
+		<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">])</span>
+		<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]))</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_csv_name&#39;</span><span class="p">])</span>
+		<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">])</span>
+		<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]))</span>
+	
+	<span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+        
+	<span class="k">return</span> <span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">poi_ids_test</span></div>
+	
+<div class="viewcode-block" id="get_poi_ids"><a class="viewcode-back" href="../preprocessing.html#preprocessing.get_poi_ids">[docs]</a><span class="k">def</span> <span class="nf">get_poi_ids</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	redundant</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">train_test_split</span>
+	
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="c1"># get all poi details</span>
+		<span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;select </span><span class="si">{0}</span><span class="s2">.id as poi_id, </span><span class="si">{0}</span><span class="s2">.geom from </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">])</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_postgis</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">geom_col</span> <span class="o">=</span> <span class="s1">&#39;geom&#39;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_csv_name&#39;</span><span class="p">])</span>
+        
+	<span class="k">return</span> <span class="n">df</span></div>
+        
+<div class="viewcode-block" id="get_train_test_sets"><a class="viewcode-back" href="../preprocessing.html#preprocessing.get_train_test_sets">[docs]</a><span class="k">def</span> <span class="nf">get_train_test_sets</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">fold_number</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for extracting features for the train and test set</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	poi_ids_train: :obj:`list`</span>
+<span class="sd">		the ids of the pois within the train set</span>
+<span class="sd">	poi_ids_test: :obj:`list`</span>
+<span class="sd">		the ids of the pois within the test set</span>
+<span class="sd">	fold_number: int</span>
+<span class="sd">		the number of the fold for which we want the features to be extracted</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	X_train: :obj:`numpy array`</span>
+<span class="sd">		array containing the features for the train set</span>
+<span class="sd">	y_train: :obj:`numpy array`</span>
+<span class="sd">		array containing the labels for the train set</span>
+<span class="sd">	X_test: :obj:`numpy array`</span>
+<span class="sd">		array containing the features for the test set</span>
+<span class="sd">	y_test: :obj:`numpy array`</span>
+<span class="sd">		array containing the labels for the test set</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fold_number</span>
+	
+	<span class="c1"># we build a dictionary containing the poi ids as keys</span>
+	<span class="c1"># and we map to it its x, y coordinates</span>
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">poi_df</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_code_coordinates_dict</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+		
+		<span class="c1"># we read the different labels</span>
+		<span class="n">class_codes_set</span> <span class="o">=</span> <span class="n">get_class_codes_set</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">poi_df</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">poi_df</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_code_coordinates_dict_csv</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+		
+		<span class="c1"># we read the different labels</span>
+		<span class="n">class_codes_set</span> <span class="o">=</span> <span class="n">get_class_codes_set_csv</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">poi_df</span><span class="p">)</span>
+		
+	<span class="c1"># we encode them so we can have a more compact representation of them</span>
+	<span class="n">label_encoder</span><span class="p">,</span> <span class="n">poi_id_to_encoded_labels_dict</span><span class="p">,</span> <span class="n">encoded_labels_set</span> <span class="o">=</span> <span class="n">get_poi_id_to_encoded_labels_dict_csv</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">class_codes_set</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span><span class="p">)</span>
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;label_encoder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_encoder</span>
+	
+	<span class="n">y_train</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">y_test</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="n">X_train</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">X_test</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_ids_train</span><span class="p">:</span>
+		<span class="n">y_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_encoded_labels_dict</span><span class="p">[</span><span class="n">poi_id</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+	<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_ids_test</span><span class="p">:</span>
+		<span class="n">y_test</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_encoded_labels_dict</span><span class="p">[</span><span class="n">poi_id</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+	
+	<span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+	<span class="n">y_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_test</span><span class="p">)</span>
+	
+	<span class="n">feature_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">el</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">feature_list</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">:</span>
+		<span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">fold_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">filepath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;folderpath&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;train_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fold_number</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">filepath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;train_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fold_number</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">filepath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;folderpath&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;train&#39;</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+			<span class="k">else</span><span class="p">:</span>	
+				<span class="n">filepath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;train&#39;</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+		<span class="n">exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">sentinel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+				<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">temp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+				<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">X_train</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+				
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+		<span class="n">scaler_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">el</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_class_centroid_similarities_train</span><span class="p">,</span> <span class="n">encoded_labels_corpus_train</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_centroid_similarities</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span><span class="p">,</span> <span class="n">encoded_labels_set</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="p">[])</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features_ngrams</span> <span class="o">=</span> <span class="n">get_features_top_k_ngrams</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_character_ngrams_percentage</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features</span> <span class="o">=</span> <span class="n">get_features_top_k</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_terms_percentage</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features_ngrams_tokens</span> <span class="o">=</span> <span class="n">get_features_top_k_ngrams_tokens</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_terms_percentage</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">closest_pois_boolean_per_label</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 	
+				<span class="n">closest_pois_boolean_per_label_streets</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label_streets</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_streets</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois_roads</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">closest_pois_boolean_per_label</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_csv</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 	
+				<span class="n">closest_pois_boolean_per_label_streets</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label_streets</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_streets_csv</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois_roads</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_to_poi_neighbors_boolean</span><span class="p">,</span> <span class="n">poi_to_poi_neighbors_counts</span> <span class="o">=</span> <span class="n">get_neighbor_pois_boolean_and_counts_per_label_csv</span><span class="p">(</span><span class="n">poi_ids_train</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>	
+
+		<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_ids_train</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list1</span> <span class="o">=</span> <span class="n">closest_pois_boolean_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">temp_feature_list2</span> <span class="o">=</span> <span class="n">closest_pois_counts_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list3</span> <span class="o">=</span> <span class="n">closest_pois_boolean_per_label_streets</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">temp_feature_list4</span> <span class="o">=</span> <span class="n">closest_pois_counts_per_label_streets</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list5</span> <span class="o">=</span> <span class="n">poi_to_poi_neighbors_boolean</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list6</span> <span class="o">=</span> <span class="n">poi_to_poi_neighbors_counts</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_class_centroid_similarities_train</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features_ngrams</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features_ngrams_tokens</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list1</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list2</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list3</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list4</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list5</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list6</span><span class="p">)</span>
+			
+		<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">folderpath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;folderpath&#39;</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">folderpath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span>
+			
+		<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">feature_dict</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">sentinel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+					<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+					<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">features_to_normalize</span><span class="p">:</span>
+						<span class="n">X_train</span><span class="p">,</span> <span class="n">scaler_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">standardize_data_train</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+					<span class="k">if</span> <span class="n">fold_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+						<span class="n">filepath</span> <span class="o">=</span> <span class="n">folderpath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;train_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fold_number</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+						<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="n">filepath</span> <span class="o">=</span> <span class="n">folderpath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;train&#39;</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+						<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">temp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+					<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">features_to_normalize</span><span class="p">:</span>
+						<span class="n">temp_array</span><span class="p">,</span> <span class="n">scaler_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">standardize_data_train</span><span class="p">(</span><span class="n">temp_array</span><span class="p">)</span>
+					<span class="k">if</span> <span class="n">fold_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+						<span class="n">filepath</span> <span class="o">=</span> <span class="n">folderpath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;train_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fold_number</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+						<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="n">filepath</span> <span class="o">=</span> <span class="n">folderpath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;train&#39;</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+						<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">X_train</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+						
+		<span class="n">feature_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">el</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">feature_list</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">:</span>
+			<span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+		
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_class_centroid_similarities_test</span><span class="p">,</span> <span class="n">encoded_labels_corpus_test</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_centroid_similarities</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span><span class="p">,</span> <span class="n">encoded_labels_set</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="p">[])</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features_ngrams</span> <span class="o">=</span> <span class="n">get_features_top_k_ngrams</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_character_ngrams_percentage</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features</span> <span class="o">=</span> <span class="n">get_features_top_k</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_terms_percentage</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features_ngrams_tokens</span> <span class="o">=</span> <span class="n">get_features_top_k_ngrams_tokens</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_terms_percentage</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">closest_pois_boolean_per_label</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 		
+				<span class="n">closest_pois_boolean_per_label_streets</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label_streets</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_streets</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois_roads</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">closest_pois_boolean_per_label</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_csv</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 	
+				<span class="n">closest_pois_boolean_per_label_streets</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label_streets</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_streets_csv</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois_roads</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_to_poi_neighbors_boolean</span><span class="p">,</span> <span class="n">poi_to_poi_neighbors_counts</span> <span class="o">=</span> <span class="n">get_neighbor_pois_boolean_and_counts_per_label_csv</span><span class="p">(</span><span class="n">poi_ids_test</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+		
+		<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_ids_test</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list1</span> <span class="o">=</span> <span class="n">closest_pois_boolean_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">temp_feature_list2</span> <span class="o">=</span> <span class="n">closest_pois_counts_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list3</span> <span class="o">=</span> <span class="n">closest_pois_boolean_per_label_streets</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">temp_feature_list4</span> <span class="o">=</span> <span class="n">closest_pois_counts_per_label_streets</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list5</span> <span class="o">=</span> <span class="n">poi_to_poi_neighbors_boolean</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list6</span> <span class="o">=</span> <span class="n">poi_to_poi_neighbors_counts</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_class_centroid_similarities_test</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features_ngrams</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features_ngrams_tokens</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list1</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list2</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list3</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list4</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list5</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list6</span><span class="p">)</span>
+
+		<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">feature_dict</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">sentinel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+					<span class="n">X_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+					<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">features_to_normalize</span><span class="p">:</span>
+						<span class="n">X_test</span> <span class="o">=</span> <span class="n">standardize_data_test</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">scaler_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+					<span class="k">if</span> <span class="n">fold_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+						<span class="n">filepath</span> <span class="o">=</span> <span class="n">folderpath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;test_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fold_number</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+						<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="n">filepath</span> <span class="o">=</span> <span class="n">folderpath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;test&#39;</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+						<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">temp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+					<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">features_to_normalize</span><span class="p">:</span>
+						<span class="n">temp_array</span> <span class="o">=</span> <span class="n">standardize_data_test</span><span class="p">(</span><span class="n">temp_array</span><span class="p">,</span> <span class="n">scaler_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+					<span class="k">if</span> <span class="n">fold_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+						<span class="n">filepath</span> <span class="o">=</span> <span class="n">folderpath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;test_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fold_number</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+						<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="n">filepath</span> <span class="o">=</span> <span class="n">folderpath</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;test&#39;</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+						<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					<span class="n">X_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">X_test</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])),</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+		
+	<span class="k">return</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span></div>
+	
+<div class="viewcode-block" id="get_test_set"><a class="viewcode-back" href="../preprocessing.html#preprocessing.get_test_set">[docs]</a><span class="k">def</span> <span class="nf">get_test_set</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">poi_ids</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for extracting features for the test set</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	poi_ids: :obj:`list` </span>
+<span class="sd">		the ids of the pois within the train set</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	X_test: :obj:`numpy array`</span>
+<span class="sd">		array containing the features for the test set</span>
+<span class="sd">	X_train: :obj:`numpy array`</span>
+<span class="sd">		array containing the labels for the test set</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="k">import</span> <span class="n">VarianceThreshold</span>
+	<span class="n">sel</span> <span class="o">=</span> <span class="n">VarianceThreshold</span><span class="p">(</span><span class="n">threshold</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">))</span>
+	
+	<span class="c1"># we build a dictionary containing the poi ids as keys</span>
+	<span class="c1"># and we map to it its x, y coordinates</span>
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">poi_df</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_code_coordinates_dict</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">poi_df</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_code_coordinates_dict_csv</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+				
+	<span class="c1"># we encode them so we can have a more compact representation of them</span>
+	<span class="n">label_encoder</span><span class="p">,</span> <span class="n">poi_id_to_encoded_labels_dict</span><span class="p">,</span> <span class="n">encoded_labels_set</span> <span class="o">=</span> <span class="n">get_poi_id_to_encoded_labels_dict_csv</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span><span class="p">)</span>
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;label_encoder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_encoder</span>
+	<span class="n">y_train</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="n">X_train</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_ids</span><span class="p">:</span>
+		<span class="n">y_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_encoded_labels_dict</span><span class="p">[</span><span class="n">poi_id</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+		
+	<span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+	
+	<span class="n">feature_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">el</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">feature_list</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">:</span>
+		<span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="n">scaler_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">el</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">poi_id_to_class_centroid_similarities_train</span><span class="p">,</span> <span class="n">encoded_labels_corpus_train</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_centroid_similarities</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span><span class="p">,</span> <span class="n">encoded_labels_set</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="p">[])</span>
+	<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">poi_id_to_word_features_ngrams</span> <span class="o">=</span> <span class="n">get_features_top_k_ngrams</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_character_ngrams_percentage</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">poi_id_to_word_features</span> <span class="o">=</span> <span class="n">get_features_top_k</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_terms_percentage</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">poi_id_to_word_features_ngrams_tokens</span> <span class="o">=</span> <span class="n">get_features_top_k_ngrams_tokens</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_terms_percentage</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">closest_pois_boolean_per_label</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 	
+			<span class="n">closest_pois_boolean_per_label_streets</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label_streets</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_streets</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois_roads</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">closest_pois_boolean_per_label</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_csv</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 	
+			<span class="n">closest_pois_boolean_per_label_streets</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label_streets</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_streets_csv</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois_roads</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">poi_to_poi_neighbors_boolean</span><span class="p">,</span> <span class="n">poi_to_poi_neighbors_counts</span> <span class="o">=</span> <span class="n">get_neighbor_pois_boolean_and_counts_per_label_csv</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>	
+	
+	<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_ids</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">temp_feature_list1</span> <span class="o">=</span> <span class="n">closest_pois_boolean_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">temp_feature_list2</span> <span class="o">=</span> <span class="n">closest_pois_counts_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">temp_feature_list3</span> <span class="o">=</span> <span class="n">closest_pois_boolean_per_label_streets</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">temp_feature_list4</span> <span class="o">=</span> <span class="n">closest_pois_counts_per_label_streets</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">temp_feature_list5</span> <span class="o">=</span> <span class="n">poi_to_poi_neighbors_boolean</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">temp_feature_list6</span> <span class="o">=</span> <span class="n">poi_to_poi_neighbors_counts</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_class_centroid_similarities_train</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features_ngrams</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features_ngrams_tokens</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list1</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list2</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list3</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list4</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list5</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+			<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list6</span><span class="p">)</span>
+		
+	<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">feature_dict</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">sentinel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+				<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">features_to_normalize</span><span class="p">:</span>
+					<span class="n">X_train</span><span class="p">,</span> <span class="n">scaler_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">standardize_data_train</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+				
+				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Feature Name: </span><span class="si">{0}</span><span class="s2">, Mean Value: </span><span class="si">{1}</span><span class="s2">, Std Value: </span><span class="si">{2}</span><span class="s2">, Max Value: </span><span class="si">{3}</span><span class="s2">, Min Value: </span><span class="si">{4}</span><span class="s2">, Shape: </span><span class="si">{5}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+				<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">temp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+				<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">features_to_normalize</span><span class="p">:</span>
+					<span class="n">temp_array</span><span class="p">,</span> <span class="n">scaler_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">standardize_data_train</span><span class="p">(</span><span class="n">temp_array</span><span class="p">)</span>
+				
+				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Feature Name: </span><span class="si">{0}</span><span class="s2">, Mean Value: </span><span class="si">{1}</span><span class="s2">, Std Value: </span><span class="si">{2}</span><span class="s2">, Max Value: </span><span class="si">{3}</span><span class="s2">, Min Value: </span><span class="si">{4}</span><span class="s2">, Shape: </span><span class="si">{5}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">temp_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">temp_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">temp_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">temp_array</span><span class="p">),</span> <span class="n">temp_array</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+				<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">X_train</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+						
+	<span class="k">return</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span></div>
+	
+<div class="viewcode-block" id="get_train_set"><a class="viewcode-back" href="../preprocessing.html#preprocessing.get_train_set">[docs]</a><span class="k">def</span> <span class="nf">get_train_set</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">poi_ids</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for extracting features for the train set</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	poi_ids: :obj:`list` </span>
+<span class="sd">		the ids of the pois within the train set</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	X_train: :obj:`numpy array`</span>
+<span class="sd">		array containing the features for the train set</span>
+<span class="sd">	X_test: :obj:`numpy array`</span>
+<span class="sd">		array containing the labels for the train set</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="k">import</span> <span class="n">VarianceThreshold</span>
+	<span class="n">sel</span> <span class="o">=</span> <span class="n">VarianceThreshold</span><span class="p">(</span><span class="n">threshold</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">))</span>
+		
+	<span class="c1"># we build a dictionary containing the poi ids as keys</span>
+	<span class="c1"># and we map to it its x, y coordinates</span>
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">poi_df</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_code_coordinates_dict</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+		
+		<span class="c1"># we read the different labels</span>
+		<span class="n">class_codes_set</span> <span class="o">=</span> <span class="n">get_class_codes_set</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">poi_df</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">poi_df</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_code_coordinates_dict_csv</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+		
+		<span class="c1"># we read the different labels</span>
+		<span class="n">class_codes_set</span> <span class="o">=</span> <span class="n">get_class_codes_set_csv</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">poi_df</span><span class="p">)</span>
+		
+	<span class="c1"># we encode them so we can have a more compact representation of them</span>
+	<span class="n">label_encoder</span><span class="p">,</span> <span class="n">poi_id_to_encoded_labels_dict</span><span class="p">,</span> <span class="n">encoded_labels_set</span> <span class="o">=</span> <span class="n">get_poi_id_to_encoded_labels_dict_csv</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">class_codes_set</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span><span class="p">)</span>
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;label_encoder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_encoder</span>
+	<span class="n">y_train</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="n">X_train</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_ids</span><span class="p">:</span>
+		<span class="n">y_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_encoded_labels_dict</span><span class="p">[</span><span class="n">poi_id</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+		
+	<span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+	
+	<span class="n">feature_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">el</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">feature_list</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">:</span>
+		<span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+		
+	<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">0</span>
+
+	<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="s1">&#39;experiment_folder_*&#39;</span>
+			<span class="n">list_of_folders</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">experiment_folder_path</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">list_of_folders</span> <span class="o">==</span> <span class="p">[]:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No experiment folder found inside the root folder&quot;</span><span class="p">)</span>
+				<span class="k">return</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">latest_experiment_folder</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">list_of_folders</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">latest_experiment_folder</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span>
+			
+		<span class="n">filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;model_training_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+		<span class="n">exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">sentinel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+				<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">temp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+				<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">X_train</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+		<span class="n">scaler_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">el</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">included_features</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_class_centroid_similarities_train</span><span class="p">,</span> <span class="n">encoded_labels_corpus_train</span> <span class="o">=</span> <span class="n">get_poi_id_to_class_centroid_similarities</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">poi_id_to_class_code_coordinates_dict</span><span class="p">,</span> <span class="n">encoded_labels_set</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="p">[])</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features_ngrams</span> <span class="o">=</span> <span class="n">get_features_top_k_ngrams</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_character_ngrams_percentage</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features</span> <span class="o">=</span> <span class="n">get_features_top_k</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_terms_percentage</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_id_to_word_features_ngrams_tokens</span> <span class="o">=</span> <span class="n">get_features_top_k_ngrams_tokens</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">top_k_terms_percentage</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;pois_tbl_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">closest_pois_boolean_per_label</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 	
+				<span class="n">closest_pois_boolean_per_label_streets</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label_streets</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_streets</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois_roads</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">closest_pois_boolean_per_label</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_csv</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 	
+				<span class="n">closest_pois_boolean_per_label_streets</span><span class="p">,</span> <span class="n">closest_pois_counts_per_label_streets</span> <span class="o">=</span> <span class="n">get_closest_pois_boolean_and_counts_per_label_streets_csv</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">threshold_distance_neighbor_pois_roads</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">poi_to_poi_neighbors_boolean</span><span class="p">,</span> <span class="n">poi_to_poi_neighbors_counts</span> <span class="o">=</span> <span class="n">get_neighbor_pois_boolean_and_counts_per_label_csv</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>	
+		
+		<span class="k">for</span> <span class="n">poi_id</span> <span class="ow">in</span> <span class="n">poi_ids</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list1</span> <span class="o">=</span> <span class="n">closest_pois_boolean_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">temp_feature_list2</span> <span class="o">=</span> <span class="n">closest_pois_counts_per_label</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list3</span> <span class="o">=</span> <span class="n">closest_pois_boolean_per_label_streets</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">temp_feature_list4</span> <span class="o">=</span> <span class="n">closest_pois_counts_per_label_streets</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list5</span> <span class="o">=</span> <span class="n">poi_to_poi_neighbors_boolean</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">temp_feature_list6</span> <span class="o">=</span> <span class="n">poi_to_poi_neighbors_counts</span><span class="p">[</span><span class="n">poi_id</span><span class="p">]</span>
+
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;class_centroid_similarities&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_class_centroid_similarities_train</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features_ngrams</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;word_features_ngrams_tokens&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poi_id_to_word_features_ngrams_tokens</span><span class="p">[</span><span class="n">poi_id</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list1</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_radius_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list2</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list3</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_closest_street_to_poi_radius_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list4</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_boolean&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list5</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+				<span class="n">feature_dict</span><span class="p">[</span><span class="s1">&#39;poi_to_poi_neighbors_counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp_feature_list6</span><span class="p">)</span>
+		
+		<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">feature_dict</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">sentinel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+					<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pre normalization: Feature Name: </span><span class="si">{0}</span><span class="s2">, Mean Value: </span><span class="si">{1}</span><span class="s2">, Std Value: </span><span class="si">{2}</span><span class="s2">, Max Value: </span><span class="si">{3}</span><span class="s2">, Min Value: </span><span class="si">{4}</span><span class="s2">, Shape: </span><span class="si">{5}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+					<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">features_to_normalize</span><span class="p">:</span>
+						<span class="n">X_train</span><span class="p">,</span> <span class="n">scaler_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">standardize_data_train</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+					
+					<span class="n">filepath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;folderpath&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;model_training_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+					<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Feature Name: </span><span class="si">{0}</span><span class="s2">, Mean Value: </span><span class="si">{1}</span><span class="s2">, Std Value: </span><span class="si">{2}</span><span class="s2">, Max Value: </span><span class="si">{3}</span><span class="s2">, Min Value: </span><span class="si">{4}</span><span class="s2">, Shape: </span><span class="si">{5}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+					
+					<span class="n">sentinel</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="k">else</span><span class="p">:</span>
+					
+					<span class="n">temp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pre normalization: Feature Name: </span><span class="si">{0}</span><span class="s2">, Mean Value: </span><span class="si">{1}</span><span class="s2">, Std Value: </span><span class="si">{2}</span><span class="s2">, Max Value: </span><span class="si">{3}</span><span class="s2">, Min Value: </span><span class="si">{4}</span><span class="s2">, Shape: </span><span class="si">{5}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">temp_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">temp_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">temp_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">temp_array</span><span class="p">),</span> <span class="n">temp_array</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+					<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">features_to_normalize</span><span class="p">:</span>
+						<span class="n">temp_array</span><span class="p">,</span> <span class="n">scaler_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">standardize_data_train</span><span class="p">(</span><span class="n">temp_array</span><span class="p">)</span>
+					
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Feature Name: </span><span class="si">{0}</span><span class="s2">, Mean Value: </span><span class="si">{1}</span><span class="s2">, Std Value: </span><span class="si">{2}</span><span class="s2">, Max Value: </span><span class="si">{3}</span><span class="s2">, Min Value: </span><span class="si">{4}</span><span class="s2">, Shape: </span><span class="si">{5}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="n">temp_array</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+					
+					<span class="n">filepath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;folderpath&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;model_training_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+					<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+					
+					<span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">X_train</span><span class="p">,</span> <span class="n">temp_array</span><span class="p">),</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+							
+	<span class="k">return</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span></div>
+	
+
+<div class="viewcode-block" id="standardize_data_train"><a class="viewcode-back" href="../preprocessing.html#preprocessing.standardize_data_train">[docs]</a><span class="k">def</span> <span class="nf">standardize_data_train</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for standarizing a set of train data.</span>
+<span class="sd">	It achieves this by using MinMaxScaler so that all features are</span>
+<span class="sd">	within [0.0, 1.0]</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	X: :obj:`numpy array`</span>
+<span class="sd">		the train data we want to standardize</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	X: :obj:`numpy array`</span>
+<span class="sd">		the standardized train data</span>
+<span class="sd">	standard_scaler: :obj:`sklearn.preprocessing.MinMaxScaler object`</span>
+<span class="sd">		the MinMaxScaler object that was used so that it can be used in the future</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">MinMaxScaler</span>
+	
+	<span class="n">standard_scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">()</span>
+	<span class="n">X</span> <span class="o">=</span> <span class="n">standard_scaler</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">standard_scaler</span></div>
+
+<div class="viewcode-block" id="standardize_data_test"><a class="viewcode-back" href="../preprocessing.html#preprocessing.standardize_data_test">[docs]</a><span class="k">def</span> <span class="nf">standardize_data_test</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">scaler</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for standarizing a set of test data.</span>
+<span class="sd">	It achieves this by using a MinMaxScaler object that was used previously</span>
+<span class="sd">	for standardizing relevant train data. Ultimately, all features are</span>
+<span class="sd">	within [0.0, 1.0]</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	X: :obj:`numpy array`</span>
+<span class="sd">		the test data we want to standardize</span>
+<span class="sd">	scaler: :obj:`sklearn.preprocessing.MinMaxScaler object`</span>
+<span class="sd">		the MinMaxScaler object to be used for standardization</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	X: :obj:`numpy array`</span>
+<span class="sd">		the standardized test data</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">MinMaxScaler</span>
+	
+	<span class="n">X</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">X</span></div>
+	
+<div class="viewcode-block" id="find_10_most_common_classes_train"><a class="viewcode-back" href="../preprocessing.html#preprocessing.find_10_most_common_classes_train">[docs]</a><span class="k">def</span> <span class="nf">find_10_most_common_classes_train</span><span class="p">(</span><span class="n">y_train</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for finding the 10 most common classes</span>
+<span class="sd">	within a set of labels (these are the 10 most populated classes).</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	y_train: :obj:`numpy array`</span>
+<span class="sd">		array containing the labels of the training set</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	most_common_classes: :obj:`list`</span>
+<span class="sd">		the labels of the 10 most common classes</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+	
+	<span class="n">label_counter</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_counter</span><span class="p">:</span>
+			<span class="n">label_counter</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">label_counter</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+	<span class="n">classes_ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">label_counter</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">label_counter</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">reverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> 
+	<span class="n">most_common_classes</span> <span class="o">=</span> <span class="n">classes_ranked</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+	
+	<span class="k">return</span> <span class="n">most_common_classes</span></div>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+	<span class="c1"># construct the argument parse and parse the arguments</span>
+	<span class="n">ap</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-pois_tbl_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--pois_tbl_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of table containing pois information&quot;</span><span class="p">)</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-pois_csv_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--pois_csv_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of csv containing pois information&quot;</span><span class="p">)</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-results_file_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--results_file_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;desired name of output file&quot;</span><span class="p">)</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-hyperparameter_file_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--hyperparameter_file_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;desired name of output file&quot;</span><span class="p">)</span>
+
+	<span class="n">args</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">parse_args</span><span class="p">())</span>
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+	
+	<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">folderpath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="s1">&#39;experiment_folder_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+		<span class="n">folderpath</span> <span class="o">=</span> <span class="n">folderpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">folderpath</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">folderpath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span>
+		
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;folderpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">folderpath</span>
+		
+	<span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="n">poi_ids</span> <span class="o">=</span> <span class="n">get_poi_ids</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+	<span class="n">poi_ids</span> <span class="o">=</span> <span class="n">poi_ids</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]</span>
+	<span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">)</span>	
+	<span class="n">poi_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">)</span>
+	<span class="n">X_train</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_train_set</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">poi_ids</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+   <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, nikos
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -35,19 +35,25 @@ def get_poi_id_to_neighbors_boolean_and_counts_per_class_dict_csv(ids, conn, num
 	
 	Arguments
 	---------
-	ids: the ids of the pois which we want to be contained in the dictionary keys
-	num_of_labels: the total number of the different labels in the dataset
-	encoded_labels_id_dict: the dictionary mapping the poi ids to labels
+	ids: :obj:`list`
+		the ids of the pois which we want to be contained in the dictionary keys
+	num_of_labels: :obj:`int`
+		the total number of the different labels in the dataset
+	encoded_labels_id_dict: :obj:`dictionary`
+		the dictionary mapping the poi ids to labels
 	threshold: the aforementioned threshold (redundant)
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
 	
 	Returns
 	-------
-	poi_id_to_label_boolean_dict:contains boolean values referring to whether a poi of that 
-	corresponding class is among the k nearest neighbors of the poi of interest
-	poi_id_to_label_counts_dict: contains numerical values referring the the total number 
-	of pois of that corresponding class that are among the k nearest neighbors of the poi of interest
+	poi_id_to_label_boolean_dict: :obj:`dictionary`
+		contains boolean values referring to whether a poi of that 
+		corresponding class is among the k nearest neighbors of the poi of interest
+	poi_id_to_label_counts_dict: :obj:`dictionary`
+		contains numerical values referring the the total number 
+		of pois of that corresponding class that are among the k nearest neighbors of the poi of interest
 	"""
 
 	from sklearn.neighbors import DistanceMetric
@@ -110,14 +116,17 @@ def get_poi_id_to_closest_poi_ids_dict_csv(ids, conn, args):
 	
 	Arguments
 	---------
-	ids: the ids of the pois which we want to be contained in the dictionary keys
+	ids: :obj:`list`
+		the ids of the pois which we want to be contained in the dictionary keys
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
 	
 	Returns
 	-------
-	poi_id_to_closet_poi_ids_dict: dictionary that maps each poi id to a list of poi ids
-	that belong to the pois that are situated within threshold distance from the poi of interest.
+	poi_id_to_closet_poi_ids_dict: :obj:`dictionary`
+		dictionary that maps each poi id to a list of poi ids 
+		that belong to the pois that are situated within threshold distance from the poi of interest.
 	"""
 	
 	from sklearn.neighbors import DistanceMetric
@@ -200,18 +209,22 @@ def get_poi_id_to_closest_street_id_dict_csv(ids, conn, args):
 	
 	Arguments
 	---------
-	ids: the ids of the pois which we want to be contained in the dictionary keys (or values)
+	ids: :obj:`list`
+		the ids of the pois which we want to be contained in the dictionary keys (or values)
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
 	
 	Returns
 	-------
-	poi_id_to_street_geom_dict: dictionary that maps each poi id to a list of street geometries
-	that belong to the streets that are situated within threshold distance from the poi of interest.
+	poi_id_to_street_geom_dict: :obj:`dictionary`
+		dictionary that maps each poi id to a list of street geometries
+		that belong to the streets that are situated within threshold distance from the poi of interest.
 	
-	street_geom_to_to_closest_poi_ids_dict: dictionary that maps each street geometry to a list of 
-	poi ids that belong to those pois that are situated within threshold distance from the street of 
-	interest.
+	street_geom_to_to_closest_poi_ids_dict: :obj:`dictionary`
+		dictionary that maps each street geometry to a list of 
+		poi ids that belong to those pois that are situated within threshold distance from the street of 
+		interest.
 	"""
 	
 	from sklearn.neighbors import DistanceMetric
@@ -365,16 +378,20 @@ def get_street_geom_to_closest_poi_ids_dict_csv(ids, conn, args, street_df):
 	
 	Arguments
 	---------
-	ids: the ids of the pois which we want to be contained in the dictionary keys (or values)
+	ids: :obj:`list`
+		the ids of the pois which we want to be contained in the dictionary keys (or values)
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
-	street_df: dataframe containing street info
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
+	street_df: :obj:`pandas dataframe`
+		dataframe containing street info
 	
 	Returns
 	-------
-	street_geom_to_to_closest_poi_ids_dict: dictionary that maps each street geometry
-	to a list containing poi ids that correspond to those pois that are situated within
-	threshold distance from the street of interest.
+	street_geom_to_to_closest_poi_ids_dict: :obj:`dictionary`
+		dictionary that maps each street geometry
+		to a list containing poi ids that correspond to those pois that are situated within
+		threshold distance from the street of interest.
 	"""
 	
 	from sklearn.neighbors import DistanceMetric
@@ -438,17 +455,21 @@ def construct_final_feature_vector_csv(ids, conn, args, num_of_labels, poi_id_to
 	
 	Arguments
 	---------
-	ids: a list containing the ids of the pois for which the feature extraction process is to be
-	executed
+	ids: :obj:`list`
+		a list containing the ids of the pois for which the feature extraction process is to be
+		executed
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
-	num_of_labels: the total number of the different labels
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
+	num_of_labels: :obj:`int`
+		the total number of the different labels
 	
 	Returns
 	-------
-	poi_id_to_closest_pois_street_boolean_per_label_dict: the first dictionary as described above
-	poi_id_to_closest_pois_street_counts_per_label_dict: the second dictionary as described above
-	
+	poi_id_to_closest_pois_street_boolean_per_label_dict: :obj:`dictionary`
+		the first dictionary as described above
+	poi_id_to_closest_pois_street_counts_per_label_dict: :obj:`dictionary`
+		the second dictionary as described above
 	"""
 	
 	poi_df = pd.read_csv(args['pois_csv_name'])
@@ -501,16 +522,20 @@ def get_closest_pois_boolean_and_counts_per_label_streets_csv(ids, conn, args, t
 	
 	Arguments
 	---------
-	ids: a list containing the ids of the pois for which the feature extraction process is to be
-	executed
+	ids: :obj:`list`
+		a list containing the ids of the pois for which the feature extraction process is to be
+		executed
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
 	threshold: (redundant)
 	
 	Returns
 	-------
-	boolean_feature_vector: refer to the description of construct_final_feature_vector_csv
-	counts_feature_vector: refer to the description of construct_final_feature_vector_csv
+	boolean_feature_vector: :obj:`dictionary`
+		refer to the description of construct_final_feature_vector_csv
+	counts_feature_vector: :obj:`dictionary`
+		refer to the description of construct_final_feature_vector_csv
 	"""
 	
 	# we build a dictionary containing the poi ids as keys
@@ -538,19 +563,15 @@ def get_class_codes_set_csv(args, df):
 	
 	Arguments
 	---------
-	args: several arguments that are needed for functionality purposes
-	df: the dataframe containing our data.
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
+	df: :obj:`pandas dataframe`
+		the dataframe containing our data.
 	
 	Returns
 	-------
-	"""
-	
-	"""
-	*** This function is responsible for reading the excel file
-	*** containing the dataset labels (here stored in a more code-like
-	*** manner rather than resembling labels).
-	***
-	*** Returns - a list of the class codes
+	class_codes: :obj:`list`
+		a list of the class codes
 	"""
 	
 	# read the file containing the class codes
@@ -593,20 +614,26 @@ def get_poi_id_to_encoded_labels_dict_csv(args, labels_set, id_dict):
 	
 	Arguments
 	---------
-	args: several arguments that are needed for functionality purposes
-	labels_set: the original labels (not encoded)
-	id_dict: a dictionary that has the poi ids as its keys
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
+	labels_set: :obj:`list`
+		the original labels (not encoded)
+	id_dict: :obj:`dictionary`
+		a dictionary that has the poi ids as its keys
 	
 	Returns
 	-------
 	
-	le: the instance of the label encoder used so that
-	future use of him can be made possible
+	le: :obj:`scikit-learn label encoder object`
+		the instance of the label encoder used so that
+		future use of him can be made possible
 	
-	id_dict: an updated version of our pois dictionary
-	now mapping their ids to their encoded labels
+	id_dict: :obj:`dictionary`
+		an updated version of our pois dictionary
+		now mapping their ids to their encoded labels
 	
-	labels_set: the encoded labels set
+	labels_set: :obj:`set`
+		the encoded labels set
 	"""
 	
 	from sklearn.preprocessing import LabelEncoder
@@ -668,12 +695,15 @@ def get_poi_id_to_class_code_coordinates_dict_csv(conn, args):
 	Arguments
 	---------
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
 	
 	Returns
 	-------
-	df: the original dataframe with altered column name for the class labels
-	poi_id_to_class_code_coordinates_dict: self-explanatory (look at function description)
+	df: :obj:`pandas dataframe`
+		the original dataframe with altered column name for the class labels
+	poi_id_to_class_code_coordinates_dict: :obj:`dictionary`
+		self-explanatory (look at function description)
 	"""
 	
 	df = pd.read_csv(args['pois_csv_name'])
@@ -693,46 +723,37 @@ def get_poi_id_to_class_code_coordinates_dict_csv(conn, args):
 def get_poi_id_to_boolean_and_counts_per_class_dict_csv(ids, conn, num_of_labels, poi_id_to_encoded_labels_dict, threshold, args):
 	
 	"""
-	This function is responsible for mapping the pois to a list of two-element lists.
-	The first element of that list will contain a  boolean value referring
+	This function is responsible for mapping the pois to two lists.
+	The first list will contain a  boolean value referring
 	to whether a poi of that index's label is within threshold distance
-	of the poi whose id is the key of this list in the dictionary. The second
-	element contains the respective count of the pois belonging to the
+	of the poi whose id is the key of this list in the dictionary. The second list
+	contains the respective count of the pois belonging to the
 	specific index's label that are within threshold distance of the poi-key.
 	
 	For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	id_dict[1] = [[1, 2], [0, 0], [1, 3]]
+	are within threshold distance of the poi with id = 1, then the dictionaries will look like this: 
+	poi_id_to_label_boolean_dict[1] = [1, 0, 1],
+	poi_id_to_label_counts_dict[1] = [2, 0, 3]
 	
 	Arguments
 	---------
-	ids: a list containing the ids of the pois for which the feature extraction process is to be
-	executed
+	ids: :obj:`list`
+		a list containing the ids of the pois for which the feature extraction process is to be
+		executed
 	conn: (redundant)
-	num_of_labels: the total number of the different labels
-	poi_id_to_encoded_labels_dict: the dictionary mapping the poi ids to labels
-	threshold: the aforementioned threshold
-	args: several arguments that are needed for functionality purposes
+	num_of_labels: :obj:`int`
+		the total number of the different labels
+	poi_id_to_encoded_labels_dict: :obj:`dictionary`
+		the dictionary mapping the poi ids to labels
+	threshold: :obj:`int`
+		the aforementioned threshold
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
 	
 	Returns
 	-------
-	"""
-	
-	"""
-	*** This function is responsible for mapping the pois to a list of two-element lists.
-	*** The first element of that list will contain a  boolean value referring
-	*** to whether a poi of that index's label is within threshold distance
-	*** of the poi whose id is the key of this list in the dictionary. The second
-	*** element contains the respective count of the pois belonging to the
-	*** specific index's label that are within threshold distance of the poi-key.
-	***
-	*** For example, if two pois, zero pois and three pois from classes 0, 1 and 2 respectively
-	*** are within threshold distance of the poi with id = 1, then the dictionary will look like this: 
-	*** id_dict[1] = [[1, 2], [0, 0], [1, 3]]
-	***
-	*** Arguments - num_of_labels: the total number of the different labels
-	*** 			encoded_labels_id_dict: the dictionary mapping the poi ids to labels
-	***				threshold: the aforementioned threshold
+	poi_id_to_label_boolean_dict: :obj:`dictionary`
+	poi_id_to_label_counts_dict: :obj:`dictionary`
 	"""
 	
 	from sklearn.neighbors import DistanceMetric
@@ -802,9 +823,11 @@ def get_closest_pois_boolean_and_counts_per_label_csv(ids, conn, args, threshold
 	
 	Arguments
 	---------
-	ids: the poi ids for which this feature extraction step is to be executed
+	ids: :obj:`list`
+		the poi ids for which this feature extraction step is to be executed
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
 	threshold: (redundant)
 	
 	Returns
@@ -832,9 +855,11 @@ def get_neighbor_pois_boolean_and_counts_per_label_csv(ids, conn, args, threshol
 	
 	Arguments
 	---------
-	ids: the poi ids for which this feature extraction step is to be executed
+	ids: :obj:`list`
+		the poi ids for which this feature extraction step is to be executed
 	conn: (redundant)
-	args: several arguments that are needed for functionality purposes
+	args: :obj:`dictionary`
+		several arguments that are needed for functionality purposes
 	threshold: (redundant)
 	
 	Returns
