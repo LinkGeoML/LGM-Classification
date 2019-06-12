@@ -1,0 +1,569 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>finetune_best_clf &mdash; lgm-classification 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> lgm-classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../preprocessing.html">preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export_best_model.html">export_best_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../find_best_clf.html">find_best_clf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../finetune_best_clf.html">finetune_best_clf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../other_dataset_classification.html">other_dataset_classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pois_feature_extraction_csv.html">pois_feature_extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_feature_extraction.html">textual_feature_extraction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">lgm-classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>finetune_best_clf</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for finetune_best_clf</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+
+<span class="c1"># import the necessary packages</span>
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">database</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">preprocessing</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pois_feature_extraction_csv</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">textual_feature_extraction</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">feml</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">accuracy_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">KFold</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">KNeighborsClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="k">import</span> <span class="n">SVC</span>
+<span class="kn">from</span> <span class="nn">sklearn.gaussian_process.kernels</span> <span class="k">import</span> <span class="n">RBF</span>
+<span class="kn">from</span> <span class="nn">sklearn.tree</span> <span class="k">import</span> <span class="n">DecisionTreeClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestClassifier</span><span class="p">,</span> <span class="n">AdaBoostClassifier</span><span class="p">,</span> <span class="n">ExtraTreesClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.naive_bayes</span> <span class="k">import</span> <span class="n">GaussianNB</span>
+<span class="kn">from</span> <span class="nn">sklearn.neural_network</span> <span class="k">import</span> <span class="n">MLPClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.gaussian_process</span> <span class="k">import</span> <span class="n">GaussianProcessClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.discriminant_analysis</span> <span class="k">import</span> <span class="n">QuadraticDiscriminantAnalysis</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">GridSearchCV</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">classification_report</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">f1_score</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="k">import</span> <span class="n">train_test_split</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">config</span>
+
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>
+
+<div class="viewcode-block" id="get_score_for_10_most_common_classes"><a class="viewcode-back" href="../finetune_best_clf.html#finetune_best_clf.get_score_for_10_most_common_classes">[docs]</a><span class="k">def</span> <span class="nf">get_score_for_10_most_common_classes</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">,</span> <span class="n">most_common_classes</span><span class="p">,</span> <span class="n">clf</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for measuring the prediction scores</span>
+<span class="sd">	during the test phase</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	X_test: :obj:`numpy array`</span>
+<span class="sd">		the test set features</span>
+<span class="sd">	y_test: :obj:`numpy array`</span>
+<span class="sd">		the test set class labels</span>
+<span class="sd">	most_common_classes: :obj:`list`</span>
+<span class="sd">		the 10 most common (most populated) classes</span>
+<span class="sd">	clf: :obj:`scikit-learn classifier object`</span>
+<span class="sd">		the classifier object that is used for the predictions</span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	top_k_errors: :obj:`list`</span>
+<span class="sd">		a list containing the top-k-error measurements</span>
+<span class="sd">	baseline_accuracy: :obj:`float`</span>
+<span class="sd">		the baseline accuracy (the most populated class is assigned to every prediction)</span>
+<span class="sd">	baseline_f_score: :obj:`float`</span>
+<span class="sd">		same as above, but f_score</span>
+<span class="sd">	accuracy_score(y_test, y_pred): :obj:`float`</span>
+<span class="sd">		the accuracy score as computed by scikit-learn</span>
+<span class="sd">	f1_score(y_test, y_pred, average=&#39;weighted&#39;): :obj:`float`</span>
+<span class="sd">		the weighted f1-score as computed by scikit-learn</span>
+<span class="sd">	f1_score(y_test, y_pred, average=&#39;macro&#39;): :obj:`float`</span>
+<span class="sd">		the macro f1-score as computed by scikit-learn</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="n">top_class_count</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">y_test</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="n">most_common_classes</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+			<span class="n">top_class_count</span> <span class="o">+=</span> <span class="mi">1</span>
+	
+	<span class="n">baseline_accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">top_class_count</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">y_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	<span class="n">y_pred</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>	
+	
+	<span class="n">probs</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+	<span class="n">best_k_probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">X_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+		<span class="n">top_k_classes</span> <span class="o">=</span> <span class="n">best_k_probs</span><span class="p">[:</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">k_error</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">y_test</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="n">top_k_classes</span><span class="p">:</span>
+			<span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+	
+	<span class="n">top_k_error</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	
+	<span class="k">return</span> <span class="n">top_k_error</span><span class="p">,</span> <span class="n">baseline_accuracy</span><span class="p">,</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">),</span> <span class="n">f1_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;weighted&#39;</span><span class="p">),</span> <span class="n">f1_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="fine_tune_parameters_given_clf"><a class="viewcode-back" href="../finetune_best_clf.html#finetune_best_clf.fine_tune_parameters_given_clf">[docs]</a><span class="k">def</span> <span class="nf">fine_tune_parameters_given_clf</span><span class="p">(</span><span class="n">clf_name</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function is responsible for fitting a classifier</span>
+<span class="sd">	to a training set and returning the classifier object</span>
+<span class="sd">	for later use.</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	X_train: :obj:`numpy array`</span>
+<span class="sd">		array containing the features of the train set</span>
+<span class="sd">	y_train: :obj:`numpy array`</span>
+<span class="sd">		array containing the labels of the train set</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	clf: :obj:`scikit-learn classifier object`</span>
+<span class="sd">		the trained classifier object</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;accuracy&#39;</span><span class="p">]</span>
+	
+	<span class="k">if</span> <span class="n">clf_name</span> <span class="o">==</span> <span class="s2">&quot;SVM&quot;</span><span class="p">:</span>
+		<span class="n">tuned_parameters</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">SVM_hyperparameters</span>
+		<span class="n">clf</span> <span class="o">=</span> <span class="n">SVC</span><span class="p">(</span><span class="n">probability</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		
+	<span class="k">elif</span> <span class="n">clf_name</span> <span class="o">==</span> <span class="s2">&quot;Nearest Neighbors&quot;</span><span class="p">:</span>
+		<span class="n">tuned_parameters</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">kNN_hyperparameters</span>
+		<span class="n">clf</span> <span class="o">=</span> <span class="n">KNeighborsClassifier</span><span class="p">()</span>
+		
+	<span class="k">elif</span> <span class="n">clf_name</span> <span class="o">==</span> <span class="s2">&quot;Decision Tree&quot;</span><span class="p">:</span>
+
+		<span class="n">tuned_parameters</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">DecisionTree_hyperparameters</span>
+		<span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">()</span>
+		
+	<span class="k">elif</span> <span class="n">clf_name</span> <span class="o">==</span> <span class="s2">&quot;Random Forest&quot;</span><span class="p">:</span>
+
+		<span class="n">tuned_parameters</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">RandomForest_hyperparameters</span>
+		<span class="n">clf</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">()</span>
+		
+	<span class="k">elif</span> <span class="n">clf_name</span> <span class="o">==</span> <span class="s2">&quot;Extra Trees&quot;</span><span class="p">:</span>
+
+		<span class="n">tuned_parameters</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">RandomForest_hyperparameters</span>
+		<span class="n">clf</span> <span class="o">=</span> <span class="n">ExtraTreesClassifier</span><span class="p">()</span>
+	
+	<span class="k">elif</span> <span class="n">clf_name</span> <span class="o">==</span> <span class="s2">&quot;MLP&quot;</span><span class="p">:</span>
+		
+		<span class="n">tuned_parameters</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">MLP_hyperparameters</span>
+		<span class="n">clf</span> <span class="o">=</span> <span class="n">MLPClassifier</span><span class="p">()</span>
+	
+	<span class="nb">print</span><span class="p">(</span><span class="n">clf_name</span><span class="p">)</span>
+		
+	<span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+
+		<span class="n">clf</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">tuned_parameters</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+						   <span class="n">scoring</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">score</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+		<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+		
+	<span class="k">return</span> <span class="n">clf</span></div>
+
+<div class="viewcode-block" id="tuned_parameters_5_fold"><a class="viewcode-back" href="../finetune_best_clf.html#finetune_best_clf.tuned_parameters_5_fold">[docs]</a><span class="k">def</span> <span class="nf">tuned_parameters_5_fold</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+	
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	This function trains a collection of classifiers using</span>
+<span class="sd">	a nested k-fold cross-validation approach and outputs</span>
+<span class="sd">	the relevant results so that later comparisons can be made</span>
+<span class="sd">	</span>
+<span class="sd">	Arguments</span>
+<span class="sd">	---------</span>
+<span class="sd">	poi_ids: :obj:`list`</span>
+<span class="sd">		the ids of the pois within the train set</span>
+<span class="sd">	conn: (redundant)</span>
+<span class="sd">	args: :obj:`dictionary`</span>
+<span class="sd">		several arguments that are needed for functionality purposes </span>
+<span class="sd">	</span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	None</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">folderpath</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="s1">&#39;experiment_folder_*&#39;</span>
+		<span class="n">list_of_folders</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">folderpath</span><span class="p">)</span>
+		<span class="n">latest_folder</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">list_of_folders</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">)</span>
+		<span class="n">args</span><span class="p">[</span><span class="s1">&#39;folderpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">latest_folder</span>
+	
+	<span class="c1"># Shuffle ids	</span>
+	<span class="n">poi_ids</span> <span class="o">=</span> <span class="n">poi_ids</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">poi_id</span><span class="p">]</span>
+	<span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">)</span>
+		
+	<span class="n">poi_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">)</span>
+			
+	<span class="n">clf_names_not_tuned</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Naive Bayes&quot;</span><span class="p">,</span> <span class="s2">&quot;Gaussian Process&quot;</span><span class="p">,</span> <span class="s2">&quot;QDA&quot;</span><span class="p">,</span> <span class="s2">&quot;AdaBoost&quot;</span><span class="p">]</span>
+	<span class="n">clf_names</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">classifiers</span>
+	<span class="n">clf_scores_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">clf_names</span><span class="p">)</span>
+	<span class="n">baseline_scores</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">top_k_errors</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">clf_scores_dict</span><span class="p">:</span>
+		<span class="n">clf_scores_dict</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[],</span> <span class="p">[]]</span>
+	<span class="n">report_data</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">hyperparams_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="n">n_splits</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">k_fold_parameter</span><span class="p">)</span>
+	
+	<span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;fold_number&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+	<span class="k">for</span> <span class="n">train_ids</span><span class="p">,</span> <span class="n">test_ids</span> <span class="ow">in</span> <span class="n">kf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">):</span>
+		<span class="k">break</span>
+	<span class="n">train_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">train_id</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">train_id</span> <span class="ow">in</span> <span class="n">train_ids</span><span class="p">]</span>
+	<span class="n">test_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">test_id</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">test_id</span> <span class="ow">in</span> <span class="n">test_ids</span><span class="p">]</span>
+					
+	<span class="c1"># get train and test sets</span>
+	<span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">get_train_test_sets</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">train_ids</span><span class="p">,</span> <span class="n">test_ids</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+		
+	<span class="n">most_common_classes</span> <span class="o">=</span> <span class="n">find_10_most_common_classes_train</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+	
+	<span class="c1"># read clf name from csv</span>
+	<span class="n">row</span> <span class="o">=</span> <span class="p">{}</span>
+	
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;best_clf&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">clf_names_not_tuned</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">clf_name</span> <span class="o">==</span> <span class="s2">&quot;Naive Bayes&quot;</span><span class="p">:</span>
+			<span class="n">clf</span> <span class="o">=</span> <span class="n">GaussianNB</span><span class="p">()</span>
+			<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">clf_name</span> <span class="o">==</span> <span class="s2">&quot;Gaussian Process&quot;</span><span class="p">:</span>
+			<span class="n">clf</span> <span class="o">=</span> <span class="n">GaussianProcessClassifier</span><span class="p">()</span>
+			<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">clf</span> <span class="o">=</span> <span class="n">AdaBoostClassifier</span><span class="p">()</span>
+			<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">clf</span> <span class="o">=</span> <span class="n">fine_tune_parameters_given_clf</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;best_clf&#39;</span><span class="p">],</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
+	
+	<span class="n">hyperparams_data</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">best_params_</span>
+	<span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">([</span><span class="n">hyperparams_data</span><span class="p">])</span>
+	
+	<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="s1">&#39;experiment_folder_*&#39;</span>
+		<span class="n">list_of_folders</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">experiment_folder_path</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">list_of_folders</span> <span class="o">==</span> <span class="p">[]:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No experiment folder found inside the root folder&quot;</span><span class="p">)</span>
+			<span class="k">return</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">latest_experiment_folder</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">list_of_folders</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">)</span>
+			<span class="n">filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;best_hyperparameters_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+			<span class="n">df2</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span>
+		<span class="n">filepath</span> <span class="o">=</span> <span class="n">experiment_folder_path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;best_hyperparameters_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;csv&#39;</span>
+		<span class="n">df2</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span></div>
+	
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+	<span class="c1"># construct the argument parse and parse the arguments</span>
+	<span class="n">ap</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-pois_tbl_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--pois_tbl_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of table containing pois information&quot;</span><span class="p">)</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-pois_csv_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--pois_csv_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of csv containing pois information&quot;</span><span class="p">)</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-best_hyperparameter_file_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--best_hyperparameter_file_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;desired name of best hyperparameter file&quot;</span><span class="p">)</span>
+	<span class="n">ap</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-best_clf_file_name&quot;</span><span class="p">,</span> <span class="s2">&quot;--best_clf_file_name&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+		<span class="n">help</span><span class="o">=</span><span class="s2">&quot;name of file containing the best classifier found in step 1&quot;</span><span class="p">)</span>
+
+	<span class="n">args</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">parse_args</span><span class="p">())</span>
+	
+	<span class="n">args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+		
+	<span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_tbl_name&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;pois_tbl_name&#39;</span><span class="p">])</span>
+	
+	<span class="c1"># call the appropriate function to connect to the database</span>
+	<span class="n">conn</span> <span class="o">=</span> <span class="n">connect_to_db</span><span class="p">()</span>
+	
+	<span class="c1"># get the poi ids</span>
+	<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span>
+			<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span>
+				<span class="n">exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">experiment_folder_path</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+					<span class="n">filepath</span> <span class="o">=</span> <span class="n">experiment_folder_path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;best_clf_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+					<span class="n">exists2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+					<span class="k">if</span> <span class="n">exists2</span><span class="p">:</span>
+						<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+							<span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+							<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+							<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+								<span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+									<span class="n">args</span><span class="p">[</span><span class="s1">&#39;best_clf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+								<span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No best_clf file found inside the folder&quot;</span><span class="p">)</span>
+						<span class="k">return</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No experiment folder with the given name found&quot;</span><span class="p">)</span>
+					<span class="k">return</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="s1">&#39;experiment_folder_*&#39;</span>
+				<span class="n">list_of_folders</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">experiment_folder_path</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">list_of_folders</span> <span class="o">==</span> <span class="p">[]:</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No experiment folder found inside the root folder&quot;</span><span class="p">)</span>
+					<span class="k">return</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">latest_experiment_folder</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">list_of_folders</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">)</span>
+					<span class="n">filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;best_clf_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+					<span class="n">exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+					<span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+						<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+							<span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+							<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+							<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+								<span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+									<span class="n">args</span><span class="p">[</span><span class="s1">&#39;best_clf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+								<span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No best_clf file found inside the folder!&quot;</span><span class="p">)</span>	
+						<span class="k">return</span>
+			<span class="n">args</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">level</span>
+			<span class="n">poi_ids</span> <span class="o">=</span> <span class="n">get_poi_ids</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+			<span class="n">tuned_parameters_5_fold</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">level</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">experiment_folder</span>
+				<span class="n">exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">experiment_folder_path</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+					<span class="n">filepath</span> <span class="o">=</span> <span class="n">experiment_folder_path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;best_clf_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+					<span class="n">exists2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+					<span class="k">if</span> <span class="n">exists2</span><span class="p">:</span>
+						<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+							<span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+							<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+							<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+								<span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+									<span class="n">args</span><span class="p">[</span><span class="s1">&#39;best_clf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+								<span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No best_clf file found inside the folder&quot;</span><span class="p">)</span>
+						<span class="k">return</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No experiment folder with the given name found&quot;</span><span class="p">)</span>
+					<span class="k">return</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">experiment_folder_path</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">initialConfig</span><span class="o">.</span><span class="n">root_path</span> <span class="o">+</span> <span class="s1">&#39;experiment_folder_*&#39;</span>
+				<span class="n">list_of_folders</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">experiment_folder_path</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">list_of_folders</span> <span class="o">==</span> <span class="p">[]:</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No experiment folder found inside the root folder&quot;</span><span class="p">)</span>
+					<span class="k">return</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">latest_experiment_folder</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">list_of_folders</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">)</span>
+					<span class="n">filepath</span> <span class="o">=</span> <span class="n">latest_experiment_folder</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="s1">&#39;best_clf_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">level</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+					<span class="n">exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+					<span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
+						<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+							<span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+							<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+							<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+								<span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+									<span class="n">args</span><span class="p">[</span><span class="s1">&#39;best_clf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+								<span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! No best_clf file found inside the folder!&quot;</span><span class="p">)</span>	
+						<span class="k">return</span>
+			<span class="n">args</span><span class="p">[</span><span class="s1">&#39;level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">level</span>
+			<span class="n">poi_ids</span> <span class="o">=</span> <span class="n">get_poi_ids</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+			<span class="n">tuned_parameters_5_fold</span><span class="p">(</span><span class="n">poi_ids</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+	
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+   <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, nikos
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
