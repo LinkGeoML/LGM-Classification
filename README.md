@@ -100,3 +100,7 @@ In order for the last step to be executed there are some alterations that need t
 * original_SRID = 'epsg:2100' to original_SRID = 'epsg:3857'
 * level = [1, 2] to level = [1]
 * osmnx_placename = "Marousi, Athens, Greece" to osmnx_placename = "Las Vegas"
+
+## License
+
+LGM-Classification is available under the MIT License.
