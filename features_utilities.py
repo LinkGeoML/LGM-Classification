@@ -176,8 +176,12 @@ def get_pois_by_street(poi_gdf, street_gdf):
     pois_by_street = dict((s, []) for s in range(len(street_gdf)))
     for poi in poi_gdf.itertuples():
         poi_coords = (poi.lon, poi.lat)
-        result_street_idx = list(street_index.nearest(poi_coords))[0]
-        pois_by_street[result_street_idx].append(poi.Index)
+        candidates = list(street_index.nearest(poi_coords))
+        nearest = candidates[np.argmin([
+            Point(poi_coords).distance(street_gdf.iloc[c]['geometry'])
+            for c in candidates
+        ])]
+        pois_by_street[nearest].append(poi.Index)
     return pois_by_street
 
 

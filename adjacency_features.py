@@ -1,4 +1,5 @@
 import numpy as np
+from shapely.geometry import Point
 import pickle
 
 from sklearn.neighbors import KDTree
@@ -43,9 +44,13 @@ def get_classes_in_street_and_radius_bln(poi_gdf, street_gdf, pois_by_street, nl
     X = np.zeros((len(poi_gdf), nlabels))
     for poi in poi_gdf.itertuples():
         poi_coords = (poi.lon, poi.lat)
-        result_street_idx = list(street_index.nearest(poi_coords))[0]
+        candidates = list(street_index.nearest(poi_coords))
+        nearest = candidates[np.argmin([
+            Point(poi_coords).distance(street_gdf.iloc[c]['geometry'])
+            for c in candidates
+        ])]
         result_pois_idxs = [
-            poi_idx for poi_idx in pois_by_street[result_street_idx]
+            poi_idx for poi_idx in pois_by_street[nearest]
             if poi.geometry.distance(geometry_map[poi_idx]) < thr]
         for rpi in result_pois_idxs:
             rpi_label = label_map[rpi]
@@ -58,10 +63,14 @@ def get_classes_in_street_and_radius_cnt(poi_gdf, street_gdf, pois_by_street, nl
     X = np.zeros((len(poi_gdf), nlabels))
     for poi in poi_gdf.itertuples():
         poi_coords = (poi.lon, poi.lat)
-        result_street_idx = list(street_index.nearest(poi_coords))[0]
+        candidates = list(street_index.nearest(poi_coords))
+        nearest = candidates[np.argmin([
+            Point(poi_coords).distance(street_gdf.iloc[c]['geometry'])
+            for c in candidates
+        ])]
         class_cnt = dict((c, 0) for c in range(nlabels))
         result_pois_idxs = [
-            poi_idx for poi_idx in pois_by_street[result_street_idx]
+            poi_idx for poi_idx in pois_by_street[nearest]
             if poi.geometry.distance(geometry_map[poi_idx]) < thr]
         for rpi in result_pois_idxs:
             rpi_label = label_map[rpi]
@@ -103,10 +112,14 @@ def get_classes_in_street_radius_bln(poi_gdf, street_gdf, nlabels, label_map, ge
     X = np.zeros((len(poi_gdf), nlabels))
     for poi in poi_gdf.itertuples():
         poi_coords = (poi.lon, poi.lat)
-        result_street_idx = list(street_index.nearest(poi_coords))[0]
+        candidates = list(street_index.nearest(poi_coords))
+        nearest = candidates[np.argmin([
+            Point(poi_coords).distance(street_gdf.iloc[c]['geometry'])
+            for c in candidates
+        ])]
         result_pois_idxs = [
             i for i, geom in enumerate(geometry_map)
-            if street_gdf.iloc[result_street_idx]['geometry'].distance(geom) < thr]
+            if street_gdf.iloc[nearest]['geometry'].distance(geom) < thr]
         for rpi in result_pois_idxs:
             rpi_label = label_map[rpi]
             X[poi.Index][rpi_label] = 1
@@ -118,11 +131,15 @@ def get_classes_in_street_radius_cnt(poi_gdf, street_gdf, nlabels, label_map, ge
     X = np.zeros((len(poi_gdf), nlabels))
     for poi in poi_gdf.itertuples():
         poi_coords = (poi.lon, poi.lat)
-        result_street_idx = list(street_index.nearest(poi_coords))[0]
+        candidates = list(street_index.nearest(poi_coords))
+        nearest = candidates[np.argmin([
+            Point(poi_coords).distance(street_gdf.iloc[c]['geometry'])
+            for c in candidates
+        ])]
         class_cnt = dict((c, 0) for c in range(nlabels))
         result_pois_idxs = [
             i for i, geom in enumerate(geometry_map)
-            if street_gdf.iloc[result_street_idx]['geometry'].distance(geom) < thr]
+            if street_gdf.iloc[nearest]['geometry'].distance(geom) < thr]
         for rpi in result_pois_idxs:
             rpi_label = label_map[rpi]
             class_cnt[rpi_label] += 1
