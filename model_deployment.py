@@ -12,8 +12,8 @@ import writers as wrtrs
 
 def main():
     """
-    Implements the fifth step of the experiment pipeline. This step loads a
-    pickled trained model from the previous step and deploys it in order to
+    Implements the fifth step of the experiment pipeline. This step loads a \
+    pickled trained model from the previous step and deploys it in order to \
     make predictions on a test dataset.
 
     Returns:

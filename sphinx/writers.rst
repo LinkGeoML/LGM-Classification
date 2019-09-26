@@ -1,5 +1,5 @@
-Writers Documentation
-=====================
+Writers
+=======
 
 .. automodule:: writers
     :members:

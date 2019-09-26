@@ -11,9 +11,9 @@ from config import config
 
 def main():
     """
-    Implements the second step of the experiment pipeline. Trains a series of
-    classifiers based on different configurations in terms of both features and
-    classifiers hyperparameters in a nested cross validation scheme.
+    Implements the second step of the experiment pipeline. Trains a series of \
+    classifiers based on different configurations in terms of both features \
+    and classifiers hyperparameters in a nested cross validation scheme.
 
     Returns:
         None

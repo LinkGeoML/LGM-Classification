@@ -12,9 +12,9 @@ from config import config
 
 def main():
     """
-    Implements the first step of the experiment pipeline. Creates a series of
-    X_train, X_test pairs (based on different features parameters combinations)
-    for each one of the folds.
+    Implements the first step of the experiment pipeline. Creates a series of \
+    X_train, X_test pairs (based on different features parameters \
+    combinations) for each one of the folds.
 
     Returns:
         None

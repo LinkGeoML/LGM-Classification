@@ -11,9 +11,9 @@ from config import config
 
 def main():
     """
-    Implements the third step of the experiment pipeline. Given a classifier,
-    this step is responsible to find the best performing feature and classifier
-    configuration.
+    Implements the third step of the experiment pipeline. Given a classifier, \
+    this step is responsible to find the best performing feature and \
+    classifier configuration.
 
     Returns:
         None

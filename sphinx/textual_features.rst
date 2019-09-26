@@ -1,5 +1,5 @@
-Textual Features Documentation
-==============================
+Textual features
+================
 
 .. automodule:: textual_features
     :members:

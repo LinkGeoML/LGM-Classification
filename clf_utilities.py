@@ -49,7 +49,7 @@ def create_feature_sets_generator(fold_path):
         fold_path (str): Path to read features sets
 
     Yields:
-        Generator
+        list: pairs of X_train, X_test features sets names
     """
     train_sets = [f for f in os.listdir(fold_path) if f.startswith('X_train_')]
     train_sets = sorted(train_sets, key=lambda i: (len(i), i))
@@ -83,8 +83,8 @@ def train_classifier(clf_name, X_train, y_train):
 
 def k_accuracy_score(y_test, k_best):
     """
-    Measures the defined k-accuracy metric. For each poi, a successful
-    prediction is considered if true label appears in the top k labels
+    Measures the defined k-accuracy metric. For each poi, a successful \
+    prediction is considered if true label appears in the top k labels \
     predicted by the model,
 
     Args:
@@ -110,7 +110,7 @@ def evaluate(y_test, y_pred):
         y_pred (numpy.ndarray): Predicted labels
 
     Returns:
-        dict: Contains metrics names as keys and the corresponding values as
+        dict: Contains metrics names as keys and the corresponding values as \
         values
     """
     scores = {}
@@ -129,8 +129,8 @@ def evaluate(y_test, y_pred):
 
 def is_valid(clf_name):
     """
-    Checks whether *clf_name* is a valid classifier's name with respect to the
-    experiment setup.
+    Checks whether *clf_name* is a valid classifier's name with respect to \
+    the experiment setup.
 
     Args:
         clf_name (str): Classifier's name
@@ -152,10 +152,11 @@ def create_clf_params_product_generator(params_grid):
     Generates all possible combinations of classifier's hyperparameters values.
 
     Args:
-        params_grid (dict): Contains classifier's hyperparameters names as keys and the correspoding search space as values
+        params_grid (dict): Contains classifier's hyperparameters names as \
+            keys and the correspoding search space as values
 
     Yields:
-        Generator
+        dict: Contains a classifier's hyperparameters configuration
     """
     keys = params_grid.keys()
     vals = params_grid.values()
@@ -168,7 +169,7 @@ def normalize_scores(scores):
     Normalizes predictions scores to a probabilities-like format.
 
     Args:
-        scores (list): Contains the predictions scores as predicted by the
+        scores (list): Contains the predictions scores as predicted by the \
             model
 
     Returns:
@@ -201,17 +202,17 @@ def get_top_k_predictions(model, X_test):
 
 def inverse_transform_labels(encoder, k_preds):
     """
-    Utilizes *encoder* to transform encoded labels back to the original
+    Utilizes *encoder* to transform encoded labels back to the original \
     strings.
 
     Args:
-        encoder (sklearn.preprocessing.LabelEncoder): The encoder to be
+        encoder (sklearn.preprocessing.LabelEncoder): The encoder to be \
             utilized
         k_preds (list): Contains predictions in (label, score) pairs
 
     Returns:
-        list: Contains predictions in (label, score) pairs, where label is now
-            in the original string format
+        list: Contains predictions in (label, score) pairs, where label is \
+            now in the original string format
     """
     label_mapping = dict(
         zip(encoder.transform(encoder.classes_), encoder.classes_))

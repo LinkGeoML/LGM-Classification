@@ -7,50 +7,50 @@ class config:
         poi_fpath (str): Path to csv file containing train pois
         experiments_path (str): Path to folder that stores the experiments
 
-        supported_adjacency_features (list): List of the supported adjacency
+        supported_adjacency_features (list): List of the supported adjacency \
             features to choose from
-        supported_textual_features (list): List of the supported textual
+        supported_textual_features (list): List of the supported textual \
             features to choose from
-        included_adjacency_features (list): List of the adjacency features to
+        included_adjacency_features (list): List of the adjacency features to \
             be included in the experiment
-        included_textual_features (list): List of the textual features to
+        included_textual_features (list): List of the textual features to \
             be included in the experiment
         normalized_features (list): List of features to be normalized
 
-        classes_in_radius_thr (list): Parameter space for
+        classes_in_radius_thr (list): Parameter space for \
             'classes_in_radius_bln' and 'classes_in_radius_cnt' features
-        classes_in_street_and_radius_thr (list): Parameter space for
-            'classes_in_street_and_radius_bln' and
+        classes_in_street_and_radius_thr (list): Parameter space for \
+            'classes_in_street_and_radius_bln' and \
             'classes_in_street_and_radius_cnt' features
-        classes_in_neighbors_thr (list): Parameter space for
+        classes_in_neighbors_thr (list): Parameter space for \
             'classes_in_neighbors_bln' and 'classes_in_neighbors_cnt' features
 
         top_k_terms_pct (list): Parameter space for 'top_k_terms' feature
         top_k_trigrams_pct (list): Parameter space for 'top_k_trigrams' feature
-        top_k_fourgrams_pct (list): Parameter space for 'top_k_fourgrams'
+        top_k_fourgrams_pct (list): Parameter space for 'top_k_fourgrams' \
             feature
 
         n_folds (int): The number of folds in the experiment
 
-        supported_classifiers (list): List of the supported classifiers to
+        supported_classifiers (list): List of the supported classifiers to \
             choose from
-        included_classifiers (list): List of the classifiers to be included in
-            the experiment
+        included_classifiers (list): List of the classifiers to be included \
+            in the experiment
 
-        NaiveBayes_hyperparameters (dict): Parameters search space for Naive
+        NaiveBayes_hyperparameters (dict): Parameters search space for Naive \
             Bayes classifier
-        kNN_hyperparameters (dict): Parameters search space for Nearest
+        kNN_hyperparameters (dict): Parameters search space for Nearest \
             Neighbors classifier
-        LogisticRegression_hyperparameters (dict): Parameters search space for
-            Logistic Regression classifier
+        LogisticRegression_hyperparameters (dict): Parameters search space \
+            for Logistic Regression classifier
         SVM_hyperparameters (list): Parameters search space for SVM classifier
         MLP_hyperparameters (dict): Parameters search space for MLP classifier
-        DecisionTree_hyperparameters (dict): Parameters search space for
+        DecisionTree_hyperparameters (dict): Parameters search space for \
             Decision Tree classifier
-        RandomForest_hyperparameters (dict): Parameters search space for Random
-            Forest classifier
+        RandomForest_hyperparameters (dict): Parameters search space for \
+            Random Forest classifier
 
-        top_k (list): List of different *k*, in order to measure
+        top_k (list): List of different *k*, in order to measure \
             top-*k*-accuracy
         k_preds (int): Number of top predictions to take into consideration
         osm_crs (int): The EPSG crs code that OSM uses

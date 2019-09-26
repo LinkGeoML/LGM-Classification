@@ -51,12 +51,12 @@ def parse_osm_streets(fpath):
 
 def download_osm_streets(bbox_coords, exp_path):
     """
-    Queries Overpass API for streets inside *bbox_coords* and saves them into a
-    csv file.
+    Queries Overpass API for streets inside *bbox_coords* and saves them into \
+    a csv file.
 
     Args:
-        bbox_coords (tuple): Contains the bounding box coords to download from
-            the API in (south, west, north, east) format
+        bbox_coords (tuple): Contains the bounding box coords to download \
+            from the API in (south, west, north, east) format
         exp_path (str): Path to write
 
     Returns:

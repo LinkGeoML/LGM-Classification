@@ -13,8 +13,8 @@ import writers as wrtrs
 
 def main():
     """
-    Implements the fourth step of the experiment pipeline. This step reads the
-    best performing configuration from the previous steps and trains the
+    Implements the fourth step of the experiment pipeline. This step reads \
+    the best performing configuration from the previous steps and trains the \
     corresponding model on all available train dataset.
 
     Returns:

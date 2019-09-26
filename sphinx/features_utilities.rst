@@ -1,5 +1,5 @@
-Features Utilities Documentation
-================================
+Features utilities
+==================
 
 .. automodule:: features_utilities
     :members:

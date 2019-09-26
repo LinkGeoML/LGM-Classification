@@ -83,7 +83,7 @@ features_getter_args_map = {
 
 def load_poi_gdf(poi_fpath):
     """
-    Loads pois in *poi_fpath* into a geopandas.GeoDataFrame and project their
+    Loads pois in *poi_fpath* into a geopandas.GeoDataFrame and project their \
     geometries.
 
     Args:
@@ -108,9 +108,9 @@ def encode_labels(poi_gdf, encoder=None):
     Encodes target column to with integer values.
 
     Args:
-        poi_gdf (geopandas.GeoDataFrame): The GeoDataFrame containing the
+        poi_gdf (geopandas.GeoDataFrame): The GeoDataFrame containing the \
             column to be encoded
-        encoder (sklearn.preprocessing.LabelEncoder, optional): The label
+        encoder (sklearn.preprocessing.LabelEncoder, optional): The label \
             encoder to be utilized
 
     Returns:
@@ -128,7 +128,7 @@ def encode_labels(poi_gdf, encoder=None):
 
 def load_street_gdf(street_fpath):
     """
-    Loads streets in *street_fpath* into a geopandas.GeoDataFrame and project
+    Loads streets in *street_fpath* into a geopandas.GeoDataFrame and project \
     their geometries.
 
     Args:
@@ -171,11 +171,11 @@ def get_bbox_coords(poi_gdf):
 
 def get_required_external_files(poi_gdf, feature_sets_path):
     """
-    Checks if external files are required and if so, downloads them using the
+    Checks if external files are required and if so, downloads them using the \
     Overpass API.
 
     Args:
-        poi_gdf (geopandas.GeoDataFrame): Contains pois in order to define
+        poi_gdf (geopandas.GeoDataFrame): Contains pois in order to define \
             the area to query with Overpass API
         feature_sets_path (str): Path to store the downloaded elements
 
@@ -203,7 +203,7 @@ def ngrams(n, word):
         word (str): The word of which the ngrams are to be extracted
 
     Yields:
-        Generator
+        str: ngram
     """
     for i in range(len(word)-n-1):
         yield word[i:i+n]
@@ -211,7 +211,7 @@ def ngrams(n, word):
 
 def get_top_k(names, k, mode='term'):
     """
-    Extracts the top *k*% terms or ngrams of *names*, based on *mode*.
+    Extracts the top *k* % terms or ngrams of *names*, based on *mode*.
 
     Args:
         names (list): Contains the names to be considered
@@ -237,7 +237,7 @@ def normalize_features(X, train_idxs, scaler=None):
     Args:
         X (numpy.ndarray): Features array to be normalized
         train_idxs (numpy.ndarray): Contains the train indexes
-        scaler (sklearn.preprocessing.MinMaxScaler, optional): Scaler to be
+        scaler (sklearn.preprocessing.MinMaxScaler, optional): Scaler to be \
             utilized
 
     Returns:
@@ -264,14 +264,14 @@ def get_pois_by_street(poi_gdf, street_gdf):
     Matches each poi in *poi_gdf* to its nearest street.
 
     Args:
-        poi_gdf (geopandas.GeoDataFrame): Contains pois to be matched to
+        poi_gdf (geopandas.GeoDataFrame): Contains pois to be matched to \
             a street
-        street_gdf (geopandas.GeoDataFrame): Contains streets to search among
+        street_gdf (geopandas.GeoDataFrame): Contains streets to search among \
             them for the nearest to each poi
 
     Returns:
-        dict: Has streets ids as keys and a list containing
-            the pois which belong to each street as values
+        dict: Has streets ids as keys and a list containing the pois which \
+            belong to each street as values
     """
     street_index = street_gdf.sindex
     pois_by_street = dict((s, []) for s in range(len(street_gdf)))
@@ -291,15 +291,15 @@ def create_args_dict(poi_gdf, train_idxs, required_args, read_path, write_path):
     Instantiate and prepare structures required during features extraction.
 
     Args:
-        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which features
-            will be created
+        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which \
+            features will be created
         train_idxs (numpy.ndarray): Contains the train indexes
         required_args (set): Contains the names of the required args
         read_path (str): Path to read from
         write_path (str): Path to write to
 
     Returns:
-        dict: Containing arguments names as keys and their corresponding
+        dict: Containing arguments names as keys and their corresponding \
             structures as values
     """
     args = {'poi_gdf': poi_gdf, 'nlabels': poi_gdf['label'].nunique()}
@@ -330,8 +330,8 @@ def create_single_feature(f, args, train_idxs, norm, scaler):
         f (str): Feature name to be created
         args (dict): Containing the required arguments for feature *f*
         train_idxs (numpy.ndarray): Contains the train indexes
-        norm (boolean): Indicating whether the feature should be normalized or
-            not
+        norm (boolean): Indicating whether the feature should be normalized \
+            or not
         scaler (sklearn.preprocessing.MinMaxScaler): The scaler to be utilized
 
     Returns:
@@ -353,7 +353,7 @@ def create_single_features(poi_gdf, train_idxs, fold_path):
     Creates all the included features arrays and saves them in *fold_path*.
 
     Args:
-        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which the
+        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which the \
             features will be created
         train_idxs (numpy.ndarray): Contains the train indexes
         fold_path (str): Path to save features arrays
@@ -382,13 +382,13 @@ def create_single_features(poi_gdf, train_idxs, fold_path):
 
 def create_concatenated_features(poi_gdf, train_idxs, test_idxs, fold_path):
     """
-    Loads a list of included features arrays in order to concatenate them into
-    the final X_train and X_test arrays. Then saves these arrays as well as the
-    corresponding y_train and y_test arrays. Finally, writes the included
-    features configuration into a file.
+    Loads a list of included features arrays in order to concatenate them \
+    into the final X_train and X_test arrays. Then saves these arrays as well \
+    as the corresponding y_train and y_test arrays. Finally, writes the \
+    included features configuration into a file.
 
     Args:
-        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which the
+        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which the \
             features will be created
         train_idxs (numpy.ndarray): Contains the train indexes
         test_idxs (numpy.ndarray): Contains the test indexes
@@ -431,13 +431,13 @@ def create_finetuned_features(poi_gdf, features_info, best_feature_params, featu
     Creates and saves the X_train features array for the model_training step.
 
     Args:
-        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which the
+        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which the \
             features will be created
-        features_info (list): Containing the features (and whether they should
-            be normalized or not) to be extracted
-        best_feature_params (dict): Containing the best found features
+        features_info (list): Containing the features (and whether they \
+            should be normalized or not) to be extracted
+        best_feature_params (dict): Containing the best found features \
             parameters values
-        features_path (str): Path in order to read required external files
+        features_path (str): Path in order to read required external files \
             (like osm streets file)
         results_path (str): Path to write to
 
@@ -464,18 +464,18 @@ def create_finetuned_features(poi_gdf, features_info, best_feature_params, featu
 
 def create_test_args_dict(test_poi_gdf, required_args, read_path1, read_path2):
     """
-    Instantiate and prepare structures required during features extraction in
+    Instantiate and prepare structures required during features extraction in \
     model_deployment step.
 
     Args:
-        test_poi_gdf (geopandas.GeoDataFrame): Contains the pois for which
+        test_poi_gdf (geopandas.GeoDataFrame): Contains the pois for which \
             features will be created
         required_args (set): Contains the names of the required args
         read_path1 (str): Path to features_extraction step results
         read_path2 (str): Path to model_training step results
 
     Returns:
-        dict: Containing arguments names as keys and their corresponding
+        dict: Containing arguments names as keys and their corresponding \
             structures as values
     """
     train_poi_gdf = load_poi_gdf(read_path1 + '/train_poi_gdf.csv')
@@ -505,9 +505,9 @@ def create_test_features(poi_gdf, features, features_path, model_training_path, 
     Creates and saves the X_test features array for the model_deployment step.
 
     Args:
-        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which the
+        poi_gdf (geopandas.GeoDataFrame): Contains the pois for which the \
             features will be created
-        features (list): Containing the features (as well as their best found
+        features (list): Containing the features (as well as their best found \
             configuration) to be extracted
         features_path (str): Path to features_extraction step results
         model_training_path (str): Path to model_training step results
