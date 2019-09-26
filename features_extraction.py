@@ -11,6 +11,14 @@ from config import config
 
 
 def main():
+    """
+    Implements the first step of the experiment pipeline. Creates a series of
+    X_train, X_test pairs (based on different features parameters combinations)
+    for each one of the folds.
+
+    Returns:
+        None
+    """
     # Create folder to store experiment
     date_time = datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
     exp_path = config.experiments_path + '/exp_' + date_time

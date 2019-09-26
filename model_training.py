@@ -12,6 +12,14 @@ import writers as wrtrs
 
 
 def main():
+    """
+    Implements the fourth step of the experiment pipeline. This step reads the
+    best performing configuration from the previous steps and trains the
+    corresponding model on all available train dataset.
+
+    Returns:
+        None
+    """
     # Construct argument parser and parse arguments
     ap = argparse.ArgumentParser()
     ap.add_argument('-experiment_path', required=True)

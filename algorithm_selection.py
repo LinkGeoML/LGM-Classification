@@ -10,6 +10,14 @@ from config import config
 
 
 def main():
+    """
+    Implements the second step of the experiment pipeline. Trains a series of
+    classifiers based on different configurations in terms of both features and
+    classifiers hyperparameters in a nested cross validation scheme.
+
+    Returns:
+        None
+    """
     # Construct argument parser and parse arguments
     ap = argparse.ArgumentParser()
     ap.add_argument('-experiment_path', required=True)

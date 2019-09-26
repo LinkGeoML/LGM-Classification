@@ -8,6 +8,19 @@ from config import config
 
 
 def write_feature_params_info(fpath, params_names, params_vals):
+    """
+    Creates a csv file defining the features parameters used in each of the
+    features sets.
+
+    Args:
+        fpath (str): File path to write
+        params_names (list): Contains the features parameters names
+        params_vals (list): Contains a list with values for each feature
+            parameter
+
+    Returns:
+        None
+    """
     params_info = {}
     for idx, params in enumerate(product(*params_vals)):
         features_params = dict(zip(params_names, params))
@@ -21,6 +34,22 @@ def write_feature_params_info(fpath, params_names, params_vals):
 
 
 def write_feature_space(fpath, features_info=None, best_params=None):
+    """
+    Creates a csv file containing the features configuration to be searched
+    (namely included features as well as their parameters to be finetuned and
+    whether normalizaton should be used or not). If *best_params* is given,
+    then the csv will present the finetuned features parameters values instead.
+
+    Args:
+        fpath (str): File path to write
+        features_info (list, optional): Contains (features, normalized or not)
+            pairs
+        best_params (dict, optional): Contains features as keys and the
+            corresponding finetuned values as values
+
+    Returns:
+        None
+    """
     with open(fpath, 'w') as file:
         writer = csv.writer(file)
         writer.writerow(['Feature', 'Parameter', 'Parameter values', 'Normalized'])
@@ -44,6 +73,20 @@ def write_feature_space(fpath, features_info=None, best_params=None):
 
 
 def write_classifier_space(fpath, clf_name, best_params=None):
+    """
+    Creates a csv file containing the chosen classifier's name as well as the
+    hyperparameters space to be searched. If *best_params* is given, then the
+    csv will present the finetuned hyperparameters values instead.
+
+    Args:
+        fpath (str): File path to write
+        clf_name (str): Name of the utilized classifier
+        best_params (dict, optional): Contains hyperparameters names as keys
+            and the corresponding finetuned values as values
+
+    Returns:
+        None
+    """
     with open(fpath, 'w') as file:
         writer = csv.writer(file)
         writer.writerow(['Classifier', 'Parameters'])
@@ -55,6 +98,16 @@ def write_classifier_space(fpath, clf_name, best_params=None):
 
 
 def write_evaluation_space(fpath):
+    """
+    Creates a csv file that contains all the included classifiers as well as
+    the hyperparameters space to be searched for each of them.
+
+    Args:
+        fpath (str): File path to write
+
+    Returns:
+        None
+    """
     with open(fpath, 'w') as file:
         writer = csv.writer(file)
         writer.writerow(['Classifier', 'Parameters'])
@@ -67,6 +120,17 @@ def write_evaluation_space(fpath):
 
 
 def write_evaluation_results(results_path, results_dict):
+    """
+    Creates three csv files that present (a) full results (b) results per fold
+    and (c) results per classifier of the algorithm_selection step.
+
+    Args:
+        results_path (str): Path to write
+        results_dict (dict): Contains the algorithm_selection step's results
+
+    Returns:
+        None
+    """
     all_results_df = pd.DataFrame(results_dict)
     all_results_df.to_csv(
         results_path + '/all_results.csv',
@@ -85,6 +149,18 @@ def write_evaluation_results(results_path, results_dict):
 
 
 def write_finetuning_results(results_path, results_dict):
+    """
+    Creates two csv files that present (a) full results and (b) results per
+    feature set and classifier hyperparameters used of the model_selection
+    step.
+
+    Args:
+        results_path (str): Path to write
+        results_dict (dict): Contains the model_selection step's results
+
+    Returns:
+        None
+    """
     all_results_df = pd.DataFrame(results_dict)
     all_results_df.to_csv(
         results_path + '/all_results.csv',
@@ -101,6 +177,19 @@ def write_finetuning_results(results_path, results_dict):
 
 
 def write_predictions(fpath, poi_gdf, k_preds):
+    """
+    Creates a csv file to present the top k predictions (in (predicted label,
+    score) pairs).
+
+    Args:
+        fpath (str): File path to write
+        poi_gdf (geopandas.GeoDataFrame): Contains the pois to which the
+            predictions refer to
+        k_preds (list): Contains (predicted label, score) pairs
+
+    Returns:
+        None
+    """
     with open(fpath, 'w', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow([

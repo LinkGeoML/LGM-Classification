@@ -6,6 +6,16 @@ from shapely.geometry import LineString, Polygon
 
 
 def query_osm_data(query, fpath):
+    """
+    Queries Overpass API for *query*.
+
+    Args:
+        query (str): The query to be passed to API
+        fpath (str): File path to write the API response
+
+    Returns:
+        None
+    """
     overpass_url = 'http://overpass-api.de/api/interpreter'
     response = requests.get(overpass_url, params={'data':query}).json()
     with open(fpath, 'w') as f:
@@ -14,6 +24,15 @@ def query_osm_data(query, fpath):
 
 
 def parse_osm_streets(fpath):
+    """
+    Parses the API response from *fpath* and converts it to a dataframe.
+
+    Args:
+        fpath (str): File path to read
+
+    Returns:
+        pandas.DataFrame: Contains all streets as well as their geometries
+    """
     # Helper function
     def convert_to_wkt_geometry(row):
         lons = [p['lon'] for p in row['geometry']]
@@ -31,6 +50,18 @@ def parse_osm_streets(fpath):
 
 
 def download_osm_streets(bbox_coords, exp_path):
+    """
+    Queries Overpass API for streets inside *bbox_coords* and saves them into a
+    csv file.
+
+    Args:
+        bbox_coords (tuple): Contains the bounding box coords to download from
+            the API in (south, west, north, east) format
+        exp_path (str): Path to write
+
+    Returns:
+        None
+    """
     fpath = exp_path + '/osm_streets.json'
     query = (
         '[out:json]'
