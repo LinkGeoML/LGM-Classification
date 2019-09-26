@@ -10,6 +10,13 @@ Welcome to LGM-Classification's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   adjacency_features
+   textual_features
+   features_utilities
+   clf_utilities
+   osm_utilities
+   writers
+   config
 
 
 Indices and tables
