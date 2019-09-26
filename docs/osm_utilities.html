@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>OSM utilities &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Writers" href="writers.html" />
+    <link rel="prev" title="Classifiers utilities" href="clf_utilities.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>OSM utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/osm_utilities.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-osm_utilities">
+<span id="osm-utilities"></span><h1>OSM utilities<a class="headerlink" href="#module-osm_utilities" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="osm_utilities.download_osm_streets">
+<code class="sig-prename descclassname">osm_utilities.</code><code class="sig-name descname">download_osm_streets</code><span class="sig-paren">(</span><em class="sig-param">bbox_coords</em>, <em class="sig-param">exp_path</em><span class="sig-paren">)</span><a class="headerlink" href="#osm_utilities.download_osm_streets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queries Overpass API for streets inside <em>bbox_coords</em> and saves them into     a csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox_coords</strong> (<em>tuple</em>) – Contains the bounding box coords to download             from the API in (south, west, north, east) format</p></li>
+<li><p><strong>exp_path</strong> (<em>str</em>) – Path to write</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="osm_utilities.parse_osm_streets">
+<code class="sig-prename descclassname">osm_utilities.</code><code class="sig-name descname">parse_osm_streets</code><span class="sig-paren">(</span><em class="sig-param">fpath</em><span class="sig-paren">)</span><a class="headerlink" href="#osm_utilities.parse_osm_streets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses the API response from <em>fpath</em> and converts it to a dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fpath</strong> (<em>str</em>) – File path to read</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Contains all streets as well as their geometries</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="osm_utilities.query_osm_data">
+<code class="sig-prename descclassname">osm_utilities.</code><code class="sig-name descname">query_osm_data</code><span class="sig-paren">(</span><em class="sig-param">query</em>, <em class="sig-param">fpath</em><span class="sig-paren">)</span><a class="headerlink" href="#osm_utilities.query_osm_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queries Overpass API for <em>query</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> (<em>str</em>) – The query to be passed to API</p></li>
+<li><p><strong>fpath</strong> (<em>str</em>) – File path to write the API response</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="writers.html" class="btn btn-neutral float-right" title="Writers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="clf_utilities.html" class="btn btn-neutral float-left" title="Classifiers utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,372 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Classifiers utilities &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="OSM utilities" href="osm_utilities.html" />
+    <link rel="prev" title="Features utilities" href="features_utilities.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Classifiers utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/clf_utilities.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-clf_utilities">
+<span id="classifiers-utilities"></span><h1>Classifiers utilities<a class="headerlink" href="#module-clf_utilities" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="clf_utilities.create_clf_params_product_generator">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">create_clf_params_product_generator</code><span class="sig-paren">(</span><em class="sig-param">params_grid</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.create_clf_params_product_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates all possible combinations of classifier’s hyperparameters values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>params_grid</strong> (<em>dict</em>) – Contains classifier’s hyperparameters names as             keys and the correspoding search space as values</p>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>dict</em> – Contains a classifier’s hyperparameters configuration</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clf_utilities.create_feature_sets_generator">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">create_feature_sets_generator</code><span class="sig-paren">(</span><em class="sig-param">fold_path</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.create_feature_sets_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a generator yielding features sets names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fold_path</strong> (<em>str</em>) – Path to read features sets</p>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>list</em> – pairs of X_train, X_test features sets names</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clf_utilities.evaluate">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">y_test</em>, <em class="sig-param">y_pred</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates model predictions through a series of metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_test</strong> (<em>numpy.ndarray</em>) – True labels</p></li>
+<li><p><strong>y_pred</strong> (<em>numpy.ndarray</em>) – Predicted labels</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Contains metrics names as keys and the corresponding values as         values</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clf_utilities.get_top_k_predictions">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">get_top_k_predictions</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">X_test</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.get_top_k_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes predictions utilizing <em>model</em> over <em>X_test</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>object</em>) – The model to be used for predictions</p></li>
+<li><p><strong>X_test</strong> (<em>numpy.ndarray</em>) – The test features array</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Contains predictions in (label, score) pairs</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clf_utilities.inverse_transform_labels">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">inverse_transform_labels</code><span class="sig-paren">(</span><em class="sig-param">encoder</em>, <em class="sig-param">k_preds</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.inverse_transform_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utilizes <em>encoder</em> to transform encoded labels back to the original     strings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encoder</strong> (<em>sklearn.preprocessing.LabelEncoder</em>) – The encoder to be             utilized</p></li>
+<li><p><strong>k_preds</strong> (<em>list</em>) – Contains predictions in (label, score) pairs</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Contains predictions in (label, score) pairs, where label is             now in the original string format</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clf_utilities.is_valid">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">is_valid</code><span class="sig-paren">(</span><em class="sig-param">clf_name</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether <em>clf_name</em> is a valid classifier’s name with respect to     the experiment setup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>clf_name</strong> (<em>str</em>) – Classifier’s name</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns True if given classifier’s name is valid</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clf_utilities.k_accuracy_score">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">k_accuracy_score</code><span class="sig-paren">(</span><em class="sig-param">y_test</em>, <em class="sig-param">k_best</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.k_accuracy_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measures the defined k-accuracy metric. For each poi, a successful     prediction is considered if true label appears in the top k labels     predicted by the model,</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_test</strong> (<em>numpy.ndarray</em>) – True labels</p></li>
+<li><p><strong>k_best</strong> (<em>numpy.ndarray</em>) – Top k predicted labels</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The k accuracy score</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clf_utilities.normalize_scores">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">normalize_scores</code><span class="sig-paren">(</span><em class="sig-param">scores</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.normalize_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes predictions scores to a probabilities-like format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>scores</strong> (<em>list</em>) – Contains the predictions scores as predicted by the             model</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The normalized scores</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="clf_utilities.train_classifier">
+<code class="sig-prename descclassname">clf_utilities.</code><code class="sig-name descname">train_classifier</code><span class="sig-paren">(</span><em class="sig-param">clf_name</em>, <em class="sig-param">X_train</em>, <em class="sig-param">y_train</em><span class="sig-paren">)</span><a class="headerlink" href="#clf_utilities.train_classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains a classifier through grid search.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clf_name</strong> (<em>str</em>) – Classifier’s name to be trained</p></li>
+<li><p><strong>X_train</strong> (<em>numpy.ndarray</em>) – Train features array</p></li>
+<li><p><strong>y_train</strong> (<em>numpy.ndarray</em>) – Train labels array</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The trained classifier</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="osm_utilities.html" class="btn btn-neutral float-right" title="OSM utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="features_utilities.html" class="btn btn-neutral float-left" title="Features utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

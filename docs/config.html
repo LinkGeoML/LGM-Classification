@@ -1,0 +1,564 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Config &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Writers" href="writers.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writers.html">Writers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Config</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/config.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-config">
+<span id="config"></span><h1>Config<a class="headerlink" href="#module-config" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="config.config">
+<em class="property">class </em><code class="sig-prename descclassname">config.</code><code class="sig-name descname">config</code><a class="headerlink" href="#config.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that defines the experiment configuration.</p>
+<dl class="attribute">
+<dt id="config.config.poi_fpath">
+<code class="sig-name descname">poi_fpath</code><a class="headerlink" href="#config.config.poi_fpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to csv file containing train pois</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.experiments_path">
+<code class="sig-name descname">experiments_path</code><a class="headerlink" href="#config.config.experiments_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to folder that stores the experiments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.supported_adjacency_features">
+<code class="sig-name descname">supported_adjacency_features</code><a class="headerlink" href="#config.config.supported_adjacency_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of the supported adjacency             features to choose from</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.supported_textual_features">
+<code class="sig-name descname">supported_textual_features</code><a class="headerlink" href="#config.config.supported_textual_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of the supported textual             features to choose from</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.included_adjacency_features">
+<code class="sig-name descname">included_adjacency_features</code><a class="headerlink" href="#config.config.included_adjacency_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of the adjacency features to             be included in the experiment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.included_textual_features">
+<code class="sig-name descname">included_textual_features</code><a class="headerlink" href="#config.config.included_textual_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of the textual features to             be included in the experiment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.normalized_features">
+<code class="sig-name descname">normalized_features</code><a class="headerlink" href="#config.config.normalized_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of features to be normalized</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.classes_in_radius_thr">
+<code class="sig-name descname">classes_in_radius_thr</code><a class="headerlink" href="#config.config.classes_in_radius_thr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameter space for             ‘classes_in_radius_bln’ and ‘classes_in_radius_cnt’ features</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.classes_in_street_and_radius_thr">
+<code class="sig-name descname">classes_in_street_and_radius_thr</code><a class="headerlink" href="#config.config.classes_in_street_and_radius_thr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameter space for             ‘classes_in_street_and_radius_bln’ and             ‘classes_in_street_and_radius_cnt’ features</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.classes_in_neighbors_thr">
+<code class="sig-name descname">classes_in_neighbors_thr</code><a class="headerlink" href="#config.config.classes_in_neighbors_thr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameter space for             ‘classes_in_neighbors_bln’ and ‘classes_in_neighbors_cnt’ features</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.top_k_terms_pct">
+<code class="sig-name descname">top_k_terms_pct</code><a class="headerlink" href="#config.config.top_k_terms_pct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameter space for ‘top_k_terms’ feature</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.top_k_trigrams_pct">
+<code class="sig-name descname">top_k_trigrams_pct</code><a class="headerlink" href="#config.config.top_k_trigrams_pct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameter space for ‘top_k_trigrams’ feature</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.top_k_fourgrams_pct">
+<code class="sig-name descname">top_k_fourgrams_pct</code><a class="headerlink" href="#config.config.top_k_fourgrams_pct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameter space for ‘top_k_fourgrams’             feature</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.n_folds">
+<code class="sig-name descname">n_folds</code><a class="headerlink" href="#config.config.n_folds" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of folds in the experiment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.supported_classifiers">
+<code class="sig-name descname">supported_classifiers</code><a class="headerlink" href="#config.config.supported_classifiers" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of the supported classifiers to             choose from</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.included_classifiers">
+<code class="sig-name descname">included_classifiers</code><a class="headerlink" href="#config.config.included_classifiers" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of the classifiers to be included             in the experiment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.NaiveBayes_hyperparameters">
+<code class="sig-name descname">NaiveBayes_hyperparameters</code><a class="headerlink" href="#config.config.NaiveBayes_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters search space for Naive             Bayes classifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.kNN_hyperparameters">
+<code class="sig-name descname">kNN_hyperparameters</code><a class="headerlink" href="#config.config.kNN_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters search space for Nearest             Neighbors classifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.LogisticRegression_hyperparameters">
+<code class="sig-name descname">LogisticRegression_hyperparameters</code><a class="headerlink" href="#config.config.LogisticRegression_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters search space             for Logistic Regression classifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.SVM_hyperparameters">
+<code class="sig-name descname">SVM_hyperparameters</code><a class="headerlink" href="#config.config.SVM_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters search space for SVM classifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.MLP_hyperparameters">
+<code class="sig-name descname">MLP_hyperparameters</code><a class="headerlink" href="#config.config.MLP_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters search space for MLP classifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.DecisionTree_hyperparameters">
+<code class="sig-name descname">DecisionTree_hyperparameters</code><a class="headerlink" href="#config.config.DecisionTree_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters search space for             Decision Tree classifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.RandomForest_hyperparameters">
+<code class="sig-name descname">RandomForest_hyperparameters</code><a class="headerlink" href="#config.config.RandomForest_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters search space for             Random Forest classifier</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.top_k">
+<code class="sig-name descname">top_k</code><a class="headerlink" href="#config.config.top_k" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of different <em>k</em>, in order to measure             top-<em>k</em>-accuracy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.k_preds">
+<code class="sig-name descname">k_preds</code><a class="headerlink" href="#config.config.k_preds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of top predictions to take into consideration</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.osm_crs">
+<code class="sig-name descname">osm_crs</code><a class="headerlink" href="#config.config.osm_crs" title="Permalink to this definition">¶</a></dt>
+<dd><p>The EPSG crs code that OSM uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.id_col">
+<code class="sig-name descname">id_col</code><a class="headerlink" href="#config.config.id_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name referring to poi’s id</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.name_col">
+<code class="sig-name descname">name_col</code><a class="headerlink" href="#config.config.name_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name referring to poi’s name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.label_col">
+<code class="sig-name descname">label_col</code><a class="headerlink" href="#config.config.label_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name referring to poi’s label</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.lon_col">
+<code class="sig-name descname">lon_col</code><a class="headerlink" href="#config.config.lon_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name referring to poi’s longitude</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.lat_col">
+<code class="sig-name descname">lat_col</code><a class="headerlink" href="#config.config.lat_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name referring to poi’s latitude</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="config.config.poi_crs">
+<code class="sig-name descname">poi_crs</code><a class="headerlink" href="#config.config.poi_crs" title="Permalink to this definition">¶</a></dt>
+<dd><p>The EPSG crs code used in the pois csv file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="writers.html" class="btn btn-neutral float-left" title="Writers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

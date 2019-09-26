@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Textual features &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Features utilities" href="features_utilities.html" />
+    <link rel="prev" title="Adjacency features" href="adjacency_features.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Textual features</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/textual_features.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-textual_features">
+<span id="textual-features"></span><h1>Textual features<a class="headerlink" href="#module-textual_features" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="textual_features.create_textual_index">
+<code class="sig-prename descclassname">textual_features.</code><code class="sig-name descname">create_textual_index</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#textual_features.create_textual_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates index containing the pois names given.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains pois to be stored in the             index</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Path to save the index</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="textual_features.get_similarity_per_class">
+<code class="sig-prename descclassname">textual_features.</code><code class="sig-name descname">get_similarity_per_class</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">textual_index_path</em>, <em class="sig-param">nlabels</em><span class="sig-paren">)</span><a class="headerlink" href="#textual_features.get_similarity_per_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a features array. For each poi <em>p</em> (each row) the array will     contain a score in column <em>c</em>, representing how similar <em>p</em>’s name is     with each poi category.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains pois for which the             features will be created</p></li>
+<li><p><strong>textual_index_path</strong> (<em>str</em>) – Path to the stored index</p></li>
+<li><p><strong>nlabels</strong> (<em>int</em>) – Number of poi categories</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The features array of shape (n_samples, n_features),             here (len(poi_gdf), nlabels)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="textual_features.get_top_k_fourgrams">
+<code class="sig-prename descclassname">textual_features.</code><code class="sig-name descname">get_top_k_fourgrams</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">names</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="headerlink" href="#textual_features.get_top_k_fourgrams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a features array. Firstly, the top <em>k</em> % fourgrams among <em>names</em>     are considered (e.g. a set of fourgrams <em>T</em>). Then, for each poi <em>p</em>     (each row) the array will contain 1 (True) in column <em>c</em>, if fourgrams     <em>T[c]</em> appears in <em>p</em>’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains pois for which the             features will be created</p></li>
+<li><p><strong>names</strong> (<em>list</em>) – Contains the names of train pois</p></li>
+<li><p><strong>k</strong> (<em>float</em>) – Percentage of top fourgrams to be considered</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The features array of shape (n_samples, n_features),             here (len(poi_gdf), len(<em>T</em>))</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="textual_features.get_top_k_terms">
+<code class="sig-prename descclassname">textual_features.</code><code class="sig-name descname">get_top_k_terms</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">names</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="headerlink" href="#textual_features.get_top_k_terms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a features array. Firstly, the top <em>k</em> % terms among <em>names</em> are     considered (e.g. a set of terms <em>T</em>). Then, for each poi <em>p</em> (each row)     the array will contain 1 (True) in column <em>c</em>, if term <em>T[c]</em> appears in     <em>p</em>’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains pois for which the             features will be created</p></li>
+<li><p><strong>names</strong> (<em>list</em>) – Contains the names of train pois</p></li>
+<li><p><strong>k</strong> (<em>float</em>) – Percentage of top terms to be considered</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The features array of shape (n_samples, n_features),             here (len(poi_gdf), len(<em>T</em>))</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="textual_features.get_top_k_trigrams">
+<code class="sig-prename descclassname">textual_features.</code><code class="sig-name descname">get_top_k_trigrams</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">names</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="headerlink" href="#textual_features.get_top_k_trigrams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a features array. Firstly, the top <em>k</em> % trigrams among <em>names</em>     are considered (e.g. a set of trigrams <em>T</em>). Then, for each poi <em>p</em> (each     row) the array will contain 1 (True) in column <em>c</em>, if trigram <em>T[c]</em>     appears in <em>p</em>’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains pois for which the             features will be created</p></li>
+<li><p><strong>names</strong> (<em>list</em>) – Contains the names of train pois</p></li>
+<li><p><strong>k</strong> (<em>float</em>) – Percentage of top trigrams to be considered</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The features array of shape (n_samples, n_features),             here (len(poi_gdf), len(<em>T</em>))</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="features_utilities.html" class="btn btn-neutral float-right" title="Features utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="adjacency_features.html" class="btn btn-neutral float-left" title="Adjacency features" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

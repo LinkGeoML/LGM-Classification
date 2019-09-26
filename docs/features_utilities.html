@@ -1,0 +1,524 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Features utilities &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Classifiers utilities" href="clf_utilities.html" />
+    <link rel="prev" title="Textual features" href="textual_features.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="textual_features.html">Textual features</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Features utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/features_utilities.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-features_utilities">
+<span id="features-utilities"></span><h1>Features utilities<a class="headerlink" href="#module-features_utilities" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="features_utilities.create_args_dict">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_args_dict</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">required_args</em>, <em class="sig-param">read_path</em>, <em class="sig-param">write_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_args_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate and prepare structures required during features extraction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains the pois for which             features will be created</p></li>
+<li><p><strong>train_idxs</strong> (<em>numpy.ndarray</em>) – Contains the train indexes</p></li>
+<li><p><strong>required_args</strong> (<em>set</em>) – Contains the names of the required args</p></li>
+<li><p><strong>read_path</strong> (<em>str</em>) – Path to read from</p></li>
+<li><p><strong>write_path</strong> (<em>str</em>) – Path to write to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Containing arguments names as keys and their corresponding             structures as values</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.create_concatenated_features">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_concatenated_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">test_idxs</em>, <em class="sig-param">fold_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_concatenated_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a list of included features arrays in order to concatenate them     into the final X_train and X_test arrays. Then saves these arrays as well     as the corresponding y_train and y_test arrays. Finally, writes the     included features configuration into a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains the pois for which the             features will be created</p></li>
+<li><p><strong>train_idxs</strong> (<em>numpy.ndarray</em>) – Contains the train indexes</p></li>
+<li><p><strong>test_idxs</strong> (<em>numpy.ndarray</em>) – Contains the test indexes</p></li>
+<li><p><strong>fold_path</strong> (<em>str</em>) – Path to save features arrays</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.create_finetuned_features">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_finetuned_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">features_info</em>, <em class="sig-param">best_feature_params</em>, <em class="sig-param">features_path</em>, <em class="sig-param">results_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_finetuned_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and saves the X_train features array for the model_training step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains the pois for which the             features will be created</p></li>
+<li><p><strong>features_info</strong> (<em>list</em>) – Containing the features (and whether they             should be normalized or not) to be extracted</p></li>
+<li><p><strong>best_feature_params</strong> (<em>dict</em>) – Containing the best found features             parameters values</p></li>
+<li><p><strong>features_path</strong> (<em>str</em>) – Path in order to read required external files             (like osm streets file)</p></li>
+<li><p><strong>results_path</strong> (<em>str</em>) – Path to write to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The features array for model_training step</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.create_single_feature">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_single_feature</code><span class="sig-paren">(</span><em class="sig-param">f</em>, <em class="sig-param">args</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">norm</em>, <em class="sig-param">scaler</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_single_feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the features array given a feature’s name <em>f</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>str</em>) – Feature name to be created</p></li>
+<li><p><strong>args</strong> (<em>dict</em>) – Containing the required arguments for feature <em>f</em></p></li>
+<li><p><strong>train_idxs</strong> (<em>numpy.ndarray</em>) – Contains the train indexes</p></li>
+<li><p><strong>norm</strong> (<em>boolean</em>) – Indicating whether the feature should be normalized             or not</p></li>
+<li><p><strong>scaler</strong> (<em>sklearn.preprocessing.MinMaxScaler</em>) – The scaler to be utilized</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The features array of feature <em>f</em>
+sklearn.preprocessing.MinMaxScaler: The scaler utilized</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.create_single_features">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_single_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">fold_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_single_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates all the included features arrays and saves them in <em>fold_path</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains the pois for which the             features will be created</p></li>
+<li><p><strong>train_idxs</strong> (<em>numpy.ndarray</em>) – Contains the train indexes</p></li>
+<li><p><strong>fold_path</strong> (<em>str</em>) – Path to save features arrays</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.create_test_args_dict">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_test_args_dict</code><span class="sig-paren">(</span><em class="sig-param">test_poi_gdf</em>, <em class="sig-param">required_args</em>, <em class="sig-param">read_path1</em>, <em class="sig-param">read_path2</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_test_args_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate and prepare structures required during features extraction in     model_deployment step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>test_poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains the pois for which             features will be created</p></li>
+<li><p><strong>required_args</strong> (<em>set</em>) – Contains the names of the required args</p></li>
+<li><p><strong>read_path1</strong> (<em>str</em>) – Path to features_extraction step results</p></li>
+<li><p><strong>read_path2</strong> (<em>str</em>) – Path to model_training step results</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Containing arguments names as keys and their corresponding             structures as values</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.create_test_features">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_test_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">features</em>, <em class="sig-param">features_path</em>, <em class="sig-param">model_training_path</em>, <em class="sig-param">results_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_test_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and saves the X_test features array for the model_deployment step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains the pois for which the             features will be created</p></li>
+<li><p><strong>features</strong> (<em>list</em>) – Containing the features (as well as their best found             configuration) to be extracted</p></li>
+<li><p><strong>features_path</strong> (<em>str</em>) – Path to features_extraction step results</p></li>
+<li><p><strong>model_training_path</strong> (<em>str</em>) – Path to model_training step results</p></li>
+<li><p><strong>results_path</strong> (<em>str</em>) – Path to write to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The features array for model_deployment step</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.encode_labels">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">encode_labels</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">encoder=None</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.encode_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encodes target column to with integer values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – The GeoDataFrame containing the             column to be encoded</p></li>
+<li><p><strong>encoder</strong> (<em>sklearn.preprocessing.LabelEncoder</em><em>, </em><em>optional</em>) – The label             encoder to be utilized</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The GeoDataFrame with the encoded column
+sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>geopandas.GeoDataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.get_bbox_coords">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_bbox_coords</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.get_bbox_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a bounding box containing all <em>poi_gdf</em>’s pois.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains the pois</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The bounding box coords as (south, west, north, east)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.get_pois_by_street">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_pois_by_street</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">street_gdf</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.get_pois_by_street" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches each poi in <em>poi_gdf</em> to its nearest street.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains pois to be matched to             a street</p></li>
+<li><p><strong>street_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains streets to search among             them for the nearest to each poi</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Has streets ids as keys and a list containing the pois which             belong to each street as values</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.get_required_external_files">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_required_external_files</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">feature_sets_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.get_required_external_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if external files are required and if so, downloads them using the     Overpass API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poi_gdf</strong> (<em>geopandas.GeoDataFrame</em>) – Contains pois in order to define             the area to query with Overpass API</p></li>
+<li><p><strong>feature_sets_path</strong> (<em>str</em>) – Path to store the downloaded elements</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.get_top_k">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_top_k</code><span class="sig-paren">(</span><em class="sig-param">names</em>, <em class="sig-param">k</em>, <em class="sig-param">mode='term'</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.get_top_k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the top <em>k</em> % terms or ngrams of <em>names</em>, based on <em>mode</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>names</strong> (<em>list</em>) – Contains the names to be considered</p></li>
+<li><p><strong>k</strong> (<em>float</em>) – Percentage of top terms or ngrams to be considered</p></li>
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – May be ‘term’, ‘trigram’ or ‘fourgram’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Contains the top k terms or ngrams</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.load_poi_gdf">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">load_poi_gdf</code><span class="sig-paren">(</span><em class="sig-param">poi_fpath</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.load_poi_gdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads pois in <em>poi_fpath</em> into a geopandas.GeoDataFrame and project their     geometries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>poi_fpath</strong> (<em>str</em>) – Path to file containing the pois</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>geopandas.GeoDataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.load_street_gdf">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">load_street_gdf</code><span class="sig-paren">(</span><em class="sig-param">street_fpath</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.load_street_gdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads streets in <em>street_fpath</em> into a geopandas.GeoDataFrame and project     their geometries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>street_fpath</strong> (<em>str</em>) – Path to file containing the streets</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>geopandas.GeoDataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.ngrams">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">ngrams</code><span class="sig-paren">(</span><em class="sig-param">n</em>, <em class="sig-param">word</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.ngrams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator of all <em>n</em>-grams of <em>word</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – The length of character ngrams to be extracted</p></li>
+<li><p><strong>word</strong> (<em>str</em>) – The word of which the ngrams are to be extracted</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>str</em> – ngram</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="features_utilities.normalize_features">
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">normalize_features</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">scaler=None</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.normalize_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize features to [0, 1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>numpy.ndarray</em>) – Features array to be normalized</p></li>
+<li><p><strong>train_idxs</strong> (<em>numpy.ndarray</em>) – Contains the train indexes</p></li>
+<li><p><strong>scaler</strong> (<em>sklearn.preprocessing.MinMaxScaler</em><em>, </em><em>optional</em>) – Scaler to be             utilized</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The normalized features array
+sklearn.preprocessing.MinMaxScaler: The scaler utilized</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="clf_utilities.html" class="btn btn-neutral float-right" title="Classifiers utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="textual_features.html" class="btn btn-neutral float-left" title="Textual features" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
