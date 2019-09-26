@@ -1,1 +1,3 @@
 /sphinx/_build
+/src/matching.py
+/src/geometric_features.py

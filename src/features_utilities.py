@@ -145,13 +145,13 @@ def load_street_gdf(street_fpath):
     return street_gdf
 
 
-def load_poly_gdf(poly_fpath):
-    poly_df = pd.read_csv(poly_fpath)
-    poly_df['geometry'] = poly_df['geometry'].apply(lambda x: loads(x))
-    poly_gdf = gpd.GeoDataFrame(poly_df, geometry='geometry')
-    poly_gdf.crs = {'init': f'epsg:{config.osm_crs}'}
-    poly_gdf = poly_gdf.to_crs({'init': 'epsg:3857'})
-    return poly_gdf
+# def load_poly_gdf(poly_fpath):
+#     poly_df = pd.read_csv(poly_fpath)
+#     poly_df['geometry'] = poly_df['geometry'].apply(lambda x: loads(x))
+#     poly_gdf = gpd.GeoDataFrame(poly_df, geometry='geometry')
+#     poly_gdf.crs = {'init': f'epsg:{config.osm_crs}'}
+#     poly_gdf = poly_gdf.to_crs({'init': 'epsg:3857'})
+#     return poly_gdf
 
 
 def get_bbox_coords(poi_gdf):
