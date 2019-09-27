@@ -288,7 +288,7 @@ def get_pois_by_street(poi_gdf, street_gdf):
 
 def create_args_dict(poi_gdf, train_idxs, required_args, read_path, write_path):
     """
-    Instantiate and prepare structures required during features extraction.
+    Initializes and prepares structures required during features extraction.
 
     Args:
         poi_gdf (geopandas.GeoDataFrame): Contains the pois for which \
