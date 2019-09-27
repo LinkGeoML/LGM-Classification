@@ -1,8 +1,7 @@
 import pandas as pd
-import re
 import json
 import requests
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString
 
 
 def query_osm_data(query, fpath):
@@ -37,6 +36,8 @@ def parse_osm_streets(fpath):
     def convert_to_wkt_geometry(row):
         lons = [p['lon'] for p in row['geometry']]
         lats = [p['lat'] for p in row['geometry']]
+        if len(lons) < 2 or len(lats) < 2:
+            return None
         return LineString(list(zip(lons, lats)))
 
     with open(fpath, encoding='utf-8') as f:
@@ -46,6 +47,7 @@ def parse_osm_streets(fpath):
     cols = ['id', 'geometry']
     street_df = pd.DataFrame(data=data, columns=cols)
     street_df['geometry'] = street_df.apply(convert_to_wkt_geometry, axis=1)
+    street_df = street_df.dropna()
     return street_df
 
 
