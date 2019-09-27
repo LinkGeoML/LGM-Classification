@@ -9,10 +9,10 @@ The module consists of the following steps:
 
 1. **Features extraction**
 
-   This step takes into account the features hyperparameters given in [config.py](./config.py) and creates a collection of X_train and X_test feature pairs grouped by folds and ready to be utilized by machine learning algorithms in the next steps.
+   This step takes into account the features hyperparameters given in [config.py](./src/config.py) and creates a collection of X_train and X_test feature pairs grouped by folds and ready to be utilized by machine learning algorithms in the next steps.
 2. **Algorithm selection**
 
-   A list of given classifiers given in [config.py](./config.py) are evaluated in a nested cross-validation scheme in order to find which performs the best on the features sets created in the previous step.
+   A list of given classifiers given in [config.py](./src/config.py) are evaluated in a nested cross-validation scheme in order to find which performs the best on the features sets created in the previous step.
 3. **Model selection**
 
    Given a selected classifier, this step tries to find the best configuration both in terms of the classifier's and feature set hyperparameters.
@@ -49,3 +49,6 @@ The execution of the project starts with the **Features extraction** step initia
    ```python model_deployment.py -experiment_path <exp_path> -poi_fpath <poi_fpath>```
    
    where ```<exp_path>``` same as before and ```<poi_fpath>``` is the path to the file containing the test pois.
+
+## Documentation
+Source code documentation is available from [linkgeoml.github.io](https://linkgeoml.github.io/LGM-Classification/).

@@ -156,6 +156,37 @@
 <p>A python library for accurate classification of Points of Interest (POIs) into categories.</p>
 <p>LGM-Classification is a python library implementing a full Machine Learning workflow for training classification algorithms on annotated POI datasets and producing models for the accurate classification of Points of Interest (POIs) into categories. LGM-Classification implements a series of training features, regarding the properties POIs and their relations with neighboring POIs. Further, it it encapsulates grid-search and cross-validation functionality, based on the <a class="reference external" href="https://scikit-learn.org/">scikit</a> toolkit, assessing as series of classification models and parameterizations, in order to find the most fitting model for the data at hand.</p>
 <p>The source code was tested using Python 3.6 and Scikit-Learn 0.21.2 on a Linux server.</p>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The module consists of the following steps:</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt><strong>Features extraction</strong></dt><dd><p>This step takes into account the features hyperparameters given in <a class="reference external" href="https://github.com/LinkGeoML/LGM-Classification/blob/master/src/config.py">config.py</a> and creates a collection of X_train and X_test feature pairs grouped by folds and ready to be utilized by machine learning algorithms in the next steps.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Algorithm selection</strong></dt><dd><p>A list of given classifiers given in <a class="reference external" href="https://github.com/LinkGeoML/LGM-Classification/blob/master/src/config.py">config.py</a> are evaluated in a nested cross-validation scheme in order to find which performs the best on the features sets created in the previous step.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Model selection</strong></dt><dd><p>Given a selected classifier, this step tries to find the best configuration both in terms of the classifier’s and feature set hyperparameters.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Model training</strong></dt><dd><p>Utilizing the knowledge from the previous step, a model is trained on the whole available pois using the optimal configuration. This model is then saved to disk for later usage.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Model deployment</strong></dt><dd><p>This step loads the optimal model from disk and uses it in order to classify a set of unseen, unlabeled, test pois. Classification results come in a form of a top k predictions list for each of the pois along with a score (suggesting the model’s confidence about each prediction).</p>
+</dd>
+</dl>
+</li>
+</ol>
+</div>
 <div class="section" id="setup-procedure">
 <h2>Setup procedure<a class="headerlink" href="#setup-procedure" title="Permalink to this headline">¶</a></h2>
 <p>Download the latest version from the <a class="reference external" href="https://github.com/LinkGeoML/LGM-Classification.git">GitHub repository</a>, change to
@@ -164,6 +195,51 @@ the main directory and run:</p>
 </pre></div>
 </div>
 <p>It should install all the required libraries automatically (<em>scikit-learn, numpy, pandas etc.</em>).</p>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>The execution of the project starts with the <strong>Features extraction</strong> step initializing the pipeline’s root folder which the following steps will refer to in order to output their results. Each step can be executed as follows:</p>
+<ol class="arabic">
+<li><dl>
+<dt><strong>Features extraction</strong></dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python features_extraction.py
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt><strong>Algorithm selection</strong></dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python algorithm_selection.py -experiment_path &lt;exp_path&gt;
+</pre></div>
+</div>
+<p>where <em>&lt;exp_path&gt;</em> is the path to the folder created from the first step.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt><strong>Model selection</strong></dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python model_selection.py -classifier &lt;clf_name&gt; -experiment_path &lt;exp_path&gt;
+</pre></div>
+</div>
+<p>where <em>&lt;clf_name&gt;</em> is the classifier’s name to be optimized in order to build the model and <em>&lt;exp_path&gt;</em> same as before.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt><strong>Model training</strong></dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python model_training.py -experiment_path &lt;exp_path&gt;
+</pre></div>
+</div>
+<p>where <em>&lt;exp_path&gt;</em> same as before.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt><strong>Model deployment</strong></dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python model_deployment.py -experiment_path &lt;exp_path&gt; -poi_fpath &lt;poi_fpath&gt;
+</pre></div>
+</div>
+<p>where <em>&lt;exp_path&gt;</em> same as before and <em>&lt;poi_fpath&gt;</em> is the path to the file containing the test pois.</p>
+</dd>
+</dl>
+</li>
+</ol>
 </div>
 </div>
 
