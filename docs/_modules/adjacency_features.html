@@ -1,0 +1,469 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>adjacency_features &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>adjacency_features</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for adjacency_features</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="k">import</span> <span class="n">Point</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">KDTree</span>
+
+
+<div class="viewcode-block" id="create_poi_index"><a class="viewcode-back" href="../adjacency_features.html#adjacency_features.create_poi_index">[docs]</a><span class="k">def</span> <span class="nf">create_poi_index</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates spatial index containing the pois given.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame) : Contains pois to be stored in the \</span>
+<span class="sd">            index</span>
+<span class="sd">        path (str): Path to save the index</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">poi_coords</span> <span class="o">=</span> <span class="n">poi_gdf</span><span class="p">[[</span><span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">poi_index</span> <span class="o">=</span> <span class="n">KDTree</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">)</span>
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">poi_index</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="get_classes_in_radius_bln"><a class="viewcode-back" href="../adjacency_features.html#adjacency_features.get_classes_in_radius_bln">[docs]</a><span class="k">def</span> <span class="nf">get_classes_in_radius_bln</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">poi_index_path</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">,</span> <span class="n">label_map</span><span class="p">,</span> <span class="n">thr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. For each poi *p* (each row) the array will</span>
+<span class="sd">    contain 1 (True) in column *c*, if there is at least one poi of category *c*</span>
+<span class="sd">    inside *p*&#39;s defined radius.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        poi_index_path (str): Path to the stored index</span>
+<span class="sd">        nlabels (int): Number of poi categories</span>
+<span class="sd">        label_map (list): A list containing the labels of the train pois</span>
+<span class="sd">        thr (float): Radius to be searched (in meters)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), nlabels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">poi_index</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">poi_index_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">poi_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">poi</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">poi</span><span class="o">.</span><span class="n">lat</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">result_pois_idxs</span> <span class="o">=</span> <span class="n">poi_index</span><span class="o">.</span><span class="n">query_radius</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">thr</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rpi</span> <span class="ow">in</span> <span class="n">result_pois_idxs</span><span class="p">:</span>
+            <span class="n">rpi_label</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">rpi</span><span class="p">]</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">rpi_label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="get_classes_in_radius_cnt"><a class="viewcode-back" href="../adjacency_features.html#adjacency_features.get_classes_in_radius_cnt">[docs]</a><span class="k">def</span> <span class="nf">get_classes_in_radius_cnt</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">poi_index_path</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">,</span> <span class="n">label_map</span><span class="p">,</span> <span class="n">thr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. For each poi *p* (each row) the array will</span>
+<span class="sd">    contain an integer in column *c*, representing the number of pois of</span>
+<span class="sd">    category *c* inside *p*&#39;s defined radius.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        poi_index_path (str): Path to the stored index</span>
+<span class="sd">        nlabels (int): Number of poi categories</span>
+<span class="sd">        label_map (list): A list containing the labels of the train pois</span>
+<span class="sd">        thr (float): Radius to be searched (in meters)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), nlabels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">poi_index</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">poi_index_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">class_cnt</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlabels</span><span class="p">))</span>
+        <span class="n">poi_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">poi</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">poi</span><span class="o">.</span><span class="n">lat</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">result_pois_idxs</span> <span class="o">=</span> <span class="n">poi_index</span><span class="o">.</span><span class="n">query_radius</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">thr</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rpi</span> <span class="ow">in</span> <span class="n">result_pois_idxs</span><span class="p">:</span>
+            <span class="n">rpi_label</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">rpi</span><span class="p">]</span>
+            <span class="n">class_cnt</span><span class="p">[</span><span class="n">rpi_label</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">class_cnt</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="get_classes_in_street_and_radius_bln"><a class="viewcode-back" href="../adjacency_features.html#adjacency_features.get_classes_in_street_and_radius_bln">[docs]</a><span class="k">def</span> <span class="nf">get_classes_in_street_and_radius_bln</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">street_gdf</span><span class="p">,</span> <span class="n">pois_by_street</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">,</span> <span class="n">label_map</span><span class="p">,</span> <span class="n">geometry_map</span><span class="p">,</span> <span class="n">thr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. For each poi *p*, the nearest street to *p* is \</span>
+<span class="sd">    identified and the pois of this street are kept. These pois are then \</span>
+<span class="sd">    filtered and only those which are inside *p*&#39;s defined radius are \</span>
+<span class="sd">    considered (e.g. a set of pois *P*). Finally, for each poi *p* (each row) \</span>
+<span class="sd">    the array will contain 1 (True) in column *c*, if there is at least one \</span>
+<span class="sd">    poi of category *c* among pois in *P*.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        street_gdf (geopandas.GeoDataFrame): Contains all streets extracted \</span>
+<span class="sd">            from OSM, along with their geometries</span>
+<span class="sd">        pois_by_street (dict): Has streets ids as keys and a list containing \</span>
+<span class="sd">            the pois which belong to each street as values</span>
+<span class="sd">        nlabels (int): Number of poi categories</span>
+<span class="sd">        label_map (list): A list containing the labels of the train pois</span>
+<span class="sd">        geometry_map (list): A list containing the geometries of the train pois</span>
+<span class="sd">        thr (float): Radius to be searched (in meters)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), nlabels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">street_index</span> <span class="o">=</span> <span class="n">street_gdf</span><span class="o">.</span><span class="n">sindex</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">poi_coords</span> <span class="o">=</span> <span class="p">(</span><span class="n">poi</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">poi</span><span class="o">.</span><span class="n">lat</span><span class="p">)</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">street_index</span><span class="o">.</span><span class="n">nearest</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">))</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">([</span>
+            <span class="n">Point</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">)</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">street_gdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">candidates</span>
+        <span class="p">])]</span>
+        <span class="n">result_pois_idxs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">poi_idx</span> <span class="k">for</span> <span class="n">poi_idx</span> <span class="ow">in</span> <span class="n">pois_by_street</span><span class="p">[</span><span class="n">nearest</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">poi</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">geometry_map</span><span class="p">[</span><span class="n">poi_idx</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">thr</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rpi</span> <span class="ow">in</span> <span class="n">result_pois_idxs</span><span class="p">:</span>
+            <span class="n">rpi_label</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">rpi</span><span class="p">]</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">rpi_label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="get_classes_in_street_and_radius_cnt"><a class="viewcode-back" href="../adjacency_features.html#adjacency_features.get_classes_in_street_and_radius_cnt">[docs]</a><span class="k">def</span> <span class="nf">get_classes_in_street_and_radius_cnt</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">street_gdf</span><span class="p">,</span> <span class="n">pois_by_street</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">,</span> <span class="n">label_map</span><span class="p">,</span> <span class="n">geometry_map</span><span class="p">,</span> <span class="n">thr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. For each poi *p*, the nearest street to *p* is \</span>
+<span class="sd">    identified and the pois of this street are kept. These pois are then \</span>
+<span class="sd">    filtered and only those which are inside *p*&#39;s defined radius are \</span>
+<span class="sd">    considered (e.g. a set of pois *P*). Finally, for each poi *p* (each row) \</span>
+<span class="sd">    the array will contain an integer in column *c*, representing the number \</span>
+<span class="sd">    of pois of category *c* among pois in *P*.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        street_gdf (geopandas.GeoDataFrame): Contains all streets extracted \</span>
+<span class="sd">            from OSM, along with their geometries</span>
+<span class="sd">        pois_by_street (dict): Has streets ids as keys and a list containing \</span>
+<span class="sd">            the pois which belong to each street as values</span>
+<span class="sd">        nlabels (int): Number of poi categories</span>
+<span class="sd">        label_map (list): A list containing the labels of the train pois</span>
+<span class="sd">        geometry_map (list): A list containing the geometries of the train pois</span>
+<span class="sd">        thr (float): Radius to be searched (in meters)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), nlabels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">street_index</span> <span class="o">=</span> <span class="n">street_gdf</span><span class="o">.</span><span class="n">sindex</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">poi_coords</span> <span class="o">=</span> <span class="p">(</span><span class="n">poi</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">poi</span><span class="o">.</span><span class="n">lat</span><span class="p">)</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">street_index</span><span class="o">.</span><span class="n">nearest</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">))</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">([</span>
+            <span class="n">Point</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">)</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">street_gdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">candidates</span>
+        <span class="p">])]</span>
+        <span class="n">class_cnt</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlabels</span><span class="p">))</span>
+        <span class="n">result_pois_idxs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">poi_idx</span> <span class="k">for</span> <span class="n">poi_idx</span> <span class="ow">in</span> <span class="n">pois_by_street</span><span class="p">[</span><span class="n">nearest</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">poi</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">geometry_map</span><span class="p">[</span><span class="n">poi_idx</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">thr</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rpi</span> <span class="ow">in</span> <span class="n">result_pois_idxs</span><span class="p">:</span>
+            <span class="n">rpi_label</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">rpi</span><span class="p">]</span>
+            <span class="n">class_cnt</span><span class="p">[</span><span class="n">rpi_label</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">class_cnt</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="get_classes_in_neighbors_bln"><a class="viewcode-back" href="../adjacency_features.html#adjacency_features.get_classes_in_neighbors_bln">[docs]</a><span class="k">def</span> <span class="nf">get_classes_in_neighbors_bln</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">poi_index_path</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">,</span> <span class="n">label_map</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. For each poi *p* (each row) the array will \</span>
+<span class="sd">    contain 1 (True) in column *c*, if there is at least one poi of category \</span>
+<span class="sd">    *c* among the *k* nearest neighbors of *p*.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        poi_index_path (str): Path to the stored index</span>
+<span class="sd">        nlabels (int): Number of poi categories</span>
+<span class="sd">        label_map (list): A list containing the labels of the train pois</span>
+<span class="sd">        k (int): Number of nearest neighbors to take into account</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), nlabels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">poi_index</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">poi_index_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">poi_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">poi</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">poi</span><span class="o">.</span><span class="n">lat</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">result_pois_idxs</span> <span class="o">=</span> <span class="n">poi_index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rpi</span> <span class="ow">in</span> <span class="n">result_pois_idxs</span><span class="p">:</span>
+            <span class="n">rpi_label</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">rpi</span><span class="p">]</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">rpi_label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="get_classes_in_neighbors_cnt"><a class="viewcode-back" href="../adjacency_features.html#adjacency_features.get_classes_in_neighbors_cnt">[docs]</a><span class="k">def</span> <span class="nf">get_classes_in_neighbors_cnt</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">poi_index_path</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">,</span> <span class="n">label_map</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. For each poi *p* (each row) the array will \</span>
+<span class="sd">    contain an integer in column *c*, representing the number of pois of \</span>
+<span class="sd">    category *c* among the *k* nearest neighbors of *p*.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        poi_index_path (str): Path to the stored index</span>
+<span class="sd">        nlabels (int): Number of poi categories</span>
+<span class="sd">        label_map (list): A list containing the labels of the train pois</span>
+<span class="sd">        k (int): Number of nearest neighbors to take into account</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), nlabels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">poi_index</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">poi_index_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">class_cnt</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlabels</span><span class="p">))</span>
+        <span class="n">poi_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">poi</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">poi</span><span class="o">.</span><span class="n">lat</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">result_pois_idxs</span> <span class="o">=</span> <span class="n">poi_index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rpi</span> <span class="ow">in</span> <span class="n">result_pois_idxs</span><span class="p">:</span>
+            <span class="n">rpi_label</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">rpi</span><span class="p">]</span>
+            <span class="n">class_cnt</span><span class="p">[</span><span class="n">rpi_label</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">class_cnt</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<span class="k">def</span> <span class="nf">get_classes_in_street_radius_bln</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">street_gdf</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">,</span> <span class="n">label_map</span><span class="p">,</span> <span class="n">geometry_map</span><span class="p">,</span> <span class="n">thr</span><span class="p">):</span>
+    <span class="n">street_index</span> <span class="o">=</span> <span class="n">street_gdf</span><span class="o">.</span><span class="n">sindex</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">poi_coords</span> <span class="o">=</span> <span class="p">(</span><span class="n">poi</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">poi</span><span class="o">.</span><span class="n">lat</span><span class="p">)</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">street_index</span><span class="o">.</span><span class="n">nearest</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">))</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">([</span>
+            <span class="n">Point</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">)</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">street_gdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">candidates</span>
+        <span class="p">])]</span>
+        <span class="n">result_pois_idxs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">geom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">geometry_map</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">street_gdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">nearest</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">thr</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rpi</span> <span class="ow">in</span> <span class="n">result_pois_idxs</span><span class="p">:</span>
+            <span class="n">rpi_label</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">rpi</span><span class="p">]</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">rpi_label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">X</span>
+
+
+<span class="k">def</span> <span class="nf">get_classes_in_street_radius_cnt</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">street_gdf</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">,</span> <span class="n">label_map</span><span class="p">,</span> <span class="n">geometry_map</span><span class="p">,</span> <span class="n">thr</span><span class="p">):</span>
+    <span class="n">street_index</span> <span class="o">=</span> <span class="n">street_gdf</span><span class="o">.</span><span class="n">sindex</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">poi_coords</span> <span class="o">=</span> <span class="p">(</span><span class="n">poi</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">poi</span><span class="o">.</span><span class="n">lat</span><span class="p">)</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">street_index</span><span class="o">.</span><span class="n">nearest</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">))</span>
+        <span class="n">nearest</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">([</span>
+            <span class="n">Point</span><span class="p">(</span><span class="n">poi_coords</span><span class="p">)</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">street_gdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">candidates</span>
+        <span class="p">])]</span>
+        <span class="n">class_cnt</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nlabels</span><span class="p">))</span>
+        <span class="n">result_pois_idxs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">geom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">geometry_map</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">street_gdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">nearest</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">thr</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rpi</span> <span class="ow">in</span> <span class="n">result_pois_idxs</span><span class="p">:</span>
+            <span class="n">rpi_label</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">rpi</span><span class="p">]</span>
+            <span class="n">class_cnt</span><span class="p">[</span><span class="n">rpi_label</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">class_cnt</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">X</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>osm_utilities &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>osm_utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for osm_utilities</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="k">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Polygon</span>
+
+
+<div class="viewcode-block" id="query_osm_data"><a class="viewcode-back" href="../osm_utilities.html#osm_utilities.query_osm_data">[docs]</a><span class="k">def</span> <span class="nf">query_osm_data</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">fpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Queries Overpass API for *query*.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        query (str): The query to be passed to API</span>
+<span class="sd">        fpath (str): File path to write the API response</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">overpass_url</span> <span class="o">=</span> <span class="s1">&#39;http://overpass-api.de/api/interpreter&#39;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">overpass_url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span><span class="n">query</span><span class="p">})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="parse_osm_streets"><a class="viewcode-back" href="../osm_utilities.html#osm_utilities.parse_osm_streets">[docs]</a><span class="k">def</span> <span class="nf">parse_osm_streets</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses the API response from *fpath* and converts it to a dataframe.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (str): File path to read</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pandas.DataFrame: Contains all streets as well as their geometries</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Helper function</span>
+    <span class="k">def</span> <span class="nf">convert_to_wkt_geometry</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+        <span class="n">lons</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]]</span>
+        <span class="n">lats</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">LineString</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lons</span><span class="p">,</span> <span class="n">lats</span><span class="p">)))</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">streets</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="s1">&#39;elements&#39;</span><span class="p">]</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">street</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">street</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">street</span> <span class="ow">in</span> <span class="n">streets</span><span class="p">]</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">]</span>
+    <span class="n">street_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">cols</span><span class="p">)</span>
+    <span class="n">street_df</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">street_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">convert_to_wkt_geometry</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">street_df</span></div>
+
+
+<div class="viewcode-block" id="download_osm_streets"><a class="viewcode-back" href="../osm_utilities.html#osm_utilities.download_osm_streets">[docs]</a><span class="k">def</span> <span class="nf">download_osm_streets</span><span class="p">(</span><span class="n">bbox_coords</span><span class="p">,</span> <span class="n">exp_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Queries Overpass API for streets inside *bbox_coords* and saves them into \</span>
+<span class="sd">    a csv file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        bbox_coords (tuple): Contains the bounding box coords to download \</span>
+<span class="sd">            from the API in (south, west, north, east) format</span>
+<span class="sd">        exp_path (str): Path to write</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">exp_path</span> <span class="o">+</span> <span class="s1">&#39;/osm_streets.json&#39;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;[out:json]&#39;</span>
+        <span class="n">f</span><span class="s1">&#39;[bbox:</span><span class="si">{bbox_coords[0]}</span><span class="s1">,</span><span class="si">{bbox_coords[1]}</span><span class="s1">,</span><span class="si">{bbox_coords[2]}</span><span class="s1">,</span><span class="si">{bbox_coords[3]}</span><span class="s1">];&#39;</span>
+        <span class="s1">&#39;way[&quot;highway&quot;];&#39;</span>
+        <span class="s1">&#39;out geom;&#39;</span><span class="p">)</span>
+    <span class="n">query_osm_data</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">fpath</span><span class="p">)</span>
+    <span class="n">street_df</span> <span class="o">=</span> <span class="n">parse_osm_streets</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">exp_path</span> <span class="o">+</span> <span class="s1">&#39;/osm_streets.csv&#39;</span>
+    <span class="n">street_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{fpath}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+
+<span class="c1"># def parse_osm_polys(fpath):</span>
+<span class="c1">#     # Helper function</span>
+<span class="c1">#     def extract_name_tags(row):</span>
+<span class="c1">#         names = [tag[1] for tag in row[&#39;tags&#39;] if re.search(&#39;name&#39;, tag[0])]</span>
+<span class="c1">#         return names</span>
+
+<span class="c1">#     # Helper function</span>
+<span class="c1">#     def convert_to_wkt_geometry(row):</span>
+<span class="c1">#         lons = [p[&#39;lon&#39;] for p in row[&#39;geometry&#39;]]</span>
+<span class="c1">#         lats = [p[&#39;lat&#39;] for p in row[&#39;geometry&#39;]]</span>
+<span class="c1">#         return Polygon(list(zip(lons, lats)))</span>
+
+<span class="c1">#     with open(fpath, encoding=&#39;utf-8&#39;) as f:</span>
+<span class="c1">#         polys = json.load(f)[&#39;elements&#39;]</span>
+
+<span class="c1">#     data = []</span>
+<span class="c1">#     for poly in polys:</span>
+<span class="c1">#         if &#39;tags&#39; in poly:</span>
+<span class="c1">#             poly_tags = [(k, v) for k, v in poly[&#39;tags&#39;].items()]</span>
+<span class="c1">#             data.append((poly[&#39;id&#39;], poly_tags, poly[&#39;geometry&#39;]))</span>
+
+<span class="c1">#     cols = [&#39;id&#39;, &#39;tags&#39;, &#39;geometry&#39;]</span>
+<span class="c1">#     poly_df = pd.DataFrame(data=data, columns=cols)</span>
+<span class="c1">#     poly_df[&#39;name&#39;] = poly_df.apply(extract_name_tags, axis=1)</span>
+<span class="c1">#     poly_df[&#39;geometry&#39;] = poly_df.apply(convert_to_wkt_geometry, axis=1)</span>
+<span class="c1">#     return poly_df</span>
+
+
+<span class="c1"># def download_osm_polygons(bbox_coords, exp_path):</span>
+<span class="c1">#     fpath = exp_path + &#39;/osm_polys.json&#39;</span>
+<span class="c1">#     query = (</span>
+<span class="c1">#         &#39;[out:json]&#39;</span>
+<span class="c1">#         f&#39;[bbox:{bbox_coords[0]},{bbox_coords[1]},{bbox_coords[2]},{bbox_coords[3]}];&#39;</span>
+<span class="c1">#         &#39;way(if:is_closed());&#39;</span>
+<span class="c1">#         &#39;out geom;&#39;)</span>
+<span class="c1">#     query_osm_data(query, fpath)</span>
+<span class="c1">#     poly_df = parse_osm_polys(fpath)</span>
+<span class="c1">#     fpath = exp_path + &#39;/osm_polys.csv&#39;</span>
+<span class="c1">#     cols = [&#39;id&#39;, &#39;name&#39;, &#39;tags&#39;, &#39;geometry&#39;]</span>
+<span class="c1">#     poly_df.to_csv(f&#39;{fpath}&#39;, columns=cols, index=False)</span>
+<span class="c1">#     return</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,415 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>clf_utilities &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>clf_utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for clf_utilities</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">LogisticRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">KNeighborsClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="k">import</span> <span class="n">SVC</span>
+<span class="kn">from</span> <span class="nn">sklearn.tree</span> <span class="k">import</span> <span class="n">DecisionTreeClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestClassifier</span><span class="p">,</span> <span class="n">AdaBoostClassifier</span><span class="p">,</span> <span class="n">ExtraTreesClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.naive_bayes</span> <span class="k">import</span> <span class="n">GaussianNB</span>
+<span class="kn">from</span> <span class="nn">sklearn.neural_network</span> <span class="k">import</span> <span class="n">MLPClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.gaussian_process</span> <span class="k">import</span> <span class="n">GaussianProcessClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">GridSearchCV</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span>
+
+<span class="kn">from</span> <span class="nn">config</span> <span class="k">import</span> <span class="n">config</span>
+
+
+<span class="n">clf_callable_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Naive Bayes&#39;</span><span class="p">:</span> <span class="n">GaussianNB</span><span class="p">(),</span>
+    <span class="s1">&#39;Gaussian Process&#39;</span><span class="p">:</span> <span class="n">GaussianProcessClassifier</span><span class="p">(),</span>
+    <span class="s1">&#39;AdaBoost&#39;</span><span class="p">:</span> <span class="n">AdaBoostClassifier</span><span class="p">(),</span>
+    <span class="s1">&#39;Nearest Neighbors&#39;</span><span class="p">:</span> <span class="n">KNeighborsClassifier</span><span class="p">(),</span>
+    <span class="s1">&#39;Logistic Regression&#39;</span><span class="p">:</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;liblinear&#39;</span><span class="p">,</span> <span class="n">multi_class</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;SVM&#39;</span><span class="p">:</span> <span class="n">SVC</span><span class="p">(</span><span class="n">probability</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="s1">&#39;MLP&#39;</span><span class="p">:</span> <span class="n">MLPClassifier</span><span class="p">(),</span>
+    <span class="s1">&#39;Decision Tree&#39;</span><span class="p">:</span> <span class="n">DecisionTreeClassifier</span><span class="p">(),</span>
+    <span class="s1">&#39;Random Forest&#39;</span><span class="p">:</span> <span class="n">RandomForestClassifier</span><span class="p">(),</span>
+    <span class="s1">&#39;Extra Trees&#39;</span><span class="p">:</span> <span class="n">ExtraTreesClassifier</span><span class="p">()}</span>
+
+<span class="n">clf_hyperparams_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Naive Bayes&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">NaiveBayes_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;Gaussian Process&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">GaussianProcess_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;AdaBoost&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">AdaBoost_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;Nearest Neighbors&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">kNN_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;Logistic Regression&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">LogisticRegression_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;SVM&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">SVM_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;MLP&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">MLP_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;Decision Tree&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">DecisionTree_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;Random Forest&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">RandomForest_hyperparameters</span><span class="p">,</span>
+    <span class="s1">&#39;Extra Trees&#39;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">RandomForest_hyperparameters</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="create_feature_sets_generator"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.create_feature_sets_generator">[docs]</a><span class="k">def</span> <span class="nf">create_feature_sets_generator</span><span class="p">(</span><span class="n">fold_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a generator yielding features sets names.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fold_path (str): Path to read features sets</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        list: pairs of X_train, X_test features sets names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">train_sets</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">fold_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;X_train_&#39;</span><span class="p">)]</span>
+    <span class="n">train_sets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">train_sets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">i</span><span class="p">))</span>
+
+    <span class="n">test_sets</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">fold_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;X_test_&#39;</span><span class="p">)]</span>
+    <span class="n">test_sets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">test_sets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">i</span><span class="p">))</span>
+
+    <span class="n">feature_sets</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">train_sets</span><span class="p">,</span> <span class="n">test_sets</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">feature_set</span> <span class="ow">in</span> <span class="n">feature_sets</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">feature_set</span></div>
+
+
+<div class="viewcode-block" id="train_classifier"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.train_classifier">[docs]</a><span class="k">def</span> <span class="nf">train_classifier</span><span class="p">(</span><span class="n">clf_name</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Trains a classifier through grid search.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        clf_name (str): Classifier&#39;s name to be trained</span>
+<span class="sd">        X_train (numpy.ndarray): Train features array</span>
+<span class="sd">        y_train (numpy.ndarray): Train labels array</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        object: The trained classifier</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">clf_callable_map</span><span class="p">[</span><span class="n">clf_name</span><span class="p">]</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">clf_hyperparams_map</span><span class="p">[</span><span class="n">clf_name</span><span class="p">]</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s1">&#39;f1_weighted&#39;</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">clf</span></div>
+
+
+<div class="viewcode-block" id="k_accuracy_score"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.k_accuracy_score">[docs]</a><span class="k">def</span> <span class="nf">k_accuracy_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">k_best</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Measures the defined k-accuracy metric. For each poi, a successful \</span>
+<span class="sd">    prediction is considered if true label appears in the top k labels \</span>
+<span class="sd">    predicted by the model,</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_test (numpy.ndarray): True labels</span>
+<span class="sd">        k_best (numpy.ndarray): Top k predicted labels</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: The k accuracy score</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y_test</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">k_best</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">c</span> <span class="o">/</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="evaluate"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.evaluate">[docs]</a><span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluates model predictions through a series of metrics.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_test (numpy.ndarray): True labels</span>
+<span class="sd">        y_pred (numpy.ndarray): Predicted labels</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Contains metrics names as keys and the corresponding values as \</span>
+<span class="sd">        values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">top_k</span><span class="p">:</span>
+        <span class="n">k_best</span> <span class="o">=</span> <span class="n">y_pred</span><span class="p">[:,</span> <span class="p">:</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">scores</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;top_</span><span class="si">{k}</span><span class="s1">_accuracy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_accuracy_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">k_best</span><span class="p">)</span>
+
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">y_pred</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;f1_macro&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f1_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;f1_micro&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f1_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;f1_weighted&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f1_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;weighted&#39;</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;precision_weighted&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;weighted&#39;</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s1">&#39;recall_weighted&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;weighted&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scores</span></div>
+
+
+<div class="viewcode-block" id="is_valid"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.is_valid">[docs]</a><span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="n">clf_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks whether *clf_name* is a valid classifier&#39;s name with respect to \</span>
+<span class="sd">    the experiment setup.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        clf_name (str): Classifier&#39;s name</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: Returns True if given classifier&#39;s name is valid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">supported_clfs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">clf</span> <span class="k">for</span> <span class="n">clf</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">supported_classifiers</span> <span class="k">if</span> <span class="n">clf</span> <span class="o">!=</span> <span class="s1">&#39;Baseline&#39;</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">clf_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_clfs</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Supported classifiers:&#39;</span><span class="p">,</span> <span class="n">supported_clfs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="create_clf_params_product_generator"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.create_clf_params_product_generator">[docs]</a><span class="k">def</span> <span class="nf">create_clf_params_product_generator</span><span class="p">(</span><span class="n">params_grid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates all possible combinations of classifier&#39;s hyperparameters values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        params_grid (dict): Contains classifier&#39;s hyperparameters names as \</span>
+<span class="sd">            keys and the correspoding search space as values</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        dict: Contains a classifier&#39;s hyperparameters configuration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">params_grid</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">params_grid</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">vals</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">instance</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="normalize_scores"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.normalize_scores">[docs]</a><span class="k">def</span> <span class="nf">normalize_scores</span><span class="p">(</span><span class="n">scores</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalizes predictions scores to a probabilities-like format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scores (list): Contains the predictions scores as predicted by the \</span>
+<span class="sd">            model</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: The normalized scores</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+    <span class="n">normalized</span> <span class="o">=</span> <span class="p">[</span><span class="n">score</span><span class="o">/</span><span class="n">s</span> <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">normalized</span></div>
+
+
+<div class="viewcode-block" id="get_top_k_predictions"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.get_top_k_predictions">[docs]</a><span class="k">def</span> <span class="nf">get_top_k_predictions</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X_test</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Makes predictions utilizing *model* over *X_test*.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model (object): The model to be used for predictions</span>
+<span class="sd">        X_test (numpy.ndarray): The test features array</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Contains predictions in (label, score) pairs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">preds</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">k_preds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pred</span> <span class="ow">in</span> <span class="n">preds</span><span class="p">:</span>
+        <span class="n">k_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">pred</span><span class="p">)[:</span><span class="n">config</span><span class="o">.</span><span class="n">k_preds</span><span class="p">]</span>
+        <span class="n">k_scores</span> <span class="o">=</span> <span class="n">normalize_scores</span><span class="p">(</span><span class="n">pred</span><span class="p">[</span><span class="n">k_labels</span><span class="p">])</span>
+        <span class="n">k_preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">k_labels</span><span class="p">,</span> <span class="n">k_scores</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">k_preds</span></div>
+
+
+<div class="viewcode-block" id="inverse_transform_labels"><a class="viewcode-back" href="../clf_utilities.html#clf_utilities.inverse_transform_labels">[docs]</a><span class="k">def</span> <span class="nf">inverse_transform_labels</span><span class="p">(</span><span class="n">encoder</span><span class="p">,</span> <span class="n">k_preds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Utilizes *encoder* to transform encoded labels back to the original \</span>
+<span class="sd">    strings.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encoder (sklearn.preprocessing.LabelEncoder): The encoder to be \</span>
+<span class="sd">            utilized</span>
+<span class="sd">        k_preds (list): Contains predictions in (label, score) pairs</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Contains predictions in (label, score) pairs, where label is \</span>
+<span class="sd">            now in the original string format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">label_mapping</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">encoder</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">encoder</span><span class="o">.</span><span class="n">classes_</span><span class="p">),</span> <span class="n">encoder</span><span class="o">.</span><span class="n">classes_</span><span class="p">))</span>
+    <span class="n">k_preds_new</span> <span class="o">=</span> <span class="p">[(</span><span class="n">label_mapping</span><span class="p">[</span><span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">pred</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">k_pred</span> <span class="ow">in</span> <span class="n">k_preds</span>
+                   <span class="k">for</span> <span class="n">pred</span> <span class="ow">in</span> <span class="n">k_pred</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">k_preds_new</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

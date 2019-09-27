@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>writers &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>writers</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for writers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+
+<span class="kn">import</span> <span class="nn">features_utilities</span> <span class="k">as</span> <span class="nn">feat_ut</span>
+<span class="kn">import</span> <span class="nn">clf_utilities</span> <span class="k">as</span> <span class="nn">clf_ut</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="k">import</span> <span class="n">config</span>
+
+
+<div class="viewcode-block" id="write_feature_params_info"><a class="viewcode-back" href="../writers.html#writers.write_feature_params_info">[docs]</a><span class="k">def</span> <span class="nf">write_feature_params_info</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">params_names</span><span class="p">,</span> <span class="n">params_vals</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a csv file defining the features parameters used in each of the \</span>
+<span class="sd">    features sets.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (str): File path to write</span>
+<span class="sd">        params_names (list): Contains the features parameters names</span>
+<span class="sd">        params_vals (list): Contains a list with values for each feature \</span>
+<span class="sd">            parameter</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params_info</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">params_vals</span><span class="p">)):</span>
+        <span class="n">features_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">params_names</span><span class="p">,</span> <span class="n">params</span><span class="p">))</span>
+        <span class="n">params_info</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;X_train_</span><span class="si">{idx}</span><span class="s1">, X_test_</span><span class="si">{idx}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">features_params</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s1">&#39;Feature sets&#39;</span><span class="p">,</span> <span class="s1">&#39;Feature parameters combination&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">])</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="write_feature_space"><a class="viewcode-back" href="../writers.html#writers.write_feature_space">[docs]</a><span class="k">def</span> <span class="nf">write_feature_space</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">features_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">best_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a csv file containing the features configuration to be searched \</span>
+<span class="sd">    (namely included features as well as their parameters to be finetuned and \</span>
+<span class="sd">    whether normalizaton should be used or not). If *best_params* is given, \</span>
+<span class="sd">    then the csv will present the finetuned features parameters values instead.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (str): File path to write</span>
+<span class="sd">        features_info (list, optional): Contains (features, normalized or \</span>
+<span class="sd">            not) pairs</span>
+<span class="sd">        best_params (dict, optional): Contains features as keys and the \</span>
+<span class="sd">            corresponding finetuned values as values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s1">&#39;Feature&#39;</span><span class="p">,</span> <span class="s1">&#39;Parameter&#39;</span><span class="p">,</span> <span class="s1">&#39;Parameter values&#39;</span><span class="p">,</span> <span class="s1">&#39;Normalized&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">features_info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">included_features</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">included_adjacency_features</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">included_textual_features</span>
+            <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">included_features</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">feat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">feat_ut</span><span class="o">.</span><span class="n">features_params_map</span><span class="p">:</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">feat</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">normalized_features</span> <span class="k">else</span> <span class="kc">False</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">param_name</span> <span class="o">=</span> <span class="n">feat_ut</span><span class="o">.</span><span class="n">features_params_map</span><span class="p">[</span><span class="n">feat</span><span class="p">]</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">feat</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">param_name</span><span class="p">),</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">feat</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">normalized_features</span> <span class="k">else</span> <span class="kc">False</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">features_info</span><span class="p">:</span>
+                <span class="n">feat</span><span class="p">,</span> <span class="n">norm</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">feat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">feat_ut</span><span class="o">.</span><span class="n">features_params_map</span><span class="p">:</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">feat</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">norm</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">param_name</span> <span class="o">=</span> <span class="n">feat_ut</span><span class="o">.</span><span class="n">features_params_map</span><span class="p">[</span><span class="n">feat</span><span class="p">]</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">feat</span><span class="p">,</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">best_params</span><span class="p">[</span><span class="n">param_name</span><span class="p">],</span> <span class="n">norm</span><span class="p">])</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="write_classifier_space"><a class="viewcode-back" href="../writers.html#writers.write_classifier_space">[docs]</a><span class="k">def</span> <span class="nf">write_classifier_space</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">clf_name</span><span class="p">,</span> <span class="n">best_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a csv file containing the chosen classifier&#39;s name as well as the \</span>
+<span class="sd">    hyperparameters space to be searched. If *best_params* is given, then the \</span>
+<span class="sd">    csv will present the finetuned hyperparameters values instead.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (str): File path to write</span>
+<span class="sd">        clf_name (str): Name of the utilized classifier</span>
+<span class="sd">        best_params (dict, optional): Contains hyperparameters names as keys \</span>
+<span class="sd">            and the corresponding finetuned values as values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s1">&#39;Classifier&#39;</span><span class="p">,</span> <span class="s1">&#39;Parameters&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">best_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">clf_name</span><span class="p">,</span> <span class="n">clf_ut</span><span class="o">.</span><span class="n">clf_hyperparams_map</span><span class="p">[</span><span class="n">clf_name</span><span class="p">]])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">clf_name</span><span class="p">,</span> <span class="n">best_params</span><span class="p">])</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="write_evaluation_space"><a class="viewcode-back" href="../writers.html#writers.write_evaluation_space">[docs]</a><span class="k">def</span> <span class="nf">write_evaluation_space</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a csv file that contains all the included classifiers as well as \</span>
+<span class="sd">    the hyperparameters space to be searched for each of them.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (str): File path to write</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s1">&#39;Classifier&#39;</span><span class="p">,</span> <span class="s1">&#39;Parameters&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">clf</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">included_classifiers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">clf</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">clf_ut</span><span class="o">.</span><span class="n">clf_hyperparams_map</span><span class="p">:</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">clf</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">clf</span><span class="p">,</span> <span class="n">clf_ut</span><span class="o">.</span><span class="n">clf_hyperparams_map</span><span class="p">[</span><span class="n">clf</span><span class="p">]])</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="write_evaluation_results"><a class="viewcode-back" href="../writers.html#writers.write_evaluation_results">[docs]</a><span class="k">def</span> <span class="nf">write_evaluation_results</span><span class="p">(</span><span class="n">results_path</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates three csv files that present (a) full results (b) results per \</span>
+<span class="sd">    fold and (c) results per classifier of the algorithm_selection step.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        results_path (str): Path to write</span>
+<span class="sd">        results_dict (dict): Contains the algorithm_selection step&#39;s results</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">results_dict</span><span class="p">)</span>
+    <span class="n">all_results_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">results_path</span> <span class="o">+</span> <span class="s1">&#39;/all_results.csv&#39;</span><span class="p">,</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fold&#39;</span><span class="p">,</span> <span class="s1">&#39;feature_set&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;top_1_accuracy&#39;</span><span class="p">,</span> <span class="s1">&#39;top_5_accuracy&#39;</span><span class="p">,</span> <span class="s1">&#39;top_10_accuracy&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;f1_macro&#39;</span><span class="p">,</span> <span class="s1">&#39;f1_micro&#39;</span><span class="p">,</span> <span class="s1">&#39;f1_weighted&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;precision_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;recall_weighted&#39;</span><span class="p">],</span>
+        <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">fold_results_df</span> <span class="o">=</span> <span class="n">all_results_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;fold&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">fold_results_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">results_path</span> <span class="o">+</span> <span class="s1">&#39;/results_by_fold.csv&#39;</span><span class="p">)</span>
+
+    <span class="n">clf_results_df</span> <span class="o">=</span> <span class="n">fold_results_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;fold&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">clf_results_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;f1_weighted&#39;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">results_path</span> <span class="o">+</span> <span class="s1">&#39;/results_by_classifier.csv&#39;</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="write_finetuning_results"><a class="viewcode-back" href="../writers.html#writers.write_finetuning_results">[docs]</a><span class="k">def</span> <span class="nf">write_finetuning_results</span><span class="p">(</span><span class="n">results_path</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates two csv files that present (a) full results and (b) results per \</span>
+<span class="sd">    feature set and classifier hyperparameters used of the model_selection \</span>
+<span class="sd">    step.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        results_path (str): Path to write</span>
+<span class="sd">        results_dict (dict): Contains the model_selection step&#39;s results</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_results_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">results_dict</span><span class="p">)</span>
+    <span class="n">all_results_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">results_path</span> <span class="o">+</span> <span class="s1">&#39;/all_results.csv&#39;</span><span class="p">,</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fold&#39;</span><span class="p">,</span> <span class="s1">&#39;feature_set&#39;</span><span class="p">,</span> <span class="s1">&#39;clf_params&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;top_1_accuracy&#39;</span><span class="p">,</span> <span class="s1">&#39;top_5_accuracy&#39;</span><span class="p">,</span> <span class="s1">&#39;top_10_accuracy&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;f1_macro&#39;</span><span class="p">,</span> <span class="s1">&#39;f1_micro&#39;</span><span class="p">,</span> <span class="s1">&#39;f1_weighted&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;precision_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;recall_weighted&#39;</span><span class="p">],</span>
+        <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">avg_results_df</span> <span class="o">=</span> <span class="n">all_results_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;feature_set&#39;</span><span class="p">,</span> <span class="s1">&#39;clf_params&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">avg_results_df</span> <span class="o">=</span> <span class="n">avg_results_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;fold&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">avg_results_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;f1_weighted&#39;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">results_path</span> <span class="o">+</span> <span class="s1">&#39;/results_by_feature_and_clf_params.csv&#39;</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="write_predictions"><a class="viewcode-back" href="../writers.html#writers.write_predictions">[docs]</a><span class="k">def</span> <span class="nf">write_predictions</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">poi_gdf</span><span class="p">,</span> <span class="n">k_preds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a csv file to present the top k predictions (in (predicted label, \</span>
+<span class="sd">    score) pairs).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fpath (str): File path to write</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains the pois to which the \</span>
+<span class="sd">            predictions refer to</span>
+<span class="sd">        k_preds (list): Contains (predicted label, score) pairs</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">id_col</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">name_col</span><span class="p">,</span>
+            <span class="n">f</span><span class="s1">&#39;top_</span><span class="si">{config.k_preds}</span><span class="s1">_predictions&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">poi</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">id_col</span><span class="p">),</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">poi</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">name_col</span><span class="p">),</span>
+                <span class="p">[</span>
+                    <span class="n">k_pred</span>
+                    <span class="k">for</span> <span class="n">k_pred</span> <span class="ow">in</span> <span class="n">k_preds</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span> <span class="o">*</span>
+                                          <span class="n">config</span><span class="o">.</span><span class="n">k_preds</span><span class="p">:</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span> <span class="o">*</span>
+                                          <span class="n">config</span><span class="o">.</span><span class="n">k_preds</span> <span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">k_preds</span><span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">])</span>
+    <span class="k">return</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

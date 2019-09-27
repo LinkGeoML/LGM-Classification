@@ -1,0 +1,409 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>config &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>config</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for config</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="config"><a class="viewcode-back" href="../config.html#config.config">[docs]</a><span></span><span class="k">class</span> <span class="nc">config</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class that defines the experiment configuration.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        poi_fpath (str): Path to csv file containing train pois</span>
+<span class="sd">        experiments_path (str): Path to folder that stores the experiments</span>
+
+<span class="sd">        supported_adjacency_features (list): List of the supported adjacency \</span>
+<span class="sd">            features to choose from</span>
+<span class="sd">        supported_textual_features (list): List of the supported textual \</span>
+<span class="sd">            features to choose from</span>
+<span class="sd">        included_adjacency_features (list): List of the adjacency features to \</span>
+<span class="sd">            be included in the experiment</span>
+<span class="sd">        included_textual_features (list): List of the textual features to \</span>
+<span class="sd">            be included in the experiment</span>
+<span class="sd">        normalized_features (list): List of features to be normalized</span>
+
+<span class="sd">        classes_in_radius_thr (list): Parameter space for \</span>
+<span class="sd">            &#39;classes_in_radius_bln&#39; and &#39;classes_in_radius_cnt&#39; features</span>
+<span class="sd">        classes_in_street_and_radius_thr (list): Parameter space for \</span>
+<span class="sd">            &#39;classes_in_street_and_radius_bln&#39; and \</span>
+<span class="sd">            &#39;classes_in_street_and_radius_cnt&#39; features</span>
+<span class="sd">        classes_in_neighbors_thr (list): Parameter space for \</span>
+<span class="sd">            &#39;classes_in_neighbors_bln&#39; and &#39;classes_in_neighbors_cnt&#39; features</span>
+
+<span class="sd">        top_k_terms_pct (list): Parameter space for &#39;top_k_terms&#39; feature</span>
+<span class="sd">        top_k_trigrams_pct (list): Parameter space for &#39;top_k_trigrams&#39; feature</span>
+<span class="sd">        top_k_fourgrams_pct (list): Parameter space for &#39;top_k_fourgrams&#39; \</span>
+<span class="sd">            feature</span>
+
+<span class="sd">        n_folds (int): The number of folds in the experiment</span>
+
+<span class="sd">        supported_classifiers (list): List of the supported classifiers to \</span>
+<span class="sd">            choose from</span>
+<span class="sd">        included_classifiers (list): List of the classifiers to be included \</span>
+<span class="sd">            in the experiment</span>
+
+<span class="sd">        NaiveBayes_hyperparameters (dict): Parameters search space for Naive \</span>
+<span class="sd">            Bayes classifier</span>
+<span class="sd">        kNN_hyperparameters (dict): Parameters search space for Nearest \</span>
+<span class="sd">            Neighbors classifier</span>
+<span class="sd">        LogisticRegression_hyperparameters (dict): Parameters search space \</span>
+<span class="sd">            for Logistic Regression classifier</span>
+<span class="sd">        SVM_hyperparameters (list): Parameters search space for SVM classifier</span>
+<span class="sd">        MLP_hyperparameters (dict): Parameters search space for MLP classifier</span>
+<span class="sd">        DecisionTree_hyperparameters (dict): Parameters search space for \</span>
+<span class="sd">            Decision Tree classifier</span>
+<span class="sd">        RandomForest_hyperparameters (dict): Parameters search space for \</span>
+<span class="sd">            Random Forest classifier</span>
+
+<span class="sd">        top_k (list): List of different *k*, in order to measure \</span>
+<span class="sd">            top-*k*-accuracy</span>
+<span class="sd">        k_preds (int): Number of top predictions to take into consideration</span>
+<span class="sd">        osm_crs (int): The EPSG crs code that OSM uses</span>
+
+<span class="sd">        id_col (str): Column name referring to poi&#39;s id</span>
+<span class="sd">        name_col (str): Column name referring to poi&#39;s name</span>
+<span class="sd">        label_col (str): Column name referring to poi&#39;s label</span>
+<span class="sd">        lon_col (str): Column name referring to poi&#39;s longitude</span>
+<span class="sd">        lat_col (str): Column name referring to poi&#39;s latitude</span>
+<span class="sd">        poi_crs (int): The EPSG crs code used in the pois csv file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">poi_fpath</span> <span class="o">=</span> <span class="s1">&#39;/media/disk/LGM-Classification-utils/data/toronto/yelp_toronto_train.csv&#39;</span>
+
+    <span class="n">experiments_path</span> <span class="o">=</span> <span class="s1">&#39;/media/disk/LGM-Classification-utils/experiments&#39;</span>
+
+    <span class="n">supported_adjacency_features</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;classes_in_radius_bln&#39;</span><span class="p">,</span> <span class="s1">&#39;classes_in_radius_cnt&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;classes_in_street_and_radius_bln&#39;</span><span class="p">,</span> <span class="s1">&#39;classes_in_street_and_radius_cnt&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;classes_in_neighbors_bln&#39;</span><span class="p">,</span> <span class="s1">&#39;classes_in_neighbors_cnt&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;classes_in_street_radius_bln&#39;, &#39;classes_in_street_radius_cnt&#39;,</span>
+    <span class="p">]</span>
+
+    <span class="n">supported_textual_features</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;similarity_per_class&#39;</span><span class="p">,</span> <span class="s1">&#39;top_k_terms&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;top_k_trigrams&#39;</span><span class="p">,</span> <span class="s1">&#39;top_k_fourgrams&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="c1"># supported_geometric_features = [</span>
+    <span class="c1">#     &#39;area&#39;, &#39;perimeter&#39;, &#39;n_vertices&#39;,</span>
+    <span class="c1">#     &#39;mean_edge_length&#39;, &#39;var_edge_length&#39;</span>
+    <span class="c1"># ]</span>
+
+    <span class="n">included_adjacency_features</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># &#39;classes_in_radius_bln&#39;,</span>
+        <span class="s1">&#39;classes_in_radius_cnt&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;classes_in_street_and_radius_bln&#39;,</span>
+        <span class="s1">&#39;classes_in_street_and_radius_cnt&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;classes_in_neighbors_bln&#39;,</span>
+        <span class="s1">&#39;classes_in_neighbors_cnt&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;classes_in_street_radius_bln&#39;,</span>
+        <span class="c1"># &#39;classes_in_street_radius_cnt&#39;,</span>
+    <span class="p">]</span>
+
+    <span class="n">included_textual_features</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;similarity_per_class&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;top_k_terms&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;top_k_trigrams&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;top_k_fourgrams&#39;</span>
+    <span class="p">]</span>
+
+    <span class="c1"># included_geometric_features = [</span>
+    <span class="c1">#     &#39;area&#39;,</span>
+    <span class="c1">#     &#39;perimeter&#39;,</span>
+    <span class="c1">#     &#39;n_vertices&#39;,</span>
+    <span class="c1">#     &#39;mean_edge_length&#39;,</span>
+    <span class="c1">#     &#39;var_edge_length&#39;</span>
+    <span class="c1"># ]</span>
+
+    <span class="n">normalized_features</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># &#39;classes_in_radius_cnt&#39;,</span>
+        <span class="c1"># &#39;classes_in_street_and_radius_cnt&#39;,</span>
+        <span class="c1"># &#39;classes_in_neighbors_cnt&#39;,</span>
+        <span class="c1"># &#39;classes_in_street_radius_cnt&#39;,</span>
+        <span class="c1"># &#39;similarity_per_class&#39;</span>
+    <span class="p">]</span>
+
+    <span class="n">classes_in_radius_thr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
+    <span class="n">classes_in_street_and_radius_thr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">300</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
+    <span class="n">classes_in_neighbors_thr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">20</span><span class="p">]</span>
+    <span class="n">classes_in_street_radius_thr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span><span class="p">]</span>
+
+    <span class="n">top_k_terms_pct</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">]</span>
+    <span class="n">top_k_trigrams_pct</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">]</span>
+    <span class="n">top_k_fourgrams_pct</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">]</span>
+
+    <span class="c1"># matching_strategy = [</span>
+    <span class="c1">#     {1: [&#39;within&#39;, [&#39;named&#39;, 20000], [&#39;avg_lgm_sim_dl&#39;, 0.5, None]],</span>
+    <span class="c1">#      2: [&#39;within&#39;, [&#39;unnamed&#39;, 10000], [None, None, None]],</span>
+    <span class="c1">#      3: [&#39;nearby&#39;, [&#39;named&#39;, 20000], [&#39;lgm_sim_jw&#39;, 0.5, 50]],</span>
+    <span class="c1">#      4: [&#39;nearby&#39;, [&#39;unnamed&#39;, 10000], [None, None, 50]]}</span>
+    <span class="c1"># ]</span>
+
+    <span class="n">n_folds</span> <span class="o">=</span> <span class="mi">5</span>
+
+    <span class="n">supported_classifiers</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Baseline&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Naive Bayes&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Gaussian Process&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;AdaBoost&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Nearest Neighbors&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Logistic Regression&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;SVM&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;MLP&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Decision Tree&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Random Forest&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Extra Trees&#39;</span>
+    <span class="p">]</span>
+
+    <span class="n">included_classifiers</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Baseline&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Naive Bayes&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;Gaussian Process&#39;,</span>
+        <span class="c1"># &#39;AdaBoost&#39;,</span>
+        <span class="s1">&#39;Nearest Neighbors&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Logistic Regression&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;SVM&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;MLP&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Decision Tree&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Random Forest&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Extra Trees&#39;</span>
+    <span class="p">]</span>
+
+    <span class="n">NaiveBayes_hyperparameters</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">GaussianProcess_hyperparameters</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">AdaBoost_hyperparameters</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">kNN_hyperparameters</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;n_neighbors&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]}</span>
+
+    <span class="n">LogisticRegression_hyperparameters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;max_iter&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">500</span><span class="p">],</span>
+        <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">]}</span>
+
+    <span class="n">SVM_hyperparameters</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;kernel&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;rbf&#39;</span><span class="p">],</span> <span class="s1">&#39;gamma&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">],</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">]},</span>
+        <span class="p">{</span><span class="s1">&#39;kernel&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;poly&#39;</span><span class="p">],</span> <span class="s1">&#39;degree&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">]},</span>
+    <span class="p">]</span>
+
+    <span class="n">MLP_hyperparameters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;hidden_layer_sizes&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">100</span><span class="p">,</span> <span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="p">)],</span>
+        <span class="s1">&#39;learning_rate_init&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0001</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span>
+        <span class="s1">&#39;max_iter&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">500</span><span class="p">]}</span>
+
+    <span class="n">DecisionTree_hyperparameters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;max_depth&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span>
+        <span class="s1">&#39;min_samples_split&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]}</span>
+
+    <span class="n">RandomForest_hyperparameters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;max_depth&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="s1">&#39;n_estimators&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">250</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]}</span>
+
+    <span class="n">top_k</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+    <span class="n">k_preds</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">osm_crs</span> <span class="o">=</span> <span class="mi">4326</span>
+
+    <span class="c1"># # Marousi</span>
+    <span class="c1"># id_col = &#39;poi_id&#39;</span>
+    <span class="c1"># name_col = &#39;name&#39;</span>
+    <span class="c1"># label_col = &#39;class_name&#39;</span>
+    <span class="c1"># lon_col = &#39;x&#39;</span>
+    <span class="c1"># lat_col = &#39;y&#39;</span>
+    <span class="c1"># poi_crs = 2100</span>
+
+    <span class="c1"># Yelp</span>
+    <span class="n">id_col</span> <span class="o">=</span> <span class="s1">&#39;business_id&#39;</span>
+    <span class="n">name_col</span> <span class="o">=</span> <span class="s1">&#39;name&#39;</span>
+    <span class="n">label_col</span> <span class="o">=</span> <span class="s1">&#39;category&#39;</span>
+    <span class="n">lon_col</span> <span class="o">=</span> <span class="s1">&#39;longitude&#39;</span>
+    <span class="n">lat_col</span> <span class="o">=</span> <span class="s1">&#39;latitude&#39;</span>
+    <span class="n">poi_crs</span> <span class="o">=</span> <span class="mi">4326</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

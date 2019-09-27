@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>textual_features &mdash; LGM-Classification  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> LGM-Classification
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adjacency_features.html">Adjacency features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../textual_features.html">Textual features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features_utilities.html">Features utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../clf_utilities.html">Classifiers utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../osm_utilities.html">OSM utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writers.html">Writers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LGM-Classification</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>textual_features</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for textual_features</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">whoosh.fields</span> <span class="k">import</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">TEXT</span><span class="p">,</span> <span class="n">STORED</span>
+<span class="kn">from</span> <span class="nn">whoosh</span> <span class="k">import</span> <span class="n">index</span><span class="p">,</span> <span class="n">qparser</span><span class="p">,</span> <span class="n">scoring</span>
+<span class="kn">from</span> <span class="nn">whoosh.analysis</span> <span class="k">import</span> <span class="n">StemmingAnalyzer</span>
+
+<span class="kn">import</span> <span class="nn">features_utilities</span> <span class="k">as</span> <span class="nn">feat_ut</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="k">import</span> <span class="n">config</span>
+
+
+<div class="viewcode-block" id="create_textual_index"><a class="viewcode-back" href="../textual_features.html#textual_features.create_textual_index">[docs]</a><span class="k">def</span> <span class="nf">create_textual_index</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates index containing the pois names given.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois to be stored in the \</span>
+<span class="sd">            index</span>
+<span class="sd">        path (str): Path to save the index</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="n">STORED</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">TEXT</span><span class="p">(</span><span class="n">analyzer</span><span class="o">=</span><span class="n">StemmingAnalyzer</span><span class="p">()),</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">STORED</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">ix</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">create_in</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">ix</span><span class="o">.</span><span class="n">writer</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">add_document</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">poi</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">name_col</span><span class="p">),</span>
+                            <span class="n">label</span><span class="o">=</span><span class="n">poi</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="get_similarity_per_class"><a class="viewcode-back" href="../textual_features.html#textual_features.get_similarity_per_class">[docs]</a><span class="k">def</span> <span class="nf">get_similarity_per_class</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">textual_index_path</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. For each poi *p* (each row) the array will \</span>
+<span class="sd">    contain a score in column *c*, representing how similar *p*&#39;s name is \</span>
+<span class="sd">    with each poi category.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        textual_index_path (str): Path to the stored index</span>
+<span class="sd">        nlabels (int): Number of poi categories</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), nlabels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ix</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">open_dir</span><span class="p">(</span><span class="n">textual_index_path</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="n">nlabels</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">ix</span><span class="o">.</span><span class="n">searcher</span><span class="p">(</span><span class="n">weighting</span><span class="o">=</span><span class="n">scoring</span><span class="o">.</span><span class="n">TF_IDF</span><span class="p">())</span> <span class="k">as</span> <span class="n">searcher</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">qparser</span><span class="o">.</span><span class="n">QueryParser</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">ix</span><span class="o">.</span><span class="n">schema</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">qparser</span><span class="o">.</span><span class="n">OrGroup</span><span class="p">)</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">poi</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">name_col</span><span class="p">))</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">searcher</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]]</span> <span class="o">&lt;</span> <span class="n">r</span><span class="o">.</span><span class="n">score</span><span class="p">:</span>
+                    <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">score</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="get_top_k_terms"><a class="viewcode-back" href="../textual_features.html#textual_features.get_top_k_terms">[docs]</a><span class="k">def</span> <span class="nf">get_top_k_terms</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. Firstly, the top *k* % terms among *names* are \</span>
+<span class="sd">    considered (e.g. a set of terms *T*). Then, for each poi *p* (each row) \</span>
+<span class="sd">    the array will contain 1 (True) in column *c*, if term *T[c]* appears in \</span>
+<span class="sd">    *p*&#39;s name.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        names (list): Contains the names of train pois</span>
+<span class="sd">        k (float): Percentage of top terms to be considered</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), len(*T*))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">top_k_terms</span> <span class="o">=</span> <span class="n">feat_ut</span><span class="o">.</span><span class="n">get_top_k</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;term&#39;</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_k_terms</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">t_idx</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_k_terms</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">poi</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">name_col</span><span class="p">):</span>
+                <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">t_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="get_top_k_trigrams"><a class="viewcode-back" href="../textual_features.html#textual_features.get_top_k_trigrams">[docs]</a><span class="k">def</span> <span class="nf">get_top_k_trigrams</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. Firstly, the top *k* % trigrams among *names* \</span>
+<span class="sd">    are considered (e.g. a set of trigrams *T*). Then, for each poi *p* (each \</span>
+<span class="sd">    row) the array will contain 1 (True) in column *c*, if trigram *T[c]* \</span>
+<span class="sd">    appears in *p*&#39;s name.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        names (list): Contains the names of train pois</span>
+<span class="sd">        k (float): Percentage of top trigrams to be considered</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), len(*T*))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">top_k_trigrams</span> <span class="o">=</span> <span class="n">feat_ut</span><span class="o">.</span><span class="n">get_top_k</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;trigram&#39;</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_k_trigrams</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">t_idx</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_k_trigrams</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">poi</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">name_col</span><span class="p">):</span>
+                <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">t_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="get_top_k_fourgrams"><a class="viewcode-back" href="../textual_features.html#textual_features.get_top_k_fourgrams">[docs]</a><span class="k">def</span> <span class="nf">get_top_k_fourgrams</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a features array. Firstly, the top *k* % fourgrams among *names* \</span>
+<span class="sd">    are considered (e.g. a set of fourgrams *T*). Then, for each poi *p* \</span>
+<span class="sd">    (each row) the array will contain 1 (True) in column *c*, if fourgrams \</span>
+<span class="sd">    *T[c]* appears in *p*&#39;s name.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        poi_gdf (geopandas.GeoDataFrame): Contains pois for which the \</span>
+<span class="sd">            features will be created</span>
+<span class="sd">        names (list): Contains the names of train pois</span>
+<span class="sd">        k (float): Percentage of top fourgrams to be considered</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: The features array of shape (n_samples, n_features), \</span>
+<span class="sd">            here (len(poi_gdf), len(*T*))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">top_k_fourgrams</span> <span class="o">=</span> <span class="n">feat_ut</span><span class="o">.</span><span class="n">get_top_k</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fourgram&#39;</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">poi_gdf</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_k_fourgrams</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">poi</span> <span class="ow">in</span> <span class="n">poi_gdf</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">f_idx</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_k_fourgrams</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">poi</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">name_col</span><span class="p">):</span>
+                <span class="n">X</span><span class="p">[</span><span class="n">poi</span><span class="o">.</span><span class="n">Index</span><span class="p">][</span><span class="n">f_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, kgalexis, giann
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

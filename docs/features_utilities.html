@@ -157,7 +157,7 @@
 <span id="features-utilities"></span><h1>Features utilities<a class="headerlink" href="#module-features_utilities" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="features_utilities.create_args_dict">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_args_dict</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">required_args</em>, <em class="sig-param">read_path</em>, <em class="sig-param">write_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_args_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_args_dict</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">required_args</em>, <em class="sig-param">read_path</em>, <em class="sig-param">write_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#create_args_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.create_args_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Instantiate and prepare structures required during features extraction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -180,7 +180,7 @@
 
 <dl class="function">
 <dt id="features_utilities.create_concatenated_features">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_concatenated_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">test_idxs</em>, <em class="sig-param">fold_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_concatenated_features" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_concatenated_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">test_idxs</em>, <em class="sig-param">fold_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#create_concatenated_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.create_concatenated_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads a list of included features arrays in order to concatenate them     into the final X_train and X_test arrays. Then saves these arrays as well     as the corresponding y_train and y_test arrays. Finally, writes the     included features configuration into a file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -199,7 +199,7 @@
 
 <dl class="function">
 <dt id="features_utilities.create_finetuned_features">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_finetuned_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">features_info</em>, <em class="sig-param">best_feature_params</em>, <em class="sig-param">features_path</em>, <em class="sig-param">results_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_finetuned_features" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_finetuned_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">features_info</em>, <em class="sig-param">best_feature_params</em>, <em class="sig-param">features_path</em>, <em class="sig-param">results_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#create_finetuned_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.create_finetuned_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates and saves the X_train features array for the model_training step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -222,7 +222,7 @@
 
 <dl class="function">
 <dt id="features_utilities.create_single_feature">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_single_feature</code><span class="sig-paren">(</span><em class="sig-param">f</em>, <em class="sig-param">args</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">norm</em>, <em class="sig-param">scaler</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_single_feature" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_single_feature</code><span class="sig-paren">(</span><em class="sig-param">f</em>, <em class="sig-param">args</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">norm</em>, <em class="sig-param">scaler</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#create_single_feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.create_single_feature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the features array given a feature’s name <em>f</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -246,7 +246,7 @@ sklearn.preprocessing.MinMaxScaler: The scaler utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.create_single_features">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_single_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">fold_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_single_features" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_single_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">fold_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#create_single_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.create_single_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates all the included features arrays and saves them in <em>fold_path</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -264,7 +264,7 @@ sklearn.preprocessing.MinMaxScaler: The scaler utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.create_test_args_dict">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_test_args_dict</code><span class="sig-paren">(</span><em class="sig-param">test_poi_gdf</em>, <em class="sig-param">required_args</em>, <em class="sig-param">read_path1</em>, <em class="sig-param">read_path2</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_test_args_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_test_args_dict</code><span class="sig-paren">(</span><em class="sig-param">test_poi_gdf</em>, <em class="sig-param">required_args</em>, <em class="sig-param">read_path1</em>, <em class="sig-param">read_path2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#create_test_args_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.create_test_args_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Instantiate and prepare structures required during features extraction in     model_deployment step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -286,7 +286,7 @@ sklearn.preprocessing.MinMaxScaler: The scaler utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.create_test_features">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_test_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">features</em>, <em class="sig-param">features_path</em>, <em class="sig-param">model_training_path</em>, <em class="sig-param">results_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.create_test_features" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">create_test_features</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">features</em>, <em class="sig-param">features_path</em>, <em class="sig-param">model_training_path</em>, <em class="sig-param">results_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#create_test_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.create_test_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates and saves the X_test features array for the model_deployment step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -309,7 +309,7 @@ sklearn.preprocessing.MinMaxScaler: The scaler utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.encode_labels">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">encode_labels</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">encoder=None</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.encode_labels" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">encode_labels</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">encoder=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#encode_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.encode_labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encodes target column to with integer values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -330,7 +330,7 @@ sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.get_bbox_coords">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_bbox_coords</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.get_bbox_coords" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_bbox_coords</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#get_bbox_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.get_bbox_coords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a bounding box containing all <em>poi_gdf</em>’s pois.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -347,7 +347,7 @@ sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.get_pois_by_street">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_pois_by_street</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">street_gdf</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.get_pois_by_street" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_pois_by_street</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">street_gdf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#get_pois_by_street"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.get_pois_by_street" title="Permalink to this definition">¶</a></dt>
 <dd><p>Matches each poi in <em>poi_gdf</em> to its nearest street.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -367,7 +367,7 @@ sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.get_required_external_files">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_required_external_files</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">feature_sets_path</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.get_required_external_files" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_required_external_files</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">feature_sets_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#get_required_external_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.get_required_external_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if external files are required and if so, downloads them using the     Overpass API.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -384,7 +384,7 @@ sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.get_top_k">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_top_k</code><span class="sig-paren">(</span><em class="sig-param">names</em>, <em class="sig-param">k</em>, <em class="sig-param">mode='term'</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.get_top_k" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">get_top_k</code><span class="sig-paren">(</span><em class="sig-param">names</em>, <em class="sig-param">k</em>, <em class="sig-param">mode='term'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#get_top_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.get_top_k" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts the top <em>k</em> % terms or ngrams of <em>names</em>, based on <em>mode</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -405,7 +405,7 @@ sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.load_poi_gdf">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">load_poi_gdf</code><span class="sig-paren">(</span><em class="sig-param">poi_fpath</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.load_poi_gdf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">load_poi_gdf</code><span class="sig-paren">(</span><em class="sig-param">poi_fpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#load_poi_gdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.load_poi_gdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads pois in <em>poi_fpath</em> into a geopandas.GeoDataFrame and project their     geometries.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -419,7 +419,7 @@ sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.load_street_gdf">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">load_street_gdf</code><span class="sig-paren">(</span><em class="sig-param">street_fpath</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.load_street_gdf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">load_street_gdf</code><span class="sig-paren">(</span><em class="sig-param">street_fpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#load_street_gdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.load_street_gdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads streets in <em>street_fpath</em> into a geopandas.GeoDataFrame and project     their geometries.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -433,7 +433,7 @@ sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.ngrams">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">ngrams</code><span class="sig-paren">(</span><em class="sig-param">n</em>, <em class="sig-param">word</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.ngrams" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">ngrams</code><span class="sig-paren">(</span><em class="sig-param">n</em>, <em class="sig-param">word</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#ngrams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.ngrams" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generator of all <em>n</em>-grams of <em>word</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -450,7 +450,7 @@ sklearn.preprocessing.LabelEncoder: The label encoder utilized</p>
 
 <dl class="function">
 <dt id="features_utilities.normalize_features">
-<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">normalize_features</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">scaler=None</em><span class="sig-paren">)</span><a class="headerlink" href="#features_utilities.normalize_features" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">features_utilities.</code><code class="sig-name descname">normalize_features</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">train_idxs</em>, <em class="sig-param">scaler=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/features_utilities.html#normalize_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#features_utilities.normalize_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalize features to [0, 1].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

@@ -157,7 +157,7 @@
 <span id="adjacency-features"></span><h1>Adjacency features<a class="headerlink" href="#module-adjacency_features" title="Permalink to this headline">¶</a></h1>
 <dl class="function">
 <dt id="adjacency_features.create_poi_index">
-<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">create_poi_index</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#adjacency_features.create_poi_index" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">create_poi_index</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/adjacency_features.html#create_poi_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#adjacency_features.create_poi_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates spatial index containing the pois given.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -174,7 +174,7 @@
 
 <dl class="function">
 <dt id="adjacency_features.get_classes_in_neighbors_bln">
-<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_neighbors_bln</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">poi_index_path</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="headerlink" href="#adjacency_features.get_classes_in_neighbors_bln" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_neighbors_bln</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">poi_index_path</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/adjacency_features.html#get_classes_in_neighbors_bln"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#adjacency_features.get_classes_in_neighbors_bln" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a features array. For each poi <em>p</em> (each row) the array will     contain 1 (True) in column <em>c</em>, if there is at least one poi of category     <em>c</em> among the <em>k</em> nearest neighbors of <em>p</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -197,7 +197,7 @@
 
 <dl class="function">
 <dt id="adjacency_features.get_classes_in_neighbors_cnt">
-<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_neighbors_cnt</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">poi_index_path</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="headerlink" href="#adjacency_features.get_classes_in_neighbors_cnt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_neighbors_cnt</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">poi_index_path</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/adjacency_features.html#get_classes_in_neighbors_cnt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#adjacency_features.get_classes_in_neighbors_cnt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a features array. For each poi <em>p</em> (each row) the array will     contain an integer in column <em>c</em>, representing the number of pois of     category <em>c</em> among the <em>k</em> nearest neighbors of <em>p</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -220,7 +220,7 @@
 
 <dl class="function">
 <dt id="adjacency_features.get_classes_in_radius_bln">
-<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_radius_bln</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">poi_index_path</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">thr</em><span class="sig-paren">)</span><a class="headerlink" href="#adjacency_features.get_classes_in_radius_bln" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_radius_bln</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">poi_index_path</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">thr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/adjacency_features.html#get_classes_in_radius_bln"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#adjacency_features.get_classes_in_radius_bln" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a features array. For each poi <em>p</em> (each row) the array will
 contain 1 (True) in column <em>c</em>, if there is at least one poi of category <em>c</em>
 inside <em>p</em>’s defined radius.</p>
@@ -245,7 +245,7 @@ inside <em>p</em>’s defined radius.</p>
 
 <dl class="function">
 <dt id="adjacency_features.get_classes_in_radius_cnt">
-<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_radius_cnt</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">poi_index_path</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">thr</em><span class="sig-paren">)</span><a class="headerlink" href="#adjacency_features.get_classes_in_radius_cnt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_radius_cnt</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">poi_index_path</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">thr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/adjacency_features.html#get_classes_in_radius_cnt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#adjacency_features.get_classes_in_radius_cnt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a features array. For each poi <em>p</em> (each row) the array will
 contain an integer in column <em>c</em>, representing the number of pois of
 category <em>c</em> inside <em>p</em>’s defined radius.</p>
@@ -270,7 +270,7 @@ category <em>c</em> inside <em>p</em>’s defined radius.</p>
 
 <dl class="function">
 <dt id="adjacency_features.get_classes_in_street_and_radius_bln">
-<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_street_and_radius_bln</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">street_gdf</em>, <em class="sig-param">pois_by_street</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">geometry_map</em>, <em class="sig-param">thr</em><span class="sig-paren">)</span><a class="headerlink" href="#adjacency_features.get_classes_in_street_and_radius_bln" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_street_and_radius_bln</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">street_gdf</em>, <em class="sig-param">pois_by_street</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">geometry_map</em>, <em class="sig-param">thr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/adjacency_features.html#get_classes_in_street_and_radius_bln"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#adjacency_features.get_classes_in_street_and_radius_bln" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a features array. For each poi <em>p</em>, the nearest street to <em>p</em> is     identified and the pois of this street are kept. These pois are then     filtered and only those which are inside <em>p</em>’s defined radius are     considered (e.g. a set of pois <em>P</em>). Finally, for each poi <em>p</em> (each row)     the array will contain 1 (True) in column <em>c</em>, if there is at least one     poi of category <em>c</em> among pois in <em>P</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -295,7 +295,7 @@ category <em>c</em> inside <em>p</em>’s defined radius.</p>
 
 <dl class="function">
 <dt id="adjacency_features.get_classes_in_street_and_radius_cnt">
-<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_street_and_radius_cnt</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">street_gdf</em>, <em class="sig-param">pois_by_street</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">geometry_map</em>, <em class="sig-param">thr</em><span class="sig-paren">)</span><a class="headerlink" href="#adjacency_features.get_classes_in_street_and_radius_cnt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">adjacency_features.</code><code class="sig-name descname">get_classes_in_street_and_radius_cnt</code><span class="sig-paren">(</span><em class="sig-param">poi_gdf</em>, <em class="sig-param">street_gdf</em>, <em class="sig-param">pois_by_street</em>, <em class="sig-param">nlabels</em>, <em class="sig-param">label_map</em>, <em class="sig-param">geometry_map</em>, <em class="sig-param">thr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/adjacency_features.html#get_classes_in_street_and_radius_cnt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#adjacency_features.get_classes_in_street_and_radius_cnt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a features array. For each poi <em>p</em>, the nearest street to <em>p</em> is     identified and the pois of this street are kept. These pois are then     filtered and only those which are inside <em>p</em>’s defined radius are     considered (e.g. a set of pois <em>P</em>). Finally, for each poi <em>p</em> (each row)     the array will contain an integer in column <em>c</em>, representing the number     of pois of category <em>c</em> among pois in <em>P</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
