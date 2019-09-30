@@ -266,8 +266,10 @@
 <span class="sd">            encoder to be utilized</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        geopandas.GeoDataFrame: The GeoDataFrame with the encoded column</span>
-<span class="sd">        sklearn.preprocessing.LabelEncoder: The label encoder utilized</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            geopandas.GeoDataFrame: The GeoDataFrame with the encoded column</span>
+
+<span class="sd">            sklearn.preprocessing.LabelEncoder: The label encoder utilized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">encoder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">encoder</span> <span class="o">=</span> <span class="n">LabelEncoder</span><span class="p">()</span>
@@ -393,8 +395,10 @@
 <span class="sd">            utilized</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        numpy.ndarray: The normalized features array</span>
-<span class="sd">        sklearn.preprocessing.MinMaxScaler: The scaler utilized</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            numpy.ndarray: The normalized features array</span>
+
+<span class="sd">            sklearn.preprocessing.MinMaxScaler: The scaler utilized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">scaler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">()</span>
@@ -487,8 +491,10 @@
 <span class="sd">        scaler (sklearn.preprocessing.MinMaxScaler): The scaler to be utilized</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        numpy.ndarray: The features array of feature *f*</span>
-<span class="sd">        sklearn.preprocessing.MinMaxScaler: The scaler utilized</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            numpy.ndarray: The features array of feature *f*</span>
+
+<span class="sd">            sklearn.preprocessing.MinMaxScaler: The scaler utilized</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">X</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">feature_module_map</span><span class="p">[</span><span class="n">f</span><span class="p">],</span> <span class="n">features_getter_map</span><span class="p">[</span><span class="n">f</span><span class="p">])(</span>
         <span class="o">*</span><span class="p">[</span><span class="n">args</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">features_getter_args_map</span><span class="p">[</span><span class="n">f</span><span class="p">]])</span>

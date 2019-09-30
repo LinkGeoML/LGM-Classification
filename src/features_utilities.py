@@ -114,8 +114,10 @@ def encode_labels(poi_gdf, encoder=None):
             encoder to be utilized
 
     Returns:
-        geopandas.GeoDataFrame: The GeoDataFrame with the encoded column
-        sklearn.preprocessing.LabelEncoder: The label encoder utilized
+        tuple:
+            geopandas.GeoDataFrame: The GeoDataFrame with the encoded column
+
+            sklearn.preprocessing.LabelEncoder: The label encoder utilized
     """
     if encoder is None:
         encoder = LabelEncoder()
@@ -241,8 +243,10 @@ def normalize_features(X, train_idxs, scaler=None):
             utilized
 
     Returns:
-        numpy.ndarray: The normalized features array
-        sklearn.preprocessing.MinMaxScaler: The scaler utilized
+        tuple:
+            numpy.ndarray: The normalized features array
+
+            sklearn.preprocessing.MinMaxScaler: The scaler utilized
     """
     if scaler is None:
         scaler = MinMaxScaler()
@@ -335,8 +339,10 @@ def create_single_feature(f, args, train_idxs, norm, scaler):
         scaler (sklearn.preprocessing.MinMaxScaler): The scaler to be utilized
 
     Returns:
-        numpy.ndarray: The features array of feature *f*
-        sklearn.preprocessing.MinMaxScaler: The scaler utilized
+        tuple:
+            numpy.ndarray: The features array of feature *f*
+
+            sklearn.preprocessing.MinMaxScaler: The scaler utilized
     """
     X = getattr(feature_module_map[f], features_getter_map[f])(
         *[args[arg] for arg in features_getter_args_map[f]])
