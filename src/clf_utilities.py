@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 import numpy as np
 import os
 import itertools
@@ -76,7 +79,7 @@ def train_classifier(clf_name, X_train, y_train):
     """
     clf = clf_callable_map[clf_name]
     params = clf_hyperparams_map[clf_name]
-    clf = GridSearchCV(clf, params, cv=4, scoring='f1_weighted', n_jobs=-1)
+    clf = GridSearchCV(clf, params, cv=4, scoring='f1_weighted', n_jobs=-1, iid=True)
     clf.fit(X_train, y_train)
     return clf
 

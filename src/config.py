@@ -63,9 +63,9 @@ class config:
         poi_crs (int): The EPSG crs code used in the pois csv file
     """
 
-    poi_fpath = '/media/disk/LGM-Classification-utils/data/toronto/yelp_toronto_train.csv'
+    poi_fpath = 'path/to/csv/containing/train/pois'
 
-    experiments_path = '/media/disk/LGM-Classification-utils/experiments'
+    experiments_path = 'path/to/folder/holding/experiments'
 
     supported_adjacency_features = [
         'classes_in_radius_bln', 'classes_in_radius_cnt',
