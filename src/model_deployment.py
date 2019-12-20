@@ -8,6 +8,7 @@ import time
 import features_utilities as feat_ut
 import clf_utilities as clf_ut
 import writers as wrtrs
+from ast import literal_eval
 
 
 def main():
@@ -46,7 +47,14 @@ def main():
     path = model_training_path + '/features_config.csv'
     features = pd.read_csv(path).values.tolist()
 
+    model_selection_path = args['experiment_path'] + 'model_selection_results'
+    path = model_selection_path + '/results_by_clf_params.csv'
+    features_selected = literal_eval(pd.read_csv(path, nrows=1).iloc[0, 10])
+
     X_test = feat_ut.create_test_features(poi_gdf, features, features_path, model_training_path, results_path)
+    if features_selected:
+        X_test = X_test[:, features_selected]
+
     model = pickle.load(open(model_training_path + '/model.pkl', 'rb'))
 
     k_preds = clf_ut.get_top_k_predictions(model, X_test)

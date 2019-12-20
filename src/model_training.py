@@ -46,6 +46,9 @@ def main():
     path = model_selection_path + '/results_by_feature_and_clf_params.csv'
     best_config = list(pd.read_csv(path, skiprows=1, nrows=1))
 
+    path = model_selection_path + '/results_by_feature_and_clf_params.csv'
+    features_selected = literal_eval(pd.read_csv(path, nrows=1).iloc[0,10])
+
     nbest_feature_set = int(best_config[0].split('_')[-1].split('.')[0])
     best_clf_params = literal_eval(best_config[1])
 
@@ -60,6 +63,10 @@ def main():
     features_info = pd.read_csv(path)[['Feature', 'Normalized']].values.tolist()
 
     X_train = feat_ut.create_finetuned_features(poi_gdf, features_info, best_feature_params, features_path, results_path)
+    if features_selected:
+        X_train = X_train[:, features_selected]
+
+    print(X_train.shape[1])
     y_train = list(poi_gdf['label'])
 
     model = clf_ut.clf_callable_map[clf_name].set_params(**best_clf_params)

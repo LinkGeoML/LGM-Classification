@@ -5,6 +5,9 @@ import csv
 import features_utilities as feat_ut
 import clf_utilities as clf_ut
 from config import config
+import itertools as it
+from collections import Counter
+from operator import itemgetter
 
 
 def write_feature_params_info(fpath, params_names, params_vals):
@@ -164,15 +167,16 @@ def write_finetuning_results(results_path, results_dict):
     all_results_df = pd.DataFrame(results_dict)
     all_results_df.to_csv(
         results_path + '/all_results.csv',
-        columns=['fold', 'feature_set', 'clf_params',
+        columns=['fold', 'feature_set', 'clf_params', 'feature_col'
                  'top_1_accuracy', 'top_5_accuracy', 'top_10_accuracy',
                  'f1_macro', 'f1_micro', 'f1_weighted',
                  'precision_weighted', 'recall_weighted'],
         index=False)
 
     avg_results_df = all_results_df.groupby(['feature_set', 'clf_params']).mean()
+    avg_results_df = write_best_features_params(results_dict, avg_results_df)
     avg_results_df = avg_results_df.drop('fold', 1)
-    avg_results_df.sort_values(by=['f1_weighted'], ascending=False).to_csv(results_path + '/results_by_feature_and_clf_params.csv')
+    avg_results_df.sort_values(by=['f1_weighted'], ascending=False).to_csv(results_path +'/results_by_feature_and_clf_params.csv', index=False)
     return
 
 
@@ -208,3 +212,23 @@ def write_predictions(fpath, poi_gdf, k_preds):
                 ]
             ])
     return
+
+
+def write_best_features_params(results, avg_df):
+
+    results_df = pd.DataFrame(results)
+    grouped = results_df.groupby(['feature_set', 'clf_params'])['feature_col']\
+        .apply(lambda x: list(it.chain(*x))).reset_index()
+    min_features = results_df.groupby(['feature_set', 'clf_params'])['feature_col']\
+        .apply(lambda x: min(map(len, x))).reset_index()
+    min_features = dict(zip(zip(min_features.feature_set, min_features.clf_params), min_features.feature_col))
+    grouped['feature_count'] = grouped['feature_col'].apply(lambda x: Counter(x))
+    feat_fold = dict(zip(zip(grouped.feature_set, grouped.clf_params), grouped.feature_count))
+    best_feat = {k: [i[0] for i in v.most_common(min_features[k])] for k, v in feat_fold.items()}
+    best_feat_df = pd.DataFrame(data=list(best_feat.items()), columns=['feature_set_clf_params', 'feature_col'])
+    best_feat_df[['feature_set', 'clf_params']] = pd.DataFrame(best_feat_df['feature_set_clf_params'].values.tolist(),
+                                                               index=best_feat_df.index)
+    best_feat_df = best_feat_df.drop('feature_set_clf_params', axis=1)
+    avg_df = pd.merge(avg_df, best_feat_df, on=['feature_set', 'clf_params'])
+    return avg_df
+

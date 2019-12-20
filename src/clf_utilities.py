@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import itertools
+import feature_selection as fs
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
@@ -11,10 +12,14 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.feature_selection import chi2, VarianceThreshold, SelectFromModel, SelectKBest, RFECV
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
 from config import config
 
+"""
+Algorithm selection mapping
+"""
 
 clf_callable_map = {
     'Naive Bayes': GaussianNB(),
@@ -40,6 +45,34 @@ clf_hyperparams_map = {
     'Random Forest': config.RandomForest_hyperparameters,
     'Extra Trees': config.RandomForest_hyperparameters}
 
+"""
+Feature selection mapping
+"""
+
+fs_callable_map = {
+    'SelectKBest': [SelectKBest(chi2), config.SelectKbest_hyperparameters],
+    'VarianceThreshold': [VarianceThreshold(1), config.VT_hyperparameters],
+    'RFE': ['RFE', {}],
+    'SelectFromModel': ['SelectFromModel', config.SelectFromModel_hyperparameters],
+    # 'PCA': ['PCA']
+}
+
+feature_selection_getter_map = {
+    'SelectKBest': 'get_stats_features',
+    'VarianceThreshold': 'get_stats_features',
+    'RFE': 'get_RFE_features',
+    'SelectFromModel': 'get_SFM_features',
+    # 'PCA': 'get_PCA_features'
+}
+
+feature_selection_getter_args_map = {
+    'SelectKBest': ('fs_name', 'fsm', 'clf', 'params', 'X_train', 'y_train', 'X_test'),
+    'VarianceThreshold': ('fs_name', 'fsm', 'clf', 'params', 'X_train', 'y_train', 'X_test'),
+    'RFE': ('clf', 'clf_name', 'X_train', 'y_train', 'X_test'),
+    'SelectFromModel': ('clf', 'clf_name', 'params', 'X_train', 'y_train', 'X_test'),
+    # 'PCA': ('clf', 'params', 'X_train', 'y_train', 'X_test'),
+}
+
 
 def create_feature_sets_generator(fold_path):
     """
@@ -51,15 +84,33 @@ def create_feature_sets_generator(fold_path):
     Yields:
         list: pairs of X_train, X_test features sets names
     """
-    train_sets = [f for f in os.listdir(fold_path) if f.startswith('X_train_')]
+    train_sets = [f for f in os.listdir(fold_path) if f.startswith('X_train_all')]
     train_sets = sorted(train_sets, key=lambda i: (len(i), i))
 
-    test_sets = [f for f in os.listdir(fold_path) if f.startswith('X_test_')]
+    test_sets = [f for f in os.listdir(fold_path) if f.startswith('X_test_all')]
     test_sets = sorted(test_sets, key=lambda i: (len(i), i))
 
     feature_sets = zip(train_sets, test_sets)
     for feature_set in feature_sets:
         yield feature_set
+
+
+def ft_selection(clf_name, fs_method, X_train, y_train, X_test):
+
+    print("Performing Feature Selection")
+    clf = clf_callable_map[clf_name]
+    fsm = fs_callable_map[fs_method][0]
+    params = fs_callable_map[fs_method][1]
+    args = create_ft_select_args_dict(fs_method, fsm, clf, clf_name, params, X_train, y_train, X_test)
+    X_train, y_train, X_test, feature_indices = getattr(fs, feature_selection_getter_map[fs_method])(
+        *[args[arg] for arg in feature_selection_getter_args_map[fs_method]]
+    )
+    return X_train, y_train, X_test, feature_indices
+
+
+def create_ft_select_args_dict(fs_name, fsm, clf, clf_name, params, X_train, y_train, X_test):
+
+    return locals()
 
 
 def train_classifier(clf_name, X_train, y_train):

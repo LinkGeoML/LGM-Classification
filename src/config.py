@@ -63,9 +63,9 @@ class config:
         poi_crs (int): The EPSG crs code used in the pois csv file
     """
 
-    poi_fpath = '/media/disk/LGM-Classification-utils/data/toronto/yelp_toronto_train.csv'
+    poi_fpath = 'media/disk/LGM-Classification-utils/data/marousi/marousi_pois.csv'
 
-    experiments_path = '/media/disk/LGM-Classification-utils/experiments'
+    experiments_path = 'media/disk/LGM-Classification-utils/experiments'
 
     supported_adjacency_features = [
         'classes_in_radius_bln', 'classes_in_radius_cnt',
@@ -151,12 +151,12 @@ class config:
     ]
 
     included_classifiers = [
-        'Baseline',
-        'Naive Bayes',
+        #'Baseline',
+        # 'Naive Bayes',
         # 'Gaussian Process',
         # 'AdaBoost',
-        'Nearest Neighbors',
-        'Logistic Regression',
+        # 'Nearest Neighbors',
+        #'Logistic Regression',
         'SVM',
         'MLP',
         'Decision Tree',
@@ -192,24 +192,50 @@ class config:
 
     RandomForest_hyperparameters = {
         'max_depth': [10, 100, None],
-        'n_estimators': [250, 1000]}
+        'n_estimators': [250]}
 
     top_k = [1, 5, 10]
     k_preds = 5
     osm_crs = 4326
 
-    # # Marousi
-    # id_col = 'poi_id'
-    # name_col = 'name'
-    # label_col = 'class_name'
-    # lon_col = 'x'
-    # lat_col = 'y'
-    # poi_crs = 2100
-
-    # Yelp
-    id_col = 'business_id'
+    # Marousi
+    id_col = 'poi_id'
     name_col = 'name'
-    label_col = 'category'
-    lon_col = 'longitude'
-    lat_col = 'latitude'
-    poi_crs = 4326
+    label_col = 'class_name'
+    lon_col = 'x'
+    lat_col = 'y'
+    poi_crs = 2100
+
+    # # Yelp
+    # id_col = 'business_id'
+    # name_col = 'name'
+    # label_col = 'category'
+    # lon_col = 'longitude'
+    # lat_col = 'latitude'
+    # poi_crs = 4326
+    """
+    Feature selection methods and hyperparameters
+    """
+
+    SelectKbest_hyperparameters = {
+        'selection__k': [.9, .8, .7]
+    }
+
+    VT_hyperparameters = [
+        {
+            'selection__threshold': [0.009, 0.01, 0.02]
+        }
+    ]
+
+    SelectFromModel_hyperparameters = [
+        {
+            'selection__threshold': [0.003, '0.5*median', '0.1*median']
+        }
+    ]
+
+    """
+    PCA_hyperparameters = [
+        {
+            'selection__n_components': [.9, .8, .7]
+        }
+    ]"""
