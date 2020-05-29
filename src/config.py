@@ -63,7 +63,7 @@ class config:
         poi_crs (int): The EPSG crs code used in the pois csv file
     """
 
-    poi_fpath = 'path/to/csv/containing/train/pois'
+    poi_fpath = 'path/to/csv/containing/train/pois'  #This is redundant
 
     experiments_path = 'path/to/folder/holding/experiments'
 
