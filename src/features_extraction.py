@@ -1,4 +1,5 @@
 import os
+import argparse
 import datetime
 import pickle
 import time
@@ -19,6 +20,11 @@ def main():
     Returns:
         None
     """
+    # Construct argument parser and parse argument
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-poi_fpath', required=True)
+    args = vars(ap.parse_args())
+
     # Create folder to store experiment
     date_time = datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
     exp_path = config.experiments_path + '/exp_' + date_time
@@ -30,7 +36,7 @@ def main():
     wrtrs.write_feature_space(results_path + '/feature_space.csv')
 
     # Load pois
-    poi_gdf = feat_ut.load_poi_gdf(config.poi_fpath)
+    poi_gdf = feat_ut.load_poi_gdf(args['poi_fpath'])
     # Shuffle
     poi_gdf = poi_gdf.sample(frac=1).reset_index(drop=True)
     # Remove barely populated labels
