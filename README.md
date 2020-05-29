@@ -28,7 +28,9 @@ The execution of the project starts with the **Features extraction** step initia
 
 1. **Features extraction**
 
-   ```python features_extraction.py```
+   ```python features_extraction.py -poi_fpath <poi_fpath>```
+   
+   where ```<poi_fpath>``` is the path to the file containing the train pois.
 2. **Algorithm selection**
 
    ```python algorithm_selection.py -experiment_path <exp_path>```
