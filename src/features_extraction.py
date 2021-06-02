@@ -27,13 +27,13 @@ def main():
 
     # Create folder to store experiment
     date_time = datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-    exp_path = config.experiments_path + '/exp_' + date_time
+    exp_path = os.path.join(config.experiments_path, 'exp_' + date_time)
     os.makedirs(exp_path)
 
     # Create folder to store feature extraction results
-    results_path = exp_path + '/features_extraction_results'
+    results_path = os.path.join(exp_path, 'features_extraction_results')
     os.makedirs(results_path)
-    wrtrs.write_feature_space(results_path + '/feature_space.csv')
+    wrtrs.write_feature_space(os.path.join(results_path, 'feature_space.csv'))
 
     # Load pois
     poi_gdf = feat_ut.load_poi_gdf(args['poi_fpath'])
@@ -43,8 +43,8 @@ def main():
     # poi_gdf = poi_gdf.groupby(config.label_col).filter(lambda x: len(x) >= config.n_folds).reset_index(drop=True)
 
     poi_gdf, encoder = feat_ut.encode_labels(poi_gdf)
-    poi_gdf.to_csv(results_path + '/train_poi_gdf.csv', index=False)
-    pickle.dump(encoder, open(results_path + '/encoder.pkl', 'wb'))
+    poi_gdf.to_csv(os.path.join(results_path, 'train_poi_gdf.csv'), index=False)
+    pickle.dump(encoder, open(os.path.join(results_path, 'encoder.pkl'), 'wb'))
     poi_ids = list(poi_gdf[config.id_col])
     poi_labels = list(poi_gdf['label'])
 
@@ -56,7 +56,7 @@ def main():
     t1 = time.time()
     for train_idxs, test_idxs in skf.split(poi_ids, poi_labels):
         print('Fold:', fold)
-        fold_path = results_path + '/fold_' + str(fold)
+        fold_path = os.path.join(results_path, 'fold_' + str(fold))
         os.makedirs(fold_path)
 
         feat_ut.create_single_features(poi_gdf, train_idxs, fold_path)
