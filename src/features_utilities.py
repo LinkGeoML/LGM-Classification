@@ -310,7 +310,7 @@ def create_args_dict(poi_gdf, train_idxs, required_args, read_path, write_path):
     if 'label_map' in required_args:
         args['label_map'] = poi_gdf.iloc[train_idxs]['label'].values.tolist()
     if 'geometry_map' in required_args:
-        args['geometry_map'] = poi_gdf.iloc[train_idxs]['geometry'].values.tolist()
+        args['geometry_map'] = list(poi_gdf.iloc[train_idxs]['geometry'].values)
     if 'poi_index_path' in required_args:
         args['poi_index_path'] = write_path + '/poi_index.pkl'
         af.create_poi_index(poi_gdf.iloc[train_idxs].reset_index(), args['poi_index_path'])
@@ -492,7 +492,7 @@ def create_test_args_dict(test_poi_gdf, required_args, read_path1, read_path2):
     if 'label_map' in required_args:
         args['label_map'] = train_poi_gdf['label'].values.tolist()
     if 'geometry_map' in required_args:
-        args['geometry_map'] = train_poi_gdf['geometry'].values.tolist()
+        args['geometry_map'] = list(train_poi_gdf['geometry'].values)
     if 'poi_index_path' in required_args:
         args['poi_index_path'] = read_path2 + '/poi_index.pkl'
     if 'street_gdf' in required_args:
